@@ -179,12 +179,13 @@ export default function InvoicePage() {
       <div className="flex justify-end">
         <div className="flex flex-col items-center">
           <p className="text-black font-medium text-xs sm:text-sm mb-2">Hormat Kami,</p>
-          <div className="w-24 h-16 sm:w-32 sm:h-20 relative mb-2">
+          <div className="w-40 h-20 sm:w-48 sm:h-24 relative mb-2 mix-blend-multiply">
             <Image 
               src="/images/ttd.png" 
               alt="Tanda Tangan" 
               fill 
-              className="object-contain opacity-80 mix-blend-multiply" 
+              sizes="(max-width: 640px) 160px, 192px"
+              className="object-contain" 
             />
           </div>
           <div className="border-t border-black pt-1 w-40 sm:w-56 text-center">
