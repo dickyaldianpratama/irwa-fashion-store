@@ -166,7 +166,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div className="w-full lg:w-[55%] xl:w-[50%] flex flex-col min-w-0">
-          <div className="mb-6">
+          <div className="mb-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-3">
               {product.nama}
             </h1>
@@ -201,9 +201,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          <hr className="border-gray-100 mt-2 mb-3" />
+          <hr className="border-gray-100 mt-1 mb-2" />
 
-          <div className="space-y-5 mb-6">
+          <div className="space-y-4 mb-5">
             {colorsForSwatch.length > 0 && (
               <ColorSwatch 
                 colors={colorsForSwatch} 
