@@ -40,7 +40,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
   }, [mainApi, onSelect]);
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4">
+    <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-[420px] lg:max-w-[480px] xl:max-w-[500px] mx-auto">
       {/* Main Image Slider */}
       <div className="relative bg-gray-100 rounded-card overflow-hidden group">
         <div className="overflow-hidden" ref={mainRef}>
