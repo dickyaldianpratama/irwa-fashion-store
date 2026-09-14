@@ -18,7 +18,7 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/admin");
+    redirect("/admin-login");
   }
 
   const dbUser = await prisma.user.findUnique({
