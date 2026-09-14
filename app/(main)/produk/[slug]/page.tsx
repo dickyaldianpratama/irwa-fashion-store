@@ -184,7 +184,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               </span>
             </div>
 
-            <div className="flex items-end gap-3 mb-2">
+            <div className="flex items-end gap-3">
               <span className="text-3xl sm:text-4xl font-bold text-gray-900">
                 {formatRupiah(product.hargaDiskon || product.hargaAsli)}
               </span>
@@ -201,7 +201,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          <hr className="border-gray-100 my-4" />
+          <hr className="border-gray-100 mt-2 mb-3" />
 
           <div className="space-y-5 mb-6">
             {colorsForSwatch.length > 0 && (
