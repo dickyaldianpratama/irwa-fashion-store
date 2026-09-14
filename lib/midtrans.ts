@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-DUMMY_KEY_DEV';
-const MIDTRANS_IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const MIDTRANS_IS_PRODUCTION = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 const MIDTRANS_API_URL = MIDTRANS_IS_PRODUCTION 
   ? 'https://app.midtrans.com/snap/v1/transactions' 
   : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
