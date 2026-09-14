@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,6 @@ export default function AdminLoginPage() {
 
       if (data?.user) {
         toast.success("Otorisasi Admin Berhasil!");
-        // Beri sedikit waktu agar toast terlihat, lalu redirect ke dashboard admin
         setTimeout(() => {
           router.push("/admin");
         }, 500);
@@ -43,7 +42,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
-      {/* Background glow effects */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="w-full max-w-md relative z-10">
@@ -82,7 +80,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-slate-950/50 border border-slate-800 text-white placeholder-slate-600 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 />
               </div>
             </div>
@@ -98,7 +96,7 @@ export default function AdminLoginPage() {
         </form>
 
         <p className="text-center text-slate-600 text-xs mt-8">
-          © {new Date().getFullYear()} Irwa Fashion House. Restricted Access.
+          (C) 2026 Irwa Fashion House. Restricted Access.
         </p>
       </div>
     </div>
