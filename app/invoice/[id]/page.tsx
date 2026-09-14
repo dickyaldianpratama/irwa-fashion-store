@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 
@@ -16,10 +16,6 @@ export default function InvoicePage() {
         if (res.ok) {
           const { data } = await res.json();
           setOrder(data);
-          // Tunggu render & load gambar selesai baru diprint
-          setTimeout(() => {
-            window.print();
-          }, 800);
         } else {
           setError(true);
         }
@@ -39,8 +35,7 @@ export default function InvoicePage() {
   const grandTotal = order.totalHarga;
   const diskon = (subtotal + totalPengiriman + totalAlterasi) - grandTotal;
 
-  // Format tanggal (contoh: "Senin, 28 Maret 2022")
-  const orderDate = new Date(); // Fallback jika tidak ada
+  const orderDate = new Date();
   const formattedDate = order.tanggal || orderDate.toLocaleDateString("id-ID", {
     weekday: "long",
     day: "numeric",
@@ -49,24 +44,33 @@ export default function InvoicePage() {
   });
 
   return (
-    <div className="max-w-[800px] mx-auto p-12 bg-white text-black font-sans print-container">
+    <div className="max-w-[800px] mx-auto p-4 sm:p-8 md:p-12 bg-white text-black font-sans print-container overflow-hidden">
+      
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-[40px] font-black uppercase tracking-widest leading-none">INVOICE</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-6 sm:gap-0">
+        <div className="relative inline-block w-full sm:w-auto text-center sm:text-left">
+          <h1 className="text-3xl sm:text-[40px] font-black uppercase tracking-widest leading-none">INVOICE</h1>
           <div className="w-full h-[3px] bg-black mt-2"></div>
+          
+          {/* LUNAS Stamp */}
+          {(order.status === "PAID" || order.status === "DELIVERED") && (
+            <div className="absolute -top-2 -right-4 sm:-top-4 sm:-right-24 transform rotate-12 border-4 border-green-600 text-green-600 font-black text-xl sm:text-2xl px-2 sm:px-4 py-1 rounded-lg opacity-80 print:border-black print:text-black shadow-sm bg-white/80">
+              LUNAS
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <h2 className="text-xl font-bold uppercase tracking-widest text-black">IRWA FASHION</h2>
-            <p className="text-sm font-medium text-gray-700">Fashion Terlengkap</p>
+        
+        <div className="flex flex-row-reverse sm:flex-row items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
+          <div className="text-left sm:text-right">
+            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-widest text-black">IRWA FASHION</h2>
+            <p className="text-xs sm:text-sm font-medium text-gray-700">Fashion Terlengkap</p>
           </div>
-          <div className="relative w-24 h-24 shrink-0">
+          <div className="relative w-16 h-16 sm:w-24 sm:h-24 shrink-0">
             <Image 
               src="/images/irwa-logo.png" 
               alt="Logo" 
               fill 
-              sizes="96px"
+              sizes="(max-width: 640px) 64px, 96px"
               priority
               className="object-contain scale-[1.2]"
             />
@@ -74,133 +78,132 @@ export default function InvoicePage() {
         </div>
       </div>
       
-      {/* Garis Horizontal Pembatas Header */}
       <div className="w-full h-[1px] bg-gray-400 mb-8"></div>
 
       {/* Info KEPADA, TANGGAL, NO INVOICE */}
-      <div className="flex justify-between mb-10 text-sm">
-        <div>
+      <div className="flex flex-col sm:flex-row justify-between mb-8 sm:mb-10 text-xs sm:text-sm gap-6 sm:gap-0">
+        <div className="w-full sm:w-1/2">
           <h3 className="font-bold uppercase mb-1">KEPADA :</h3>
           <p className="text-black font-bold uppercase">{order.user?.name || "Pelanggan Setia"}</p>
-          <p className="text-black whitespace-pre-wrap mt-0.5">
+          <p className="text-black whitespace-pre-wrap mt-0.5 break-words pr-4">
             {order.tipePengiriman === "PICKUP" ? "O2O PICKUP DI TOKO" : (order.alamatPengiriman || "-")}
           </p>
-          
         </div>
-        <div className="text-right">
+        <div className="w-full sm:w-1/2 text-left sm:text-right">
           <h3 className="font-bold uppercase mb-1">TANGGAL :</h3>
           <p className="text-black mb-4">{formattedDate}</p>
 
           <h3 className="font-bold uppercase mb-1">NO INVOICE :</h3>
-          <p className="text-black tracking-wider">{order.id.split("-")[0].toUpperCase()}</p>
+          <p className="text-black tracking-wider break-all">{order.id.split("-")[0].toUpperCase()}</p>
         </div>
       </div>
 
       {/* Tabel */}
-      <div className="mb-10">
-        <table className="w-full text-sm">
-          <thead>
-            <tr>
-              <th className="py-3 px-4 text-left font-bold text-black uppercase w-[45%]">KETERANGAN</th>
-              <th className="py-3 px-4 text-left font-bold text-black uppercase">HARGA</th>
-              <th className="py-3 px-4 text-center font-bold text-black uppercase">JML</th>
-              <th className="py-3 px-4 text-right font-bold text-black uppercase">TOTAL</th>
-            </tr>
-          </thead>
-          <tbody className="bg-[#f0f0f0]">
-            {order.items.map((item: any, index: number) => (
-              <tr key={item.id} className={index !== order.items.length - 1 ? "border-b border-gray-300" : ""}>
-                <td className="py-4 px-4 text-left">
-                  <p className="font-medium text-black uppercase">{item.nama}</p>
-                  <p className="text-xs text-gray-600 mt-1 uppercase">{item.warna} - {item.ukuran}</p>
-                </td>
-                <td className="py-4 px-4 text-left font-medium text-black uppercase">
-                  RP {item.harga?.toLocaleString("id-ID")}
-                </td>
-                <td className="py-4 px-4 text-center font-medium text-black">
-                  {item.qty}
-                </td>
-                <td className="py-4 px-4 text-right font-medium text-black uppercase">
-                  RP {(item.qty * item.harga)?.toLocaleString("id-ID")}
-                </td>
+      <div className="mb-8 sm:mb-10 overflow-x-auto -mx-4 sm:mx-0">
+        <div className="min-w-[500px] px-4 sm:px-0">
+          <table className="w-full text-xs sm:text-sm">
+            <thead>
+              <tr>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-left font-bold text-black uppercase w-[45%]">KETERANGAN</th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-left font-bold text-black uppercase">HARGA</th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-center font-bold text-black uppercase">JML</th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-right font-bold text-black uppercase">TOTAL</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-[#f0f0f0]">
+              {order.items.map((item: any, index: number) => (
+                <tr key={item.id} className={index !== order.items.length - 1 ? "border-b border-gray-300" : ""}>
+                  <td className="py-3 sm:py-4 px-2 sm:px-4 text-left">
+                    <p className="font-medium text-black uppercase">{item.nama}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 mt-1 uppercase">{item.warna} - {item.ukuran}</p>
+                  </td>
+                  <td className="py-3 sm:py-4 px-2 sm:px-4 text-left font-medium text-black uppercase">
+                    RP {item.harga?.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3 sm:py-4 px-2 sm:px-4 text-center font-medium text-black">
+                    {item.qty}
+                  </td>
+                  <td className="py-3 sm:py-4 px-2 sm:px-4 text-right font-medium text-black uppercase">
+                    RP {(item.qty * item.harga)?.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Summary / Pembayaran */}
-      <div className="flex justify-between text-sm mb-16">
-        <div>
+      <div className="flex flex-col-reverse sm:flex-row justify-between text-xs sm:text-sm mb-12 sm:mb-16 gap-8 sm:gap-0">
+        <div className="w-full sm:w-1/2">
           <h3 className="font-bold text-black uppercase mb-2">PEMBAYARAN :</h3>
           <p className="text-black font-bold uppercase">Metode : {order.metodePembayaran ? order.metodePembayaran.replace(/_/g, ' ') : "TRANSFER"}</p>
           <p className="text-black font-bold uppercase">Status : {order.status === 'PAID' || order.status === 'DELIVERED' ? 'LUNAS (PAID)' : order.status}</p>
         </div>
-        <div className="w-[300px]">
+        
+        <div className="w-full sm:w-[300px]">
           <div className="flex justify-between py-1 uppercase text-black font-medium">
-            <span>SUB TOTAL :</span>
+            <span>Subtotal :</span>
             <span>RP {subtotal.toLocaleString("id-ID")}</span>
           </div>
-          <div className="flex justify-between py-1 uppercase text-black font-medium">
-            <span>PENGIRIMAN :</span>
-            <span>RP {totalPengiriman.toLocaleString("id-ID")}</span>
-          </div>
+          
+          {totalPengiriman > 0 && (
+            <div className="flex justify-between py-1 uppercase text-black font-medium">
+              <span>Pengiriman :</span>
+              <span>RP {totalPengiriman.toLocaleString("id-ID")}</span>
+            </div>
+          )}
+
           {totalAlterasi > 0 && (
             <div className="flex justify-between py-1 uppercase text-black font-medium">
-              <span>ALTERASI :</span>
+              <span>Alterasi :</span>
               <span>RP {totalAlterasi.toLocaleString("id-ID")}</span>
             </div>
           )}
+
           {diskon > 0 && (
-            <div className="flex justify-between py-1 uppercase text-black font-medium">
-              <span>DISKON VOUCHER :</span>
-              <span>-RP {diskon.toLocaleString("id-ID")}</span>
+            <div className="flex justify-between py-1 uppercase text-red-600 font-medium">
+              <span>Diskon :</span>
+              <span>- RP {diskon.toLocaleString("id-ID")}</span>
             </div>
           )}
-          <div className="flex justify-between items-center py-2 mt-2 uppercase text-black font-bold border-t border-black">
+          
+          <div className="flex justify-between items-center py-2 mt-2 uppercase text-black font-bold border-t border-black text-sm sm:text-base">
             <span>TOTAL :</span>
             <span>RP {grandTotal.toLocaleString("id-ID")}</span>
           </div>
         </div>
       </div>
 
-      {/* Footer / Tanda Tangan */}
-      <div className="flex justify-between items-end mt-16 pt-8">
-        <div className="w-1/2">
-          <h3 className="font-bold text-black uppercase text-xl leading-snug">
-            TERIMAKASIH ATAS<br />PEMBELIAN ANDA
-          </h3>
-        </div>
-        <div className="text-center flex flex-col items-center">
-          <div className="relative w-48 h-24 mb-2 mix-blend-multiply">
+      {/* Signature */}
+      <div className="flex justify-end">
+        <div className="flex flex-col items-center">
+          <p className="text-black font-medium text-xs sm:text-sm mb-2">Hormat Kami,</p>
+          <div className="w-24 h-16 sm:w-32 sm:h-20 relative mb-2">
             <Image 
               src="/images/ttd.png" 
               alt="Tanda Tangan" 
               fill 
-              sizes="192px"
-              className="object-contain"
+              className="object-contain opacity-80 mix-blend-multiply" 
             />
           </div>
-          <div className="border-t border-black pt-1 w-56 text-center">
-            <p className="font-bold text-black text-sm">Management IRWA Fashion</p>
+          <div className="border-t border-black pt-1 w-40 sm:w-56 text-center">
+            <p className="font-bold text-black text-[10px] sm:text-sm">Management IRWA Fashion</p>
           </div>
         </div>
       </div>
 
-      {/* Style khusus Print agar warna tidak hilang */}
+      {/* CSS Khusus Print */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          body { 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important; 
-            background: white !important; 
-          }
+          body { background: white; margin: 0; padding: 0; }
           nav, header, footer, .hide-on-print { display: none !important; }
           .print-container {
             border: none !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
+            max-width: 100% !important;
           }
         }
       `}} />
