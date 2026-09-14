@@ -12,6 +12,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Anda harus login untuk melakukan checkout" }, { status: 401 });
     }
 
+    
+    // SINKRONISASI USER: Pastikan user dari Supabase auth benar-benar ada di tabel public.User Prisma
+    await prisma.user.upsert({
+      where: { id: user.id },
+      update: {},
+      create: {
+        id: user.id,
+        email: user.email || "customer@example.com",
+        name: user.user_metadata?.name || user.email?.split('@')[0] || "Customer",
+        role: "CUSTOMER"
+      }
+    });
+
     const body = await request.json();
     const { items, totalHarga, tipePengiriman, pickupDetails, alterasiDetails, metodePembayaran, alamatPengiriman, voucherId } = body;
 
