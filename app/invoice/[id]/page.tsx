@@ -133,8 +133,8 @@ export default function InvoicePage() {
       <div className="flex justify-between text-sm mb-16">
         <div>
           <h3 className="font-bold text-black uppercase mb-2">PEMBAYARAN :</h3>
-          <p className="text-black">Metode : {order.metodePembayaran || "Transfer"}</p>
-          <p className="text-black">Status : {order.status}</p>
+          <p className="text-black font-bold uppercase">Metode : {order.metodePembayaran ? order.metodePembayaran.replace(/_/g, ' ') : "TRANSFER"}</p>
+          <p className="text-black font-bold uppercase">Status : {order.status === 'PAID' || order.status === 'DELIVERED' ? 'LUNAS (PAID)' : order.status}</p>
         </div>
         <div className="w-[300px]">
           <div className="flex justify-between py-1 uppercase text-black font-medium">
