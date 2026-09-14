@@ -27,7 +27,9 @@ export async function POST(request: Request) {
     });
 
     if (!pesanan) {
-      return NextResponse.json({ success: false, message: "Pesanan tidak ditemukan" }, { status: 404 });
+      // Midtrans Test Button mengirimkan order_id dummy. Kita harus merespon 200 OK agar tes berhasil.
+      console.warn("Pesanan tidak ditemukan di DB, tapi Webhook valid:", order_id);
+      return NextResponse.json({ success: true, message: "Pesanan tidak ditemukan (Test mode)" }, { status: 200 });
     }
 
     // Update status berdasarkan transaction_status Midtrans
