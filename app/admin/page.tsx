@@ -1,4 +1,4 @@
-﻿import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { Package, ShoppingBag, Users, DollarSign, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
@@ -18,12 +18,10 @@ export default async function AdminDashboard() {
     }
   }
 
-  // Jika bukan admin, render form login (sesuai request URL tetap di /admin)
   if (!isAdmin) {
     return <AdminLoginForm />;
   }
 
-  // Jika admin, render isi dashboard statistik
   const [totalProducts, totalOrders, totalUsers, totalRevenue] = await Promise.all([
     prisma.produk.count(),
     prisma.pesanan.count(),
@@ -37,7 +35,7 @@ export default async function AdminDashboard() {
   const revenue = totalRevenue._sum?.totalHarga || 0;
 
   const stats = [
-    { title: "Total Pendapatan", value: Rp , icon: DollarSign, color: "bg-green-500", text: "text-green-500" },
+    { title: "Total Pendapatan", value: `Rp ${revenue.toLocaleString("id-ID")}`, icon: DollarSign, color: "bg-green-500", text: "text-green-500" },
     { title: "Total Pesanan", value: totalOrders.toString(), icon: ShoppingBag, color: "bg-blue-500", text: "text-blue-500" },
     { title: "Total Produk", value: totalProducts.toString(), icon: Package, color: "bg-purple-500", text: "text-purple-500" },
     { title: "Total Pelanggan", value: totalUsers.toString(), icon: Users, color: "bg-orange-500", text: "text-orange-500" },
@@ -49,7 +47,6 @@ export default async function AdminDashboard() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -60,7 +57,7 @@ export default async function AdminDashboard() {
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
                 </div>
-                <div className={w-12 h-12 rounded-lg flex items-center justify-center  bg-opacity-10 dark:bg-opacity-20}>
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stat.color} bg-opacity-10 dark:bg-opacity-20`}>
                   <Icon className={stat.text} size={24} />
                 </div>
               </div>
