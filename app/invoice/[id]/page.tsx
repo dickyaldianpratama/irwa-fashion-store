@@ -54,8 +54,13 @@ export default function InvoicePage() {
           
           {/* LUNAS Stamp */}
           {(order.status === "PAID" || order.status === "DELIVERED") && (
-            <div className="absolute -top-2 -right-4 sm:-top-4 sm:-right-24 transform rotate-12 border-4 border-green-600 text-green-600 font-black text-xl sm:text-2xl px-2 sm:px-4 py-1 rounded-lg opacity-80 print:border-black print:text-black shadow-sm bg-white/80">
-              LUNAS
+            <div className="absolute -top-6 -right-6 sm:-top-8 sm:-right-24 transform rotate-12 w-28 h-28 sm:w-40 sm:h-40 opacity-90 mix-blend-multiply pointer-events-none z-50">
+              <Image 
+                src="/images/stempel.png" 
+                alt="Stempel Lunas" 
+                fill 
+                className="object-contain" 
+              />
             </div>
           )}
         </div>
