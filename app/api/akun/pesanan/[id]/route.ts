@@ -48,7 +48,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       const midtransStatus = await checkTransactionStatus(order.id);
       if (midtransStatus) {
         const status = midtransStatus.transaction_status;
-        const method = midtransStatus.payment_type;
+        let method = midtransStatus.payment_type;
+          if (method === 'bank_transfer' && midtransStatus.va_numbers && midtransStatus.va_numbers.length > 0) {
+            method = `VA ${midtransStatus.va_numbers[0].bank.toUpperCase()}`;
+          } else if (method === 'echannel') {
+            method = 'Mandiri Bill';
+          }
         
         if (status === 'settlement' || status === 'capture') {
           order.statusPesanan = "PAID";

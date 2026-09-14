@@ -68,12 +68,17 @@ export default function DetailPesananPage() {
   if (!order) return null;
 
   // Logika UI Timeline Progress
+  const isPaid = order.statusPesanan !== "UNPAID" && order.statusPesanan !== "CANCELLED";
+  const isProcessed = ["PROCESSING", "SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(order.statusPesanan);
+  const isReady = ["SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(order.statusPesanan);
+  const isDone = order.statusPesanan === "DELIVERED";
+
   const steps = [
     { label: "Dibuat", done: true },
-    { label: "Dibayar", done: true },
-    { label: "Diproses", done: true },
-    { label: "Siap Diambil", done: order.status === "READY_FOR_PICKUP" || order.status === "DELIVERED" },
-    { label: "Selesai", done: order.status === "DELIVERED" }
+    { label: "Dibayar", done: isPaid },
+    { label: "Diproses", done: isProcessed },
+    { label: order.tipePengiriman === "PICKUP" ? "Siap Diambil" : "Dikirim", done: isReady },
+    { label: "Selesai", done: isDone }
   ];
 
   return (
@@ -93,7 +98,7 @@ export default function DetailPesananPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {order.status === "UNPAID" && order.paymentUrl && (
+          {order.statusPesanan === "UNPAID" && order.paymentUrl && (
             <a 
               href={order.paymentUrl}
               className="px-4 py-2 bg-primary text-white font-semibold rounded-lg text-sm hover:bg-primary-dark transition-colors flex items-center gap-2"
@@ -133,14 +138,14 @@ export default function DetailPesananPage() {
         </div>
 
         {/* Alert Siap Diambil (O2O Khusus) */}
-        {(order.status === "READY_FOR_PICKUP" || order.tipePengiriman === "PICKUP") && order.qrCode && (
+        {(order.statusPesanan === "READY_FOR_PICKUP" || order.tipePengiriman === "PICKUP") && order.qrCode && (
           <div className="mt-8 bg-green-50 border border-green-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
             <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center shrink-0">
               <QrCode size={32} className="text-green-600" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-green-800 text-lg">
-                {order.status === "READY_FOR_PICKUP" ? "Pesanan Siap Diambil!" : "Kode Pengambilan Tersedia"}
+                {order.statusPesanan === "READY_FOR_PICKUP" ? "Pesanan Siap Diambil!" : "Kode Pengambilan Tersedia"}
               </h3>
               <p className="text-green-700/80 text-sm mt-1">
                 Tunjukkan kode <strong>{order.qrCode}</strong> kepada kasir saat Anda tiba di toko.

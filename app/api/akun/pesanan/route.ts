@@ -45,11 +45,17 @@ export async function GET(request: Request) {
         const midtransStatus = await checkTransactionStatus(order.id);
         if (midtransStatus) {
           const status = midtransStatus.transaction_status;
+          let method = midtransStatus.payment_type;
+          if (method === 'bank_transfer' && midtransStatus.va_numbers && midtransStatus.va_numbers.length > 0) {
+            method = `VA ${midtransStatus.va_numbers[0].bank.toUpperCase()}`;
+          } else if (method === 'echannel') {
+            method = 'Mandiri Bill';
+          }
           if (status === 'settlement' || status === 'capture') {
             order.statusPesanan = "PAID";
             await prisma.pesanan.update({
               where: { id: order.id },
-              data: { statusPesanan: "PAID" }
+              data: { statusPesanan: "PAID", metodePembayaran: method }
             });
           } else if (status === 'expire' || status === 'cancel' || status === 'deny') {
             order.statusPesanan = "CANCELLED";

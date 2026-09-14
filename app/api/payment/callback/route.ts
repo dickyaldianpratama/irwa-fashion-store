@@ -32,11 +32,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: "Pesanan tidak ditemukan (Test mode)" }, { status: 200 });
     }
 
+    // Ambil info pembayaran spesifik dari Midtrans
+    let metodeReal = data.payment_type || pesanan.metodePembayaran;
+    if (metodeReal === 'bank_transfer' && data.va_numbers && data.va_numbers.length > 0) {
+      metodeReal = `VA ${data.va_numbers[0].bank.toUpperCase()}`;
+    } else if (metodeReal === 'echannel') {
+      metodeReal = 'Mandiri Bill';
+    }
+
     // Update status berdasarkan transaction_status Midtrans
     if (transaction_status === "capture" || transaction_status === "settlement") {
       await prisma.pesanan.update({
         where: { id: pesanan.id },
-        data: { statusPesanan: "PAID" }
+        data: { 
+          statusPesanan: "PAID",
+          metodePembayaran: metodeReal
+        }
       });
       console.log(`[Webhook Midtrans] Pesanan ${pesanan.id} sukses DIBAYAR!`);
     } else if (transaction_status === "cancel" || transaction_status === "deny" || transaction_status === "expire") {
