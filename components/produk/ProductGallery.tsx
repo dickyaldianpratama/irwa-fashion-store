@@ -46,7 +46,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         <div className="overflow-hidden" ref={mainRef}>
           <div className="flex touch-pan-y cursor-grab active:cursor-grabbing">
             {images.map((src, index) => (
-              <div key={index} className="relative flex-[0_0_100%] min-w-0 aspect-[4/5] sm:aspect-[3/4]">
+              <div key={index} className="relative flex-[0_0_100%] min-w-0 aspect-square max-h-[500px] lg:max-h-[600px] flex items-center justify-center bg-gray-50">
                 <Image
                   src={src}
                   alt={`Foto produk ${index + 1}`}
@@ -83,7 +83,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               key={index}
               onClick={() => onThumbClick(index)}
               className={cn(
-                "relative flex-[0_0_22%] sm:flex-[0_0_20%] min-w-0 aspect-[4/5] rounded-lg overflow-hidden border-2 transition-all",
+                "relative flex-[0_0_22%] sm:flex-[0_0_20%] min-w-0 aspect-square rounded-lg overflow-hidden border-2 transition-all",
                 selectedIndex === index ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
               )}
             >
