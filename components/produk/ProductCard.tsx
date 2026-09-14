@@ -52,7 +52,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-10">
             {product.badges.map((badge) => {
               let badgeClass = "";
-              let badgeText = badge;
+              let badgeText: string = badge;
               
               if (badge === "NEW") {
                 badgeClass = "bg-success text-white";
