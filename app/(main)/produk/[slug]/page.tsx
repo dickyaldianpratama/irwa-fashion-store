@@ -157,10 +157,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         <span className="text-gray-900 truncate min-w-0">{product.nama}</span>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative min-w-0">
+      <div className="flex flex-col md:flex-row gap-8 lg:gap-12 relative min-w-0">
         
-        <div className="w-full lg:w-[45%] xl:w-[50%] min-w-0">
-          <div className="lg:sticky lg:top-24">
+        <div className="w-full md:w-[45%] lg:w-[40%] xl:w-[40%] min-w-0">
+          <div className="md:sticky md:top-24">
             <ProductGallery images={imageUrls} />
           </div>
         </div>
