@@ -201,9 +201,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          <hr className="border-gray-100 mb-6" />
+          <hr className="border-gray-100 my-4" />
 
-          <div className="space-y-8 mb-8">
+          <div className="space-y-5 mb-6">
             {colorsForSwatch.length > 0 && (
               <ColorSwatch 
                 colors={colorsForSwatch} 
