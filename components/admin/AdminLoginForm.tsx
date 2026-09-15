@@ -41,7 +41,7 @@ export default function AdminLoginForm() {
   return (
     <div className="w-full max-w-[400px] bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
       <div className="flex justify-center mb-6">
-        <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={100} height={100} className="w-auto h-16 object-contain" />
+        <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={250} height={120} className="w-auto h-24 md:h-28 object-contain" priority />
       </div>
       
       <div className="mb-6 text-center">
