@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
+import { useTheme } from "next/themes";
 import { useEffect, useState } from "react";
 import { 
   LayoutDashboard, 
@@ -15,18 +15,49 @@ import {
   Sun, 
   Moon,
   Menu,
-  X
+  X,
+  UserCircle
 } from "lucide-react";
+import { createClient } from "@/lib/supabase";
+import { useAuthStore } from "@/store/authStore";
+import toast from "react-hot-toast";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // For mobile
+  const [isOpen, setIsOpen] = useState(false);
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const supabase = createClient();
+  const { logout } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Fetch logged in user details
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setAdminUser({
+          email: user.email,
+          name: user.user_metadata?.full_name || "Administrator"
+        });
+      }
+    };
+    fetchUser();
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      logout(); // clear zustand store
+      toast.success("Berhasil keluar dari sesi admin.");
+      // Redirect with hard reload to run server-side checks and show login form
+      window.location.href = "/admin";
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Gagal keluar.");
+    }
+  };
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -40,7 +71,7 @@ export default function AdminSidebar() {
       {/* Brand */}
       <div className="p-6 flex items-center justify-between">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-9 h-9 relative bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-sm">
+          <div className="w-9 h-9 relative bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-blue-500/20 shadow-sm">
             <Image
               src="/images/irwa-logo.png"
               alt="Logo Toko"
@@ -69,7 +100,7 @@ export default function AdminSidebar() {
               onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
                 isActive 
-                  ? "bg-primary text-white shadow-md shadow-primary/20" 
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
                   : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
@@ -80,27 +111,38 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Footer / Utilities */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+      {/* Footer / Utilities & Profile */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
         {/* Theme Toggle */}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
-        >
-          <div className="flex items-center gap-3">
-            {mounted && theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            <span>{mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-          </div>
-        </button>
-        
-        {/* Back to Store */}
-        <Link
-          href="/"
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
         >
-          <LogOut size={20} />
-          Kembali ke Toko
-        </Link>
+          {mounted && theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          <span>{mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+        </button>
+        
+        {/* Admin Profile Card */}
+        {adminUser && (
+          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+                <UserCircle size={24} />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{adminUser.name}</p>
+                <p className="text-xs text-gray-500 truncate">{adminUser.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 rounded-lg transition-colors font-medium text-sm"
+            >
+              <LogOut size={16} />
+              Keluar (Logout)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
