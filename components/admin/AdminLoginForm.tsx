@@ -39,17 +39,17 @@ export default function AdminLoginForm() {
   };
 
   return (
-    <div className="w-full max-w-[400px] bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-      <div className="flex justify-center mb-1">
+    <div className="w-full max-w-[400px] bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex justify-center mb-0 -mt-2">
         <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={400} height={180} className="w-auto h-32 md:h-40 object-contain max-w-full px-4" priority />
       </div>
       
-      <div className="mb-4 text-center">
+      <div className="mb-3 text-center">
         <h2 className="text-2xl font-bold text-gray-900">Portal Admin</h2>
         <p className="text-sm text-gray-500 mt-1">Masuk untuk mengelola toko</p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <div className="relative">
@@ -96,7 +96,7 @@ export default function AdminLoginForm() {
         <button 
           type="submit" 
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 mt-2"
+          className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-70 mt-3"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -106,7 +106,7 @@ export default function AdminLoginForm() {
         </button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+      <div className="mt-5 pt-4 border-t border-gray-100 text-center">
         <p className="text-sm text-gray-600">
           Belum punya akses?{' '}
           <Link href="/admin/register" className="font-semibold text-blue-600 hover:text-blue-700">
