@@ -48,7 +48,7 @@ export default function AdminRegisterForm() {
   return (
     <div className="w-full max-w-[400px] bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
       <div className="flex justify-center mb-6">
-        <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={250} height={120} className="w-auto h-24 md:h-28 object-contain" priority />
+        <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={400} height={180} className="w-auto h-32 md:h-40 object-contain max-w-full px-4" priority />
       </div>
 
       <div className="mb-6 text-center">
