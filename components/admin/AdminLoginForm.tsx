@@ -40,11 +40,11 @@ export default function AdminLoginForm() {
 
   return (
     <div className="w-full max-w-[400px] bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-1">
         <Image src="/images/irwa-logo.png" alt="IRWA Logo" width={400} height={180} className="w-auto h-32 md:h-40 object-contain max-w-full px-4" priority />
       </div>
       
-      <div className="mb-6 text-center">
+      <div className="mb-4 text-center">
         <h2 className="text-2xl font-bold text-gray-900">Portal Admin</h2>
         <p className="text-sm text-gray-500 mt-1">Masuk untuk mengelola toko</p>
       </div>
