@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -44,6 +45,7 @@ export async function DELETE(
       where: { id }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Error deleting product:", error);
@@ -145,6 +147,7 @@ export async function PATCH(
       }
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: updatedProduct });
   } catch (error: any) {
     console.error("Error updating product:", error);

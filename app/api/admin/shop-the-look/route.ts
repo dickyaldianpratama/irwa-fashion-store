@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -62,8 +63,10 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newLook });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

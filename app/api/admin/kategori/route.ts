@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
       include: { _count: { select: { produk: true } } }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newKategori });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -78,6 +80,7 @@ export async function PATCH(request: Request) {
       include: { _count: { select: { produk: true } } }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -103,6 +106,7 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.kategori.delete({ where: { id } });
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

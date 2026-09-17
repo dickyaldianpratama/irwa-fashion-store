@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -49,9 +50,11 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newProduct });
   } catch (error: any) {
     console.error("Error creating product:", error);
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
+

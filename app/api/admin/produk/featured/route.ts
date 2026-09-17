@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -24,8 +25,10 @@ export async function PATCH(request: Request) {
       data: { isFeatured }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

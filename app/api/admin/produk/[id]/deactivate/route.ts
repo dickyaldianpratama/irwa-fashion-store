@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -27,6 +28,7 @@ export async function POST(
       data: { stok: 0 }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, message: "Stok berhasil dikosongkan." });
   } catch (error: any) {
     console.error("Error deactivating product:", error);

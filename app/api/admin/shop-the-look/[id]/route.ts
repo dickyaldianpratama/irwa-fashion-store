@@ -1,4 +1,5 @@
 ﻿import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 
@@ -38,6 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -53,6 +55,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
     await prisma.shopTheLook.delete({ where: { id } });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
