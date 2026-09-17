@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export default function ProductTableActions({ productId, productName }: Props) {
     <div className="flex gap-2">
       <Link 
         href={`/admin/produk/${productId}/edit`}
-        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
+        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors cursor-pointer" 
         title="Edit Produk"
       >
         <Edit size={16} />
@@ -52,7 +52,7 @@ export default function ProductTableActions({ productId, productName }: Props) {
       <button 
         onClick={handleDelete}
         disabled={isDeleting}
-        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50" 
+        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" 
         title="Hapus Produk"
       >
         {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}

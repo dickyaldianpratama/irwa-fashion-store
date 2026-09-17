@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -201,7 +201,7 @@ export default function KategoriManager({ kategori }: Props) {
                       <div className="flex gap-2 mt-3">
                         <button
                           onClick={() => startEdit(item)}
-                          className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-2 rounded-lg transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
                         >
                           <Edit2 size={12} />
                           <span>Edit</span>
@@ -209,7 +209,7 @@ export default function KategoriManager({ kategori }: Props) {
                         <button
                           onClick={() => handleDelete(item)}
                           disabled={deletingId === item.id || item._count.produk > 0}
-                          className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           title={item._count.produk > 0 ? "Masih ada produk di kategori ini" : "Hapus kategori"}
                         >
                           {deletingId === item.id

@@ -4,6 +4,7 @@ import AdminTabNav from "@/components/admin/AdminTabNav";
 import FeaturedProductToggle from "@/components/admin/FeaturedProductToggle";
 
 export default async function AdminFeaturedPage() {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   const products = await prisma.produk.findMany({
     include: {
       kategori: true,
