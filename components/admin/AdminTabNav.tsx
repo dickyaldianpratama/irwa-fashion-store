@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, Grid3X3, Star, Eye } from "lucide-react";
+import { Package, Grid3X3, Star, Eye, Tags } from "lucide-react";
 
 const tabs = [
   { name: "Semua Produk", href: "/admin/produk", icon: Package },
-  { name: "Kategori Pilihan", href: "/admin/produk/kategori", icon: Grid3X3 },
-  { name: "Koleksi Terpopuler", href: "/admin/produk/featured", icon: Star },
-  { name: "Shop The Look", href: "/admin/produk/shop-the-look", icon: Eye },
+  { name: "Kategori Produk", href: "/admin/produk/kategori-produk", icon: Tags },
+  { name: "Kategori Pilihan (Home)", href: "/admin/produk/kategori", icon: Grid3X3 },
+  { name: "Koleksi Terpopuler (Home)", href: "/admin/produk/featured", icon: Star },
+  { name: "Shop The Look (Home)", href: "/admin/produk/shop-the-look", icon: Eye },
 ];
 
 export default function AdminTabNav() {
@@ -19,7 +20,7 @@ export default function AdminTabNav() {
       {tabs.map((tab) => {
         const isActive =
           tab.href === "/admin/produk"
-            ? pathname === "/admin/produk" || pathname === "/admin/produk/tambah"
+            ? pathname === "/admin/produk" || pathname === "/admin/produk/tambah" || pathname.match(/^\/admin\/produk\/[^\/]+\/edit$/)
             : pathname.startsWith(tab.href);
         const Icon = tab.icon;
         return (

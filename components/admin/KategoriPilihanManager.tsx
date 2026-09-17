@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -18,14 +18,14 @@ interface KategoriItem {
   nama: string;
   slug: string;
   image: string | null;
-  _count: { produk: number };
+  
 }
 
 interface Props {
   kategori: KategoriItem[];
 }
 
-export default function KategoriManager({ kategori }: Props) {
+export default function KategoriPilihanManager({ kategori }: Props) {
   const [items, setItems] = useState<KategoriItem[]>(kategori);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ nama: "", image: "" });
@@ -37,7 +37,7 @@ export default function KategoriManager({ kategori }: Props) {
   // Mobile: collapse card body
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // ── EDIT ──────────────────────────────────────────────
+  // â”€â”€ EDIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const startEdit = (item: KategoriItem) => {
     setEditingId(item.id);
     setExpandedId(item.id);
@@ -70,7 +70,7 @@ export default function KategoriManager({ kategori }: Props) {
     }
   };
 
-  // ── TAMBAH ────────────────────────────────────────────
+  // â”€â”€ TAMBAH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAdd = async () => {
     if (!newData.nama.trim()) { toast.error("Nama kategori wajib diisi"); return; }
     setAdding(true);
@@ -93,12 +93,9 @@ export default function KategoriManager({ kategori }: Props) {
     }
   };
 
-  // ── HAPUS ─────────────────────────────────────────────
+  // â”€â”€ HAPUS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDelete = async (item: KategoriItem) => {
-    if (item._count.produk > 0) {
-      toast.error(`Tidak bisa dihapus — masih ada ${item._count.produk} produk di kategori ini.`);
-      return;
-    }
+    
     
     const result = await MySwal.fire({
       title: 'Hapus Kategori?',
@@ -160,11 +157,11 @@ export default function KategoriManager({ kategori }: Props) {
           <p className="text-sm mt-1">Klik &quot;Tambah Kategori&quot; untuk memulai</p>
         </div>
       ) : (
-        /* ── RESPONSIVE GRID ─────────────────────────────
+        /* â”€â”€ RESPONSIVE GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            Mobile  : 1 kolom (full width, layout horizontal)
            Tablet  : 2 kolom
            Desktop : 3 kolom
-        ────────────────────────────────────────────────── */
+        â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {items.map((item) => {
             const isEditing = editingId === item.id;
@@ -175,7 +172,7 @@ export default function KategoriManager({ kategori }: Props) {
                 key={item.id}
                 className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm transition-shadow hover:shadow-md"
               >
-                {/* ─── MOBILE: Layout horizontal (gambar kiri + info kanan) ─── */}
+                {/* â”€â”€â”€ MOBILE: Layout horizontal (gambar kiri + info kanan) â”€â”€â”€ */}
                 {!isEditing && (
                   <div className="flex sm:flex-col">
                     {/* Gambar */}
@@ -203,21 +200,10 @@ export default function KategoriManager({ kategori }: Props) {
                           <p className="font-semibold text-gray-900 dark:text-white truncate">{item.nama}</p>
                           <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">/{item.slug}</p>
                         </div>
-                        <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          item._count.produk > 0
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-gray-100 text-gray-500 dark:bg-gray-800"
-                        }`}>
-                          {item._count.produk} produk
-                        </span>
+                        
                       </div>
 
-                      {item._count.produk > 0 && (
-                        <div className="hidden sm:flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg mt-2">
-                          <AlertCircle size={12} />
-                          Hapus produknya dulu sebelum bisa menghapus kategori ini
-                        </div>
-                      )}
+                      
 
                       <div className="flex gap-2 mt-3">
                         <button
@@ -229,9 +215,9 @@ export default function KategoriManager({ kategori }: Props) {
                         </button>
                         <button
                           onClick={() => handleDelete(item)}
-                          disabled={deletingId === item.id || item._count.produk > 0}
+                          disabled={deletingId === item.id}
                           className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                          title={item._count.produk > 0 ? "Masih ada produk di kategori ini" : "Hapus kategori"}
+                          title="Hapus Kategori Pilihan"
                         >
                           {deletingId === item.id
                             ? <Loader2 size={12} className="animate-spin" />
@@ -243,7 +229,7 @@ export default function KategoriManager({ kategori }: Props) {
                   </div>
                 )}
 
-                {/* ─── MODE EDIT (full card, semua device) ─── */}
+                {/* â”€â”€â”€ MODE EDIT (full card, semua device) â”€â”€â”€ */}
                 {isEditing && (
                   <div className="p-4 space-y-4">
                     <div className="flex items-center justify-between mb-1">
@@ -299,7 +285,7 @@ export default function KategoriManager({ kategori }: Props) {
         </div>
       )}
 
-      {/* ── MODAL TAMBAH KATEGORI ─── */}
+      {/* â”€â”€ MODAL TAMBAH KATEGORI â”€â”€â”€ */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           {/* Bottom sheet di mobile, modal centered di sm+ */}
@@ -381,3 +367,6 @@ export default function KategoriManager({ kategori }: Props) {
     </div>
   );
 }
+
+
+

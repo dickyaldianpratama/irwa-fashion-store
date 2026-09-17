@@ -76,6 +76,22 @@ model Kategori {
   produk    Produk[]
 }
 
+// Fitur Homepage Standalone
+model KategoriPilihan {
+  id        String   @id @default(uuid())
+  nama      String
+  slug      String   @unique
+  image     String?
+}
+
+model KoleksiTerpopuler {
+  id        String   @id @default(uuid())
+  title     String
+  image     String
+  link      String?
+  urutan    Int      @default(0)
+}
+
 model Produk {
   id            String   @id @default(uuid())
   kategoriId    String

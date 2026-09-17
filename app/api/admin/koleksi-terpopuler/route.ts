@@ -12,40 +12,18 @@ async function checkAdmin() {
   return dbUser;
 }
 
-export async function GET() {
-  try {
-    const data = await prisma.kategoriPilihan.findMany({
-      orderBy: { nama: "asc" },
-    });
-    return NextResponse.json({ data });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { nama, image } = await request.json();
-    if (!nama || !nama.trim()) {
-      return NextResponse.json({ error: "Nama kategori wajib diisi" }, { status: 400 });
+    const { title, image, link, urutan } = await request.json();
+    if (!title || !image) {
+      return NextResponse.json({ error: "Title dan image wajib diisi" }, { status: 400 });
     }
 
-    const baseSlug = nama.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
-
-    let slug = baseSlug;
-    let counter = 1;
-    while (await prisma.kategoriPilihan.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${counter++}`;
-    }
-
-    const newData = await prisma.kategoriPilihan.create({
-      data: { nama: nama.trim(), slug, image: image || null },
+    const newData = await prisma.koleksiTerpopuler.create({
+      data: { title, image, link: link || null, urutan: parseInt(urutan) || 0 },
     });
 
     revalidatePath('/', 'layout');
@@ -60,15 +38,16 @@ export async function PATCH(request: Request) {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { id, nama, image, slug } = await request.json();
+    const { id, title, image, link, urutan } = await request.json();
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
 
-    const updated = await prisma.kategoriPilihan.update({
+    const updated = await prisma.koleksiTerpopuler.update({
       where: { id },
       data: {
-        ...(nama && { nama }),
-        ...(slug && { slug }),
-        ...(image !== undefined && { image }),
+        ...(title && { title }),
+        ...(image && { image }),
+        ...(link !== undefined && { link }),
+        ...(urutan !== undefined && { urutan: parseInt(urutan) }),
       },
     });
 
@@ -87,7 +66,7 @@ export async function DELETE(request: Request) {
     const { id } = await request.json();
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
 
-    await prisma.kategoriPilihan.delete({ where: { id } });
+    await prisma.koleksiTerpopuler.delete({ where: { id } });
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (error: any) {
