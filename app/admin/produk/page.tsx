@@ -6,7 +6,7 @@ import AdminTabNav from "@/components/admin/AdminTabNav";
 import ProductTableActions from "@/components/admin/ProductTableActions";
 
 export default async function AdminProdukPage() {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 600));
   const products = await prisma.produk.findMany({
     include: {
       kategori: true,

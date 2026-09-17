@@ -4,7 +4,7 @@ import AdminTabNav from "@/components/admin/AdminTabNav";
 import KategoriManager from "@/components/admin/KategoriCard";
 
 export default async function AdminKategoriPage() {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 600));
   const kategori = await prisma.kategori.findMany({
     orderBy: { nama: "asc" },
     include: {
