@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,6 +40,17 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${inter.variable} ${poppins.variable}`} data-scroll-behavior="smooth">
       <body className="font-sans bg-white text-gray-800 antialiased overflow-x-hidden">
+        <NextTopLoader
+          color="#2563EB"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #2563EB,0 0 5px #2563EB"
+        />
         {children}
         <Toaster
           position="top-right"
