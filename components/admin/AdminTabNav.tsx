@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,7 +21,7 @@ export default function AdminTabNav() {
         const isActive =
           tab.href === "/admin/produk"
             ? pathname === "/admin/produk" || pathname === "/admin/produk/tambah" || pathname.match(/^\/admin\/produk\/[^\/]+\/edit$/)
-            : pathname.startsWith(tab.href);
+            : pathname === tab.href;
         const Icon = tab.icon;
         return (
           <Link
