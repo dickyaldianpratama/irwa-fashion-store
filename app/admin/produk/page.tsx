@@ -78,7 +78,11 @@ export default async function AdminProdukPage() {
                       {p.varian.length} varian
                     </td>
                     <td className="p-4">
-                      <ProductTableActions productId={p.id} productName={p.nama} />
+                      <ProductTableActions 
+                        productId={p.id} 
+                        productName={p.nama} 
+                        totalStok={p.varian.reduce((sum, v) => sum + v.stok, 0)}
+                      />
                     </td>
                   </tr>
                 ))
