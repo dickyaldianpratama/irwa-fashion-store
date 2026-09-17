@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -38,18 +38,18 @@ export default function CategoryGrid({ kategori }: Props) {
                 className="group flex-[0_0_28%] sm:flex-[0_0_30%] md:flex-[0_0_22%] lg:flex-1 flex flex-col items-center gap-3 select-none"
                 draggable={false}
               >
-                <div className="relative w-20 h-20 sm:w-full sm:h-auto sm:aspect-[4/5] rounded-full sm:rounded-[12px] overflow-hidden bg-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:shadow-md border border-gray-100">
+                <div className="relative w-20 h-20 sm:w-full sm:h-auto sm:aspect-square rounded-full sm:rounded-[16px] overflow-hidden bg-gray-50 dark:bg-white shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:shadow-md border border-gray-100 flex items-center justify-center p-2 sm:p-4">
                   {cat.image ? (
                     <Image
                       src={cat.image}
                       alt={cat.nama}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
+                      className="object-contain p-2 sm:p-4 transition-transform duration-500 pointer-events-none"
                       sizes="(max-width: 640px) 80px, (max-width: 1024px) 30vw, 15vw"
                       unoptimized
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-medium bg-gray-100">
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-medium">
                       {cat.nama.charAt(0).toUpperCase()}
                     </div>
                   )}
