@@ -8,6 +8,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/admin/ImageUploader";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 interface KategoriItem {
   id: string;
@@ -95,7 +99,24 @@ export default function KategoriManager({ kategori }: Props) {
       toast.error(`Tidak bisa dihapus — masih ada ${item._count.produk} produk di kategori ini.`);
       return;
     }
-    if (!confirm(`Hapus kategori "${item.nama}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    
+    const result = await MySwal.fire({
+      title: 'Hapus Kategori?',
+      html: `Apakah Anda yakin ingin menghapus kategori <b>${item.nama}</b>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      customClass: {
+        popup: 'rounded-2xl dark:bg-gray-900 dark:text-white',
+        title: 'dark:text-white',
+        htmlContainer: 'dark:text-gray-300'
+      }
+    });
+
+    if (!result.isConfirmed) return;
     setDeletingId(item.id);
     try {
       const res = await fetch("/api/admin/kategori", {

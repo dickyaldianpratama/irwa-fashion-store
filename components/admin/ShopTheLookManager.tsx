@@ -1,9 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import { Plus, Edit2, Trash2, X, Loader2, ImageIcon, ShoppingBag, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 interface ProdukOption {
   id: string;
@@ -120,8 +124,24 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus look ini?")) return;
+  const handleDelete = async (id: string, title: string) => {
+    const result = await MySwal.fire({
+      title: 'Hapus Shop The Look?',
+      html: `Apakah Anda yakin ingin menghapus look <b>${title}</b>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      customClass: {
+        popup: 'rounded-2xl dark:bg-gray-900 dark:text-white',
+        title: 'dark:text-white',
+        htmlContainer: 'dark:text-gray-300'
+      }
+    });
+
+    if (!result.isConfirmed) return;
     setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/shop-the-look/${id}`, { method: "DELETE" });
@@ -207,7 +227,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
                     <Edit2 size={12} /> Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(look.id)}
+                    onClick={() => handleDelete(look.id, look.title)}
                     disabled={deletingId === look.id}
                     className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-60"
                   >

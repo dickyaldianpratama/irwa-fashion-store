@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import { Edit, Trash2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
+
 interface Props {
   productId: string;
   productName: string;
@@ -16,9 +21,23 @@ export default function ProductTableActions({ productId, productName }: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?`)) {
-      return;
-    }
+    const result = await MySwal.fire({
+      title: 'Hapus Produk?',
+      html: `Apakah Anda yakin ingin menghapus <b>${productName}</b>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      customClass: {
+        popup: 'rounded-2xl dark:bg-gray-900 dark:text-white',
+        title: 'dark:text-white',
+        htmlContainer: 'dark:text-gray-300'
+      }
+    });
+
+    if (!result.isConfirmed) return;
 
     setIsDeleting(true);
     try {
