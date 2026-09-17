@@ -313,7 +313,7 @@ export default function KategoriManager({ kategori }: Props) {
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tambah Kategori Baru</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Kategori akan langsung muncul di homepage</p>
+                <p className="text-xs text-gray-500 mt-0.5">Kategori ini akan muncul di dropdown Tambah Produk</p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -381,3 +381,4 @@ export default function KategoriManager({ kategori }: Props) {
     </div>
   );
 }
+

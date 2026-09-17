@@ -27,10 +27,9 @@ export default async function AdminKategoriPage() {
 
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Kategori Pilihan</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Kategori Produk</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Tambah, edit gambar/nama, atau hapus kategori yang tampil di homepage customer. 
-            Kategori yang dihapus harus kosong (tidak ada produk di dalamnya).
+            Daftar kategori asli untuk mengelompokkan produk Anda. Kategori ini akan muncul sebagai pilihan dropdown saat Anda menambah atau mengedit produk.
           </p>
         </div>
 
