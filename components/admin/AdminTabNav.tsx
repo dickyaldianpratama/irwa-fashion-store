@@ -6,7 +6,6 @@ import { Package, Grid3X3, Star, Eye, Tags } from "lucide-react";
 
 const tabs = [
   { name: "Semua Produk", href: "/admin/produk", icon: Package },
-  { name: "Kategori Produk", href: "/admin/produk/kategori-produk", icon: Tags },
   { name: "Kategori Pilihan (Home)", href: "/admin/produk/kategori", icon: Grid3X3 },
   { name: "Koleksi Terpopuler (Home)", href: "/admin/produk/featured", icon: Star },
   { name: "Shop The Look (Home)", href: "/admin/produk/shop-the-look", icon: Eye },
