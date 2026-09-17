@@ -4,16 +4,24 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
-    // Cek auth
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing env: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      return NextResponse.json(
+        { error: "Konfigurasi server belum lengkap. Hubungi admin." },
+        { status: 500 }
+      );
+    }
+
+    // Cek auth user
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Buat admin client untuk storage (bypasses RLS)
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Admin client untuk bypass RLS di storage
+    const adminClient = createAdminClient(supabaseUrl, serviceRoleKey);
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -21,18 +29,19 @@ export async function POST(request: Request) {
 
     if (!file) return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
 
-    // Validasi tipe file
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: "Format file tidak didukung. Gunakan JPG, PNG, WebP, atau GIF." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Format tidak didukung. Gunakan JPG, PNG, WebP, atau GIF." },
+        { status: 400 }
+      );
     }
 
-    // Validasi ukuran (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json({ error: "Ukuran file maksimal 5MB" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop();
+    const ext = file.name.split(".").pop() || "jpg";
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const bytes = await file.arrayBuffer();
 
@@ -43,7 +52,10 @@ export async function POST(request: Request) {
         upsert: false,
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("Supabase upload error:", uploadError);
+      throw new Error(uploadError.message);
+    }
 
     const { data: { publicUrl } } = adminClient.storage
       .from("toko-images")
