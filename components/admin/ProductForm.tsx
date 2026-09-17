@@ -1,37 +1,49 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Plus, Trash2, ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import ImageUploader from "@/components/admin/ImageUploader";
 
-interface Category {
-  id: string;
-  nama: string;
+interface Varian {
+  id?: string;
+  warna: string;
+  ukuran: string;
+  stok: string | number;
 }
 
-export default function ProductForm({ categories }: { categories: Category[] }) {
+interface ProductFormProps {
+  categories: { id: string; nama: string }[];
+  initialData?: any;
+}
+
+export default function ProductForm({ categories, initialData }: ProductFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+  const isEdit = !!initialData;
+
   const [formData, setFormData] = useState({
-    nama: "",
-    slug: "",
-    deskripsi: "",
-    hargaAsli: "",
-    hargaDiskon: "",
-    isPreOrder: false,
-    kategoriId: categories[0]?.id || "",
-    imageUrl: "",
+    nama: initialData?.nama || "",
+    slug: initialData?.slug || "",
+    deskripsi: initialData?.deskripsi || "",
+    hargaAsli: initialData?.hargaAsli?.toString() || "",
+    hargaDiskon: initialData?.hargaDiskon?.toString() || "",
+    isPreOrder: initialData?.isPreOrder || false,
+    kategoriId: initialData?.kategoriId || (categories[0]?.id || ""),
+    imageUrl: initialData?.images?.[0]?.url || "",
   });
 
-  const [varians, setVarians] = useState([{ warna: "", ukuran: "", stok: "0" }]);
+  const [varians, setVarians] = useState<Varian[]>(
+    initialData?.varian?.length > 0 
+      ? initialData.varian.map((v: any) => ({ ...v, stok: v.stok.toString() }))
+      : [{ warna: "", ukuran: "", stok: "0" }]
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
-    if (name === "nama") {
-      // Auto-generate slug
+    if (name === "nama" && !isEdit) {
       const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       setFormData(prev => ({ ...prev, [name]: value, slug }));
     } else {
@@ -69,13 +81,18 @@ export default function ProductForm({ categories }: { categories: Category[] }) 
         hargaAsli: parseInt(formData.hargaAsli) || 0,
         hargaDiskon: formData.hargaDiskon ? parseInt(formData.hargaDiskon) : null,
         varians: varians.map(v => ({
-          ...v,
-          stok: parseInt(v.stok) || 0
+          id: v.id,
+          warna: v.warna,
+          ukuran: v.ukuran,
+          stok: parseInt(v.stok as string) || 0
         }))
       };
 
-      const res = await fetch("/api/admin/produk", {
-        method: "POST",
+      const endpoint = isEdit ? `/api/admin/produk/${initialData.id}` : "/api/admin/produk";
+      const method = isEdit ? "PATCH" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
@@ -84,7 +101,7 @@ export default function ProductForm({ categories }: { categories: Category[] }) 
 
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan produk");
 
-      toast.success("Produk berhasil ditambahkan!");
+      toast.success(isEdit ? "Produk berhasil diperbarui!" : "Produk berhasil ditambahkan!");
       router.push("/admin/produk");
       router.refresh();
     } catch (error: any) {
@@ -135,14 +152,13 @@ export default function ProductForm({ categories }: { categories: Category[] }) 
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">Link URL Gambar (Wajib)</label>
-          <div className="flex gap-3 items-start">
-            <div className="flex-1 relative">
-              <ImageIcon className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input required type="url" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="w-full p-2.5 pl-10 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="https://contoh.com/gambar.jpg" />
-              <p className="text-xs text-gray-500 mt-1">Masukkan link gambar (misal dari postimg.cc, imgur, atau drive). Fitur upload file langsung segera hadir.</p>
-            </div>
-          </div>
+          <ImageUploader 
+            value={formData.imageUrl} 
+            onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))} 
+            folder="produk"
+            label="Gambar Produk (Wajib)"
+            aspectRatio="aspect-square"
+          />
         </div>
       </div>
 
@@ -182,7 +198,7 @@ export default function ProductForm({ categories }: { categories: Category[] }) 
 
       <div className="pt-4 border-t flex justify-end">
         <button disabled={isLoading} type="submit" className="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 disabled:opacity-70 transition-all">
-          {isLoading ? <Loader2 className="animate-spin" size={20} /> : "Simpan Produk"}
+          {isLoading ? <Loader2 className="animate-spin" size={20} /> : (isEdit ? "Simpan Perubahan" : "Simpan Produk")}
         </button>
       </div>
     </form>

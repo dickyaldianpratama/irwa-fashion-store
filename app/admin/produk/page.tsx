@@ -1,8 +1,9 @@
-import prisma from "@/lib/prisma";
+﻿import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import Image from "next/image";
 import AdminTabNav from "@/components/admin/AdminTabNav";
+import ProductTableActions from "@/components/admin/ProductTableActions";
 
 export default async function AdminProdukPage() {
   const products = await prisma.produk.findMany({
@@ -77,14 +78,7 @@ export default async function AdminProdukPage() {
                       {p.varian.length} varian
                     </td>
                     <td className="p-4">
-                      <div className="flex gap-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Fitur Edit segera hadir">
-                          <Edit size={16} />
-                        </button>
-                        <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Fitur Hapus segera hadir">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                      <ProductTableActions productId={p.id} productName={p.nama} />
                     </td>
                   </tr>
                 ))
@@ -96,4 +90,3 @@ export default async function AdminProdukPage() {
     </div>
   );
 }
-
