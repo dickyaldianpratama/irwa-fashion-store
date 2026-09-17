@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -128,24 +128,37 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {items.map(item => (
-          <div key={item.id} className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-xl overflow-hidden shadow-sm flex flex-col">
-            <div className="relative w-full aspect-[4/5] bg-gray-100">
-              <Image src={item.image} alt={item.title} fill className="object-cover" unoptimized />
-              <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded">
-                Urutan: {item.urutan}
+          <div key={item.id} className="group bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[16px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative">
+            <div className="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 overflow-hidden">
+              <Image 
+                src={item.image} 
+                alt={item.title} 
+                fill 
+                className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                unoptimized 
+              />
+              <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-gray-100 dark:border-gray-700">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                Urutan {item.urutan}
               </div>
             </div>
-            <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+            <div className="p-5 flex-1 flex flex-col justify-between gap-4">
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
-                {item.link && <p className="text-xs text-blue-500 truncate mt-1">{item.link}</p>}
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{item.title}</h3>
+                {item.link ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1.5 inline-block w-full">
+                    {item.link}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-400 dark:text-gray-500 italic mt-1.5">Tanpa link tujuan</p>
+                )}
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  <Edit2 size={14} /> Edit
+              <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 mt-auto">
+                <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 text-primary border border-primary/20 bg-primary/5 py-2 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-all">
+                  <Edit2 size={15} /> Edit
                 </button>
-                <button onClick={() => handleDelete(item)} disabled={deletingId === item.id} className="flex-1 flex items-center justify-center gap-1.5 text-red-600 bg-red-50 dark:bg-red-900/20 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors disabled:opacity-50">
-                  {deletingId === item.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Hapus
+                <button onClick={() => handleDelete(item)} disabled={deletingId === item.id} className="flex-1 flex items-center justify-center gap-1.5 text-red-600 border border-red-500/20 bg-red-50 dark:bg-red-900/10 py-2 rounded-xl text-sm font-semibold hover:bg-red-500 hover:text-white transition-all disabled:opacity-50">
+                  {deletingId === item.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Hapus
                 </button>
               </div>
             </div>

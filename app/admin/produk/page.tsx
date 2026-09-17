@@ -16,11 +16,11 @@ export default async function AdminProdukPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Produk</h1>
         <Link 
           href="/admin/produk/tambah" 
-          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
         >
           <Plus size={20} />
           Tambah Produk
