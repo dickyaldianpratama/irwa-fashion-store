@@ -1,4 +1,4 @@
-import HeroBanner from "@/components/beranda/HeroBanner";
+﻿import HeroBanner from "@/components/beranda/HeroBanner";
 import CategoryGrid from "@/components/beranda/CategoryGrid";
 import ProductCard, { ProductType } from "@/components/produk/ProductCard";
 import ShopTheLook from "@/components/beranda/ShopTheLook";
@@ -7,25 +7,48 @@ import { ArrowRight } from "lucide-react";
 import prisma from "@/lib/prisma";
 
 export default async function HomePage() {
-  // Fetch real data from Prisma Database
-  const dbProducts = await prisma.produk.findMany({
-    include: {
-      images: {
-        where: { isUtama: true },
-        take: 1
-      }
-    },
-    take: 10,
-    orderBy: { terjual: "desc" }
-  });
+  // Fetch semua data secara paralel
+  const [dbProducts, featuredProducts, kategori, looks] = await Promise.all([
+    // Koleksi Terpopuler: prioritaskan yang isFeatured, fallback ke terjual terbanyak
+    prisma.produk.findMany({
+      where: { isFeatured: true },
+      include: { images: { where: { isUtama: true }, take: 1 } },
+      take: 10,
+    }),
+    // Fallback jika tidak ada featured
+    prisma.produk.findMany({
+      include: { images: { where: { isUtama: true }, take: 1 } },
+      take: 10,
+      orderBy: { terjual: "desc" },
+    }),
+    // Kategori untuk CategoryGrid
+    prisma.kategori.findMany({ orderBy: { nama: "asc" } }),
+    // Shop The Look dari database
+    prisma.shopTheLook.findMany({
+      include: {
+        items: {
+          include: {
+            produk: {
+              include: { images: { where: { isUtama: true }, take: 1 } }
+            }
+          }
+        }
+      },
+      orderBy: { id: "desc" },
+      take: 6,
+    }),
+  ]);
 
-  // Map to ProductType expected by ProductCard component
-  const products: ProductType[] = dbProducts.map((p) => {
+  // Pakai featured jika ada, fallback ke terlaris
+  const rawProducts = dbProducts.length > 0 ? dbProducts : featuredProducts;
+
+  // Map ke ProductType
+  const products: ProductType[] = rawProducts.map((p) => {
     const badges: ("NEW" | "SALE" | "BESTSELLER" | "PO")[] = [];
     if (p.hargaDiskon) badges.push("SALE");
     if (p.terjual > 500) badges.push("BESTSELLER");
     if (p.isPreOrder) badges.push("PO");
-    if (!badges.length) badges.push("NEW"); // default if empty just to show something
+    if (!badges.length) badges.push("NEW");
 
     return {
       id: p.id,
@@ -43,7 +66,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroBanner />
-      <CategoryGrid />
+      <CategoryGrid kategori={kategori} />
 
       <section id="belanja" className="py-10 sm:py-14 bg-gray-50">
         <div className="container-app">
@@ -53,9 +76,9 @@ export default async function HomePage() {
               Lihat Semua <ArrowRight size={16} />
             </Link>
           </div>
-          
+
           {products.length === 0 ? (
-             <div className="py-12 text-center text-gray-500">Belum ada produk di database.</div>
+            <div className="py-12 text-center text-gray-500">Belum ada produk di database.</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
               {products.map((product) => (
@@ -65,9 +88,8 @@ export default async function HomePage() {
           )}
         </div>
       </section>
-      
-      <ShopTheLook />
+
+      <ShopTheLook looks={looks} />
     </>
   );
 }
-

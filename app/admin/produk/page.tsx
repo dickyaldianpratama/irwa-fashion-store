@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
+import AdminTabNav from "@/components/admin/AdminTabNav";
 
 export default async function AdminProdukPage() {
   const products = await prisma.produk.findMany({
@@ -25,6 +26,9 @@ export default async function AdminProdukPage() {
           Tambah Produk
         </Link>
       </div>
+
+      {/* Tab Navigasi */}
+      <AdminTabNav />
 
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
@@ -92,3 +96,4 @@ export default async function AdminProdukPage() {
     </div>
   );
 }
+

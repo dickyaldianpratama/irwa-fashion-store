@@ -90,6 +90,7 @@ model Produk {
   rating        Float    @default(0)
   terjual       Int      @default(0)
   isPreOrder    Boolean  @default(false) // Fitur 22: Pre-Order Tracker
+  isFeatured    Boolean  @default(false) // Tampil di section Koleksi Terpopuler homepage
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

@@ -1,0 +1,42 @@
+﻿"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Package, Grid3X3, Star, Eye } from "lucide-react";
+
+const tabs = [
+  { name: "Semua Produk", href: "/admin/produk", icon: Package },
+  { name: "Kategori Pilihan", href: "/admin/produk/kategori", icon: Grid3X3 },
+  { name: "Koleksi Terpopuler", href: "/admin/produk/featured", icon: Star },
+  { name: "Shop The Look", href: "/admin/produk/shop-the-look", icon: Eye },
+];
+
+export default function AdminTabNav() {
+  const pathname = usePathname();
+
+  return (
+    <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+      {tabs.map((tab) => {
+        const isActive =
+          tab.href === "/admin/produk"
+            ? pathname === "/admin/produk" || pathname === "/admin/produk/tambah"
+            : pathname.startsWith(tab.href);
+        const Icon = tab.icon;
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+              isActive
+                ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300"
+            }`}
+          >
+            <Icon size={16} />
+            {tab.name}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
