@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, Grid3X3, Star, Eye, Tags } from "lucide-react";
+import { Package, Grid3X3, Star, Eye } from "lucide-react";
 
 const tabs = [
   { name: "Semua Produk", href: "/admin/produk", icon: Package },
@@ -13,10 +14,30 @@ const tabs = [
 
 export default function AdminTabNav() {
   const pathname = usePathname();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (activeTabRef.current && containerRef.current) {
+      const container = containerRef.current;
+      const activeTab = activeTabRef.current;
+      
+      // Hitung posisi tengah agar tab yang aktif berada di tengah layar HP
+      const scrollLeft = activeTab.offsetLeft - (container.offsetWidth / 2) + (activeTab.offsetWidth / 2);
+      
+      // Gunakan setTimeout kecil untuk memastikan DOM sudah render sepenuhnya
+      setTimeout(() => {
+        container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+      }, 50);
+    }
+  }, [pathname]);
 
   return (
     <div className="w-full border-b border-gray-200 dark:border-gray-700">
-      <div className="flex gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div 
+        ref={containerRef}
+        className="flex gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      >
         {tabs.map((tab) => {
           const isActive =
             tab.href === "/admin/produk"
@@ -27,6 +48,7 @@ export default function AdminTabNav() {
             <Link
               key={tab.href}
               href={tab.href}
+              ref={isActive ? activeTabRef : null}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
                 isActive
                   ? "border-blue-600 text-blue-600 dark:text-blue-400"
