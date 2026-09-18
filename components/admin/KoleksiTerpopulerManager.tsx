@@ -177,14 +177,14 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-800 shrink-0">
               <h3 className="font-bold">{editingId ? "Edit Koleksi" : "Tambah Koleksi"}</h3>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium mb-1">Judul / Title</label>
                 <input value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} className="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 rounded-lg" placeholder="Misal: Koleksi Lebaran" />
@@ -201,9 +201,9 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 <ImageUploader value={formData.image} onChange={url => setFormData(p => ({...p, image: url}))} folder="koleksi" label="Gambar Banner" aspectRatio="aspect-[4/5]" />
               </div>
             </div>
-            <div className="p-4 border-t dark:border-gray-800 flex gap-2">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2 text-gray-600 bg-gray-100 dark:bg-gray-800 rounded-lg font-semibold">Batal</button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 py-2 text-white bg-primary hover:bg-primary-dark rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50">
+            <div className="p-4 border-t dark:border-gray-800 flex gap-2 shrink-0">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-2 text-gray-600 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-semibold transition-colors">Batal</button>
+              <button onClick={handleSave} disabled={saving} className="flex-1 py-2 text-white bg-primary hover:bg-primary-dark rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                 {saving && <Loader2 size={16} className="animate-spin" />} Simpan
               </button>
             </div>
