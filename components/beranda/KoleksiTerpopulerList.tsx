@@ -37,7 +37,7 @@ export default function KoleksiTerpopulerList({ items }: Props) {
             <button 
               onClick={handleNavigate}
               disabled={isLoading}
-              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1.5 transition-colors disabled:opacity-70"
+              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1.5 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <>Memuat <Loader2 size={16} className="animate-spin" /></>
