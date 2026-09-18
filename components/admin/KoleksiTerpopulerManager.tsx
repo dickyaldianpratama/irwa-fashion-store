@@ -145,17 +145,6 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
             <div className="p-5 flex-1 flex flex-col justify-between gap-4">
               <div>
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{item.title}</h3>
-                <div className="flex items-center gap-1.5 mt-2">
-                  {item.link ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
-                      🔗 Tautan Aktif
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 px-2 py-0.5 rounded-full">
-                      Tanpa Tautan
-                    </span>
-                  )}
-                </div>
               </div>
               <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 text-primary border border-primary/20 bg-primary/5 py-2 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-all">
@@ -188,10 +177,6 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
               <div>
                 <label className="block text-sm font-medium mb-1">Judul / Title</label>
                 <input value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} className="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 rounded-lg" placeholder="Misal: Koleksi Lebaran" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Link URL (Opsional)</label>
-                <input value={formData.link} onChange={e => setFormData(p => ({...p, link: e.target.value}))} className="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 rounded-lg" placeholder="/kategori/kemeja" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Urutan Tampil (Angka)</label>
