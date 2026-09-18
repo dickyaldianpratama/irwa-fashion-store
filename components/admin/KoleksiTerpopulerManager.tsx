@@ -145,13 +145,17 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
             <div className="p-5 flex-1 flex flex-col justify-between gap-4">
               <div>
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{item.title}</h3>
-                {item.link ? (
-                  <a href={item.link} target="_blank" rel="noreferrer" className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors truncate mt-1.5 inline-block w-full">
-                    {item.link}
-                  </a>
-                ) : (
-                  <p className="text-sm text-gray-400 dark:text-gray-500 italic mt-1.5">Tanpa link tujuan</p>
-                )}
+                <div className="flex items-center gap-1.5 mt-2">
+                  {item.link ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                      🔗 Tautan Aktif
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 px-2 py-0.5 rounded-full">
+                      Tanpa Tautan
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 text-primary border border-primary/20 bg-primary/5 py-2 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-all">
