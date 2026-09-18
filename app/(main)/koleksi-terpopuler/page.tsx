@@ -1,42 +1,35 @@
+import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
-interface KoleksiItem {
-  id: string;
-  title: string;
-  image: string;
-  link: string | null;
-}
+export const metadata = {
+  title: "Koleksi Terpopuler | Irwa Fashion",
+  description: "Jelajahi semua koleksi pakaian pria terpopuler dan tren terbaru di Irwa Fashion.",
+};
 
-interface Props {
-  items: KoleksiItem[];
-}
-
-export default function KoleksiTerpopulerList({ items }: Props) {
-  const displayedItems = items.slice(0, 5);
-  const hasMore = items.length > 5;
+export default async function KoleksiTerpopulerPage() {
+  const koleksiTerpopuler = await prisma.koleksiTerpopuler.findMany({
+    orderBy: { urutan: "asc" },
+  });
 
   return (
-    <section id="belanja" className="py-10 sm:py-14 bg-gray-50">
+    <div className="bg-gray-50 min-h-screen py-10">
       <div className="container-app">
-        <div className="flex items-center justify-between mb-6 md:mb-8">
-          <h2 className="section-title !mb-0 text-xl sm:text-2xl">Koleksi Terpopuler</h2>
-          
-          {hasMore && (
-            <Link 
-              href="/koleksi-terpopuler"
-              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
-            >
-              Lihat Semua <ArrowRight size={16} />
-            </Link>
-          )}
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary mb-4 transition-colors">
+            <ArrowLeft size={16} /> Kembali ke Beranda
+          </Link>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Semua Koleksi Terpopuler</h1>
+          <p className="text-gray-500 mt-2">Jelajahi berbagai pilihan koleksi terbaik kami khusus untuk Anda.</p>
         </div>
 
-        {items.length === 0 ? (
-          <div className="py-12 text-center text-gray-500">Belum ada koleksi terpopuler.</div>
+        {koleksiTerpopuler.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
+            Belum ada koleksi terpopuler.
+          </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-            {displayedItems.map((item) => {
+            {koleksiTerpopuler.map((item) => {
               // Auto-generate link berdasarkan kata kunci pada judul jika db link kosong
               let autoLink = "/produk";
               const titleLower = item.title.toLowerCase();
@@ -65,6 +58,6 @@ export default function KoleksiTerpopulerList({ items }: Props) {
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
