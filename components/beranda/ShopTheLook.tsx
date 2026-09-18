@@ -61,16 +61,16 @@ export default function ShopTheLook({ looks }: Props) {
             {looks.map((look) => (
               <div
                 key={look.id}
-                className="group relative flex-[0_0_80%] sm:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0 rounded-card overflow-hidden bg-gray-100 shadow-sm border border-gray-100 select-none"
+                className="group relative flex-[0_0_70%] sm:flex-[0_0_40%] md:flex-[0_0_30%] lg:flex-[0_0_25%] min-w-0 rounded-card overflow-hidden bg-gray-100 shadow-sm border border-gray-100 select-none"
               >
                 {/* Foto Look */}
-                <div className="relative w-full aspect-[3/4] bg-gray-200 overflow-hidden">
+                <div className="relative w-full aspect-[4/5] bg-gray-200 overflow-hidden">
                   <Image
                     src={look.image}
                     alt={look.title}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
-                    sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 30vw"
+                    sizes="(max-width: 640px) 70vw, (max-width: 768px) 40vw, (max-width: 1024px) 30vw, 25vw"
                     unoptimized
                   />
                   {/* Overlay gradien bawah */}
@@ -83,9 +83,9 @@ export default function ShopTheLook({ looks }: Props) {
                 </div>
 
                 {/* Konten Teks di Atas Gambar */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 text-white z-10">
-                  <h3 className="font-heading font-bold text-lg sm:text-xl mb-1">{look.title}</h3>
-                  <p className="text-xs sm:text-sm text-gray-300 mb-3 flex items-center gap-1.5 flex-wrap">
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+                  <h3 className="font-heading font-bold text-base sm:text-lg mb-0.5">{look.title}</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-300 mb-2 flex items-center gap-1.5 flex-wrap">
                     {look.items.map((item, idx) => (
                       <span key={item.id} className="flex items-center gap-1.5">
                         {item.produk.nama}
@@ -94,13 +94,13 @@ export default function ShopTheLook({ looks }: Props) {
                     ))}
                   </p>
 
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="font-bold text-lg text-white">
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="font-bold text-sm sm:text-base text-white">
                       {formatRp(look.totalHarga)}
                     </span>
                     <Link
                       href={`/shop-the-look/${look.id}`}
-                      className="text-xs sm:text-sm font-semibold text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-pill transition-colors flex items-center gap-1"
+                      className="text-[11px] sm:text-xs font-semibold text-white bg-primary hover:bg-primary-dark px-3 py-1.5 rounded-pill transition-colors flex items-center gap-1"
                     >
                       Beli Set <ArrowRight size={14} />
                     </Link>
