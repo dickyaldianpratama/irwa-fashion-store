@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface KoleksiItem {
   id: string;
@@ -37,12 +37,12 @@ export default function KoleksiTerpopulerList({ items }: Props) {
             <button 
               onClick={handleNavigate}
               disabled={isLoading}
-              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1.5 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              className="btn btn-secondary text-sm self-start md:self-auto shrink-0 flex items-center justify-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>Memuat <Loader2 size={16} className="animate-spin" /></>
               ) : (
-                <>Lihat Semua <ArrowRight size={16} /></>
+                "Lihat Semua"
               )}
             </button>
           )}
