@@ -176,60 +176,62 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
           <p className="text-sm mt-1">Klik &quot;Tambah Look&quot; untuk mulai membuat outfit set</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {looks.map((look) => (
             <div
               key={look.id}
-              className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm"
+              className="group bg-white dark:bg-gray-900 rounded-[12px] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col"
             >
               {/* Gambar look */}
-              <div className="relative w-full aspect-[3/4] bg-gray-100 dark:bg-gray-800">
+              <div className="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 {look.image ? (
-                  <Image src={look.image} alt={look.title} fill className="object-cover" unoptimized />
+                  <Image src={look.image} alt={look.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" unoptimized />
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full h-full text-gray-400 gap-2">
-                    <ImageIcon size={32} />
-                    <span className="text-xs">No Image</span>
+                    <ImageIcon size={24} />
+                    <span className="text-[10px]">No Image</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-white font-bold text-base truncate">{look.title}</p>
-                  <p className="text-white/80 text-xs">Rp {look.totalHarga.toLocaleString("id-ID")}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                  <p className="text-white font-bold text-sm truncate leading-tight">{look.title}</p>
+                  <p className="text-white/90 text-[11px] font-medium mt-0.5">Rp {look.totalHarga.toLocaleString("id-ID")}</p>
                 </div>
               </div>
 
               {/* Produk dalam look */}
-              <div className="p-3 space-y-2">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {look.items.length} produk dalam look:
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {look.items.map((item) => (
-                    <span
-                      key={item.id}
-                      className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full"
-                    >
-                      {item.produk.nama}
-                    </span>
-                  ))}
-                  {look.items.length === 0 && (
-                    <span className="text-xs text-gray-400">Belum ada produk</span>
-                  )}
+              <div className="p-2.5 flex-1 flex flex-col justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+                    {look.items.length} Produk:
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {look.items.map((item) => (
+                      <span
+                        key={item.id}
+                        className="text-[10px] bg-gray-50 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded truncate max-w-full"
+                      >
+                        {item.produk.nama}
+                      </span>
+                    ))}
+                    {look.items.length === 0 && (
+                      <span className="text-[10px] text-gray-400 italic">Kosong</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                   <button
                     onClick={() => openEdit(look)}
-                    className="flex-1 flex items-center justify-center gap-1 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-1.5 rounded-lg transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white dark:bg-blue-900/20 dark:hover:bg-blue-600 border border-blue-100 dark:border-blue-900/50 text-[11px] font-semibold py-1.5 rounded-lg transition-all"
                   >
                     <Edit2 size={12} /> Edit
                   </button>
                   <button
                     onClick={() => handleDelete(look.id, look.title)}
                     disabled={deletingId === look.id}
-                    className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-60"
+                    className="flex-none flex items-center justify-center gap-1 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-500 border border-red-100 dark:border-red-900/50 w-8 h-8 rounded-lg transition-all disabled:opacity-60"
                   >
                     {deletingId === look.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                   </button>
