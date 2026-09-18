@@ -85,21 +85,21 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                       {item.title}
                     </h3>
                     
-                    {/* Render Harga Pintar */}
+                    {/* Harga Pintar */}
                     {(item.hargaAsli || item.hargaDiskon) && (
                       <div className="mt-2 flex flex-col">
                         {isDiscounted ? (
                           <>
                             <span className="text-gray-400 text-[11px] sm:text-xs line-through">
-                              Rp {item.hargaAsli.toLocaleString('id-ID')}
+                              Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
                             </span>
                             <span className="text-danger font-bold text-sm sm:text-base">
-                              Rp {item.hargaDiskon.toLocaleString('id-ID')}
+                              Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
                           </>
                         ) : (
                           <span className="text-gray-900 font-bold text-sm sm:text-base">
-                            Rp {(item.hargaAsli || item.hargaDiskon).toLocaleString('id-ID')}
+                            Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                           </span>
                         )}
                       </div>

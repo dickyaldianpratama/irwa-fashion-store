@@ -16,6 +16,8 @@ interface Koleksi {
   image: string;
   link: string | null;
   urutan: number;
+  hargaAsli?: number | null;
+  hargaDiskon?: number | null;
 }
 
 interface Props {

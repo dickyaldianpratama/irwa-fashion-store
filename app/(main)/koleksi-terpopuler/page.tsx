@@ -90,15 +90,15 @@ export default async function KoleksiTerpopulerPage() {
                         {isDiscounted ? (
                           <>
                             <span className="text-gray-400 text-xs line-through">
-                              Rp {item.hargaAsli.toLocaleString('id-ID')}
+                              Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
                             </span>
                             <span className="text-danger font-bold text-base">
-                              Rp {item.hargaDiskon.toLocaleString('id-ID')}
+                              Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
                           </>
                         ) : (
                           <span className="text-gray-900 font-bold text-base">
-                            Rp {(item.hargaAsli || item.hargaDiskon).toLocaleString('id-ID')}
+                            Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                           </span>
                         )}
                       </div>
