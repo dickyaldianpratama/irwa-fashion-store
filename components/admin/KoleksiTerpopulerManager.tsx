@@ -18,13 +18,14 @@ interface Koleksi {
   urutan: number;
   hargaAsli?: number | null;
   hargaDiskon?: number | null;
+  labelPromo?: string | null;
 }
 
 interface Props {
   koleksi: Koleksi[];
 }
 
-const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "" };
+const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "", labelPromo: "" };
 
 export default function KoleksiTerpopulerManager({ koleksi }: Props) {
   const [items, setItems] = useState<Koleksi[]>(koleksi);
@@ -57,7 +58,8 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       urutan: item.urutan.toString(),
       hargaAsli: item.hargaAsli?.toString() || "",
       hargaDiskon: item.hargaDiskon?.toString() || "",
-      persenDiskon: initialPersen
+      persenDiskon: initialPersen,
+      labelPromo: item.labelPromo || ""
     });
     setShowModal(true);
   };
@@ -235,7 +237,7 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Diskon/Promo (%) - Opsional</label>
+                  <label className="block text-sm font-medium mb-1">Diskon (%) - Harga Coret</label>
                   <div className="relative">
                     <input 
                       type="number" 
@@ -257,6 +259,17 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                   <span>Harga Akhir = Rp {parseInt(formData.hargaDiskon).toLocaleString("id-ID")}</span>
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Label Promo (Teks Bebas) - Opsional</label>
+                <input 
+                  type="text" 
+                  value={formData.labelPromo}
+                  onChange={e => setFormData({...formData, labelPromo: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                  placeholder="Contoh: Beli 2 Gratis 1, Flash Sale"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">Urutan Tampil</label>

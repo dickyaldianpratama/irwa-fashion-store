@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { nama, slug, deskripsi, hargaAsli, hargaDiskon, isPreOrder, kategoriId, imageUrl, varians } = body;
+    const { nama, slug, deskripsi, hargaAsli, hargaDiskon, labelPromo, isPreOrder, kategoriId, imageUrl, varians } = body;
 
     // Tambahkan suffiks acak ke slug agar unik jika kembar
     const finalSlug = `${slug}-${Math.floor(Math.random() * 1000)}`;
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
         deskripsi: deskripsi || "",
         hargaAsli,
         hargaDiskon,
+        labelPromo,
         isPreOrder,
         kategoriId,
         // Buat gambar utama

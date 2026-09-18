@@ -40,6 +40,7 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
     hargaAsli: initialData?.hargaAsli?.toString() || "",
     hargaDiskon: initialData?.hargaDiskon?.toString() || "",
     persenDiskon: initialPersen,
+    labelPromo: initialData?.labelPromo || "",
     isPreOrder: initialData?.isPreOrder || false,
     kategoriId: initialData?.kategoriId || (categories[0]?.id || ""),
     imageUrl: initialData?.images?.[0]?.url || "",
@@ -170,14 +171,15 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
 
       {/* Harga & Gambar */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold border-b pb-2">Harga & Gambar</h2>
+        <h2 className="text-lg font-semibold border-b pb-2">Harga & Promo</h2>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Harga Asli (Rp)</label>
             <input required type="number" name="hargaAsli" value={formData.hargaAsli} onChange={handleHargaChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="100000" />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Promo / Diskon (%) - Opsional</label>
+            <label className="text-sm font-medium">Diskon (%) - Harga Coret Opsional</label>
             <div className="relative">
               <input type="number" min="0" max="100" name="persenDiskon" value={formData.persenDiskon} onChange={handleHargaChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="Contoh: 20" />
               <span className="absolute right-4 top-2.5 font-bold text-gray-400">%</span>
@@ -188,6 +190,12 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
               </p>
             )}
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Label Promo (Teks Bebas) - Opsional</label>
+          <input type="text" name="labelPromo" value={formData.labelPromo} onChange={handleChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="Contoh: Beli 2 Gratis 1, Cashback 10%" />
+          <p className="text-xs text-gray-500">Label ini akan muncul sebagai badge di atas gambar produk.</p>
         </div>
         
         <div className="space-y-2">

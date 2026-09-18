@@ -92,6 +92,7 @@ model KoleksiTerpopuler {
   urutan      Int      @default(0)
   hargaAsli   Int?
   hargaDiskon Int?
+  labelPromo  String?
 }
 
 model Produk {
@@ -105,6 +106,7 @@ model Produk {
   occasion      String?  // Untuk Fitur Filter Occasion
   hargaAsli     Int
   hargaDiskon   Int?
+  labelPromo    String?
   rating        Float    @default(0)
   terjual       Int      @default(0)
   isPreOrder    Boolean  @default(false) // Fitur 22: Pre-Order Tracker

@@ -71,13 +71,18 @@ export default async function KoleksiTerpopulerPage() {
                   <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                    {isDiscounted && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-danger text-white px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+                      {isDiscounted && (
+                        <span className="bg-danger text-white px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm self-start">
                           Promo
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {item.labelPromo && (
+                        <span className="bg-warning text-white px-2.5 py-1 text-xs font-bold rounded-full tracking-wider shadow-sm self-start">
+                          {item.labelPromo}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors leading-snug">

@@ -72,13 +72,18 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                 <Link key={item.id} href={finalLink} className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    {isDiscounted && (
-                      <div className="absolute top-2 left-2 z-10">
-                        <span className="bg-danger text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">
+                    <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
+                      {isDiscounted && (
+                        <span className="bg-danger text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full uppercase tracking-wider shadow-sm self-start">
                           Promo
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {item.labelPromo && (
+                        <span className="bg-warning text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full tracking-wider shadow-sm self-start">
+                          {item.labelPromo}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">

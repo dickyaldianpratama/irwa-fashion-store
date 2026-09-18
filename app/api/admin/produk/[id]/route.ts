@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
@@ -72,7 +72,7 @@ export async function PATCH(
 
     const { id } = await context.params;
     const body = await request.json();
-    const { nama, slug, deskripsi, hargaAsli, hargaDiskon, isPreOrder, kategoriId, imageUrl, varians } = body;
+    const { nama, slug, deskripsi, hargaAsli, hargaDiskon, labelPromo, isPreOrder, kategoriId, imageUrl, varians } = body;
 
     // Update produk
     const updatedProduct = await prisma.produk.update({
@@ -83,6 +83,7 @@ export async function PATCH(
         deskripsi,
         hargaAsli,
         hargaDiskon,
+        labelPromo,
         isPreOrder,
         kategoriId,
       }
