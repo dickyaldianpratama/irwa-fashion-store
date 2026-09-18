@@ -134,7 +134,7 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 src={item.image} 
                 alt={item.title} 
                 fill 
-                className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                className="object-cover text-transparent transition-transform duration-500 group-hover:scale-105" 
                 unoptimized 
               />
               <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-gray-100 dark:border-gray-700">
@@ -146,9 +146,9 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
               <div>
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{item.title}</h3>
                 {item.link ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1.5 inline-block w-full">
+                  <a href={item.link} target="_blank" rel="noreferrer" className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors truncate mt-1.5 inline-block w-full">
                     {item.link}
-                  </p>
+                  </a>
                 ) : (
                   <p className="text-sm text-gray-400 dark:text-gray-500 italic mt-1.5">Tanpa link tujuan</p>
                 )}
