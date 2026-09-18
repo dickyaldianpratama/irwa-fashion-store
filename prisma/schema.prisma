@@ -85,11 +85,13 @@ model KategoriPilihan {
 }
 
 model KoleksiTerpopuler {
-  id        String   @id @default(uuid())
-  title     String
-  image     String
-  link      String?
-  urutan    Int      @default(0)
+  id          String   @id @default(uuid())
+  title       String
+  image       String
+  link        String?
+  urutan      Int      @default(0)
+  hargaAsli   Int?
+  hargaDiskon Int?
 }
 
 model Produk {

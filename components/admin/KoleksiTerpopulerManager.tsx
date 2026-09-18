@@ -22,7 +22,7 @@ interface Props {
   koleksi: Koleksi[];
 }
 
-const emptyData = { title: "", image: "", link: "", urutan: "0" };
+const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "" };
 
 export default function KoleksiTerpopulerManager({ koleksi }: Props) {
   const [items, setItems] = useState<Koleksi[]>(koleksi);
@@ -40,13 +40,42 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
   const openEdit = (item: Koleksi) => {
     setEditingId(item.id);
+    
+    let initialPersen = "";
+    if (item.hargaAsli && item.hargaDiskon) {
+      if (item.hargaAsli > item.hargaDiskon) {
+        initialPersen = Math.round(((item.hargaAsli - item.hargaDiskon) / item.hargaAsli) * 100).toString();
+      }
+    }
+
     setFormData({
       title: item.title,
       image: item.image,
       link: item.link || "",
-      urutan: item.urutan.toString()
+      urutan: item.urutan.toString(),
+      hargaAsli: item.hargaAsli?.toString() || "",
+      hargaDiskon: item.hargaDiskon?.toString() || "",
+      persenDiskon: initialPersen
     });
     setShowModal(true);
+  };
+
+  const handleHargaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let newFormData = { ...formData, [name]: value };
+    
+    if (name === "hargaAsli" || name === "persenDiskon") {
+      const asli = parseInt(name === "hargaAsli" ? value : formData.hargaAsli) || 0;
+      const persen = parseInt(name === "persenDiskon" ? value : formData.persenDiskon) || 0;
+      
+      if (asli > 0 && persen > 0 && persen <= 100) {
+        const potongan = Math.floor((asli * persen) / 100);
+        newFormData.hargaDiskon = (asli - potongan).toString();
+      } else {
+        newFormData.hargaDiskon = "";
+      }
+    }
+    setFormData(newFormData);
   };
 
   const handleSave = async () => {
@@ -61,7 +90,12 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       const res = await fetch("/api/admin/koleksi-terpopuler", {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, id: editingId }),
+        body: JSON.stringify({ 
+          ...formData, 
+          id: editingId,
+          hargaAsli: formData.hargaAsli ? parseInt(formData.hargaAsli) : null,
+          hargaDiskon: formData.hargaDiskon ? parseInt(formData.hargaDiskon) : null
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan");
@@ -175,12 +209,61 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
             </div>
             <div className="p-4 space-y-4 overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium mb-1">Judul / Title</label>
-                <input value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} className="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 rounded-lg" placeholder="Misal: Koleksi Lebaran" />
+                <label className="block text-sm font-medium mb-1">Judul / Nama Pakaian</label>
+                <input 
+                  autoFocus
+                  type="text" 
+                  value={formData.title}
+                  onChange={e => setFormData({...formData, title: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                  placeholder="Kemeja Premium..."
+                />
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Harga Asli (Rp) - Opsional</label>
+                  <input 
+                    type="number" 
+                    name="hargaAsli"
+                    value={formData.hargaAsli}
+                    onChange={handleHargaChange}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                    placeholder="Contoh: 150000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Diskon/Promo (%) - Opsional</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      min="0" max="100"
+                      name="persenDiskon"
+                      value={formData.persenDiskon}
+                      onChange={handleHargaChange}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                      placeholder="Contoh: 20"
+                    />
+                    <span className="absolute right-3 top-2.5 font-bold text-gray-400">%</span>
+                  </div>
+                </div>
+              </div>
+
+              {formData.hargaDiskon && (
+                <div className="bg-green-50 text-green-700 p-2 rounded-lg text-xs font-semibold border border-green-200 flex items-center justify-between">
+                  <span>Sistem Pintar Otomatis:</span>
+                  <span>Harga Akhir = Rp {parseInt(formData.hargaDiskon).toLocaleString("id-ID")}</span>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium mb-1">Urutan Tampil (Angka)</label>
-                <input type="number" value={formData.urutan} onChange={e => setFormData(p => ({...p, urutan: e.target.value}))} className="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 rounded-lg" />
+                <label className="block text-sm font-medium mb-1">Urutan Tampil</label>
+                <input 
+                  type="number" 
+                  value={formData.urutan}
+                  onChange={e => setFormData({...formData, urutan: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                />
               </div>
               <div>
                 <ImageUploader value={formData.image} onChange={url => setFormData(p => ({...p, image: url}))} folder="koleksi" label="Gambar Banner" aspectRatio="aspect-[4/5]" />

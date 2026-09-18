@@ -10,6 +10,8 @@ interface KoleksiItem {
   title: string;
   image: string;
   link: string | null;
+  hargaAsli?: number | null;
+  hargaDiskon?: number | null;
 }
 
 interface Props {
@@ -64,16 +66,44 @@ export default function KoleksiTerpopulerList({ items }: Props) {
               else if (titleLower.includes("aksesoris") || titleLower.includes("topi")) autoLink = "/produk?kategori=aksesoris";
               
               const finalLink = (item.link && item.link !== "#") ? item.link : autoLink;
+              const isDiscounted = !!item.hargaAsli && !!item.hargaDiskon && item.hargaAsli > item.hargaDiskon;
 
               return (
                 <Link key={item.id} href={finalLink} className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow">
                   <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    {isDiscounted && (
+                      <div className="absolute top-2 left-2 z-10">
+                        <span className="bg-danger text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">
+                          Promo
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
+                    
+                    {/* Render Harga Pintar */}
+                    {(item.hargaAsli || item.hargaDiskon) && (
+                      <div className="mt-2 flex flex-col">
+                        {isDiscounted ? (
+                          <>
+                            <span className="text-gray-400 text-[11px] sm:text-xs line-through">
+                              Rp {item.hargaAsli.toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-danger font-bold text-sm sm:text-base">
+                              Rp {item.hargaDiskon.toLocaleString('id-ID')}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-gray-900 font-bold text-sm sm:text-base">
+                            Rp {(item.hargaAsli || item.hargaDiskon).toLocaleString('id-ID')}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Link>
               );

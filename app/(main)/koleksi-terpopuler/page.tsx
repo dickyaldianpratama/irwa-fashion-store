@@ -64,17 +64,45 @@ export default async function KoleksiTerpopulerPage() {
               else if (titleLower.includes("aksesoris") || titleLower.includes("topi")) autoLink = "/produk?kategori=aksesoris";
               
               const finalLink = (item.link && item.link !== "#") ? item.link : autoLink;
+              const isDiscounted = !!item.hargaAsli && !!item.hargaDiskon && item.hargaAsli > item.hargaDiskon;
 
               return (
                 <Link key={item.id} href={finalLink} className="group flex flex-col rounded-2xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                   <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                    {isDiscounted && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-danger text-white px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">
+                          Promo
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-center">
-                    <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors text-center leading-snug">
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                    <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors leading-snug">
                       {item.title}
                     </h3>
+
+                    {/* Harga Pintar */}
+                    {(item.hargaAsli || item.hargaDiskon) && (
+                      <div className="mt-auto pt-3 flex flex-col">
+                        {isDiscounted ? (
+                          <>
+                            <span className="text-gray-400 text-xs line-through">
+                              Rp {item.hargaAsli.toLocaleString('id-ID')}
+                            </span>
+                            <span className="text-danger font-bold text-base">
+                              Rp {item.hargaDiskon.toLocaleString('id-ID')}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-gray-900 font-bold text-base">
+                            Rp {(item.hargaAsli || item.hargaDiskon).toLocaleString('id-ID')}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Link>
               );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,12 +23,23 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
   const [isLoading, setIsLoading] = useState(false);
   const isEdit = !!initialData;
 
+  // Calculate initial discount percentage
+  let initialPersen = "";
+  if (initialData?.hargaAsli && initialData?.hargaDiskon) {
+    const asli = parseInt(initialData.hargaAsli);
+    const diskon = parseInt(initialData.hargaDiskon);
+    if (asli > diskon) {
+      initialPersen = Math.round(((asli - diskon) / asli) * 100).toString();
+    }
+  }
+
   const [formData, setFormData] = useState({
     nama: initialData?.nama || "",
     slug: initialData?.slug || "",
     deskripsi: initialData?.deskripsi || "",
     hargaAsli: initialData?.hargaAsli?.toString() || "",
     hargaDiskon: initialData?.hargaDiskon?.toString() || "",
+    persenDiskon: initialPersen,
     isPreOrder: initialData?.isPreOrder || false,
     kategoriId: initialData?.kategoriId || (categories[0]?.id || ""),
     imageUrl: initialData?.images?.[0]?.url || "",
@@ -52,6 +63,26 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
         [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value 
       }));
     }
+  };
+
+  const handleHargaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let newFormData = { ...formData, [name]: value };
+    
+    // Auto calculate diskon
+    if (name === "hargaAsli" || name === "persenDiskon") {
+      const asli = parseInt(name === "hargaAsli" ? value : formData.hargaAsli) || 0;
+      const persen = parseInt(name === "persenDiskon" ? value : formData.persenDiskon) || 0;
+      
+      if (asli > 0 && persen > 0 && persen <= 100) {
+        const potongan = Math.floor((asli * persen) / 100);
+        newFormData.hargaDiskon = (asli - potongan).toString();
+      } else {
+        newFormData.hargaDiskon = ""; // reset jika persen kosong atau 0
+      }
+    }
+    
+    setFormData(newFormData);
   };
 
   const handleVarianChange = (index: number, field: string, value: string) => {
@@ -143,11 +174,19 @@ export default function ProductForm({ categories, initialData }: ProductFormProp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Harga Asli (Rp)</label>
-            <input required type="number" name="hargaAsli" value={formData.hargaAsli} onChange={handleChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="100000" />
+            <input required type="number" name="hargaAsli" value={formData.hargaAsli} onChange={handleHargaChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="100000" />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Harga Diskon (Opsional)</label>
-            <input type="number" name="hargaDiskon" value={formData.hargaDiskon} onChange={handleChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="Kosongkan jika tidak diskon" />
+            <label className="text-sm font-medium">Promo / Diskon (%) - Opsional</label>
+            <div className="relative">
+              <input type="number" min="0" max="100" name="persenDiskon" value={formData.persenDiskon} onChange={handleHargaChange} className="w-full p-2.5 border rounded-lg dark:bg-gray-800 dark:border-gray-700" placeholder="Contoh: 20" />
+              <span className="absolute right-4 top-2.5 font-bold text-gray-400">%</span>
+            </div>
+            {formData.hargaDiskon && (
+              <p className="text-xs text-success font-medium mt-1">
+                Sistem Pintar: Harga Akhir = Rp {parseInt(formData.hargaDiskon).toLocaleString("id-ID")}
+              </p>
+            )}
           </div>
         </div>
         
