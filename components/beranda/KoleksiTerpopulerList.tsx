@@ -12,6 +12,7 @@ interface KoleksiItem {
   link: string | null;
   hargaAsli?: number | null;
   hargaDiskon?: number | null;
+  labelPromo?: string | null;
 }
 
 interface Props {
