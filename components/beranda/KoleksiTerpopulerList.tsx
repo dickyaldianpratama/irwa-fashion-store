@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 interface KoleksiItem {
   id: string;
@@ -15,6 +19,13 @@ interface Props {
 export default function KoleksiTerpopulerList({ items }: Props) {
   const displayedItems = items.slice(0, 5);
   const hasMore = items.length > 5;
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleNavigate = () => {
+    setIsLoading(true);
+    router.push("/koleksi-terpopuler");
+  };
 
   return (
     <section id="belanja" className="py-10 sm:py-14 bg-gray-50">
@@ -23,12 +34,17 @@ export default function KoleksiTerpopulerList({ items }: Props) {
           <h2 className="section-title !mb-0 text-xl sm:text-2xl">Koleksi Terpopuler</h2>
           
           {hasMore && (
-            <Link 
-              href="/koleksi-terpopuler"
-              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+            <button 
+              onClick={handleNavigate}
+              disabled={isLoading}
+              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1.5 transition-colors disabled:opacity-70"
             >
-              Lihat Semua <ArrowRight size={16} />
-            </Link>
+              {isLoading ? (
+                <>Memuat <Loader2 size={16} className="animate-spin" /></>
+              ) : (
+                <>Lihat Semua <ArrowRight size={16} /></>
+              )}
+            </button>
           )}
         </div>
 
