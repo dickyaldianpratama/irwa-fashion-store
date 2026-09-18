@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -77,7 +77,7 @@ export default function ShopTheLook({ looks }: Props) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                   {/* Tombol Aksi Kaca */}
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 text-white hover:bg-white hover:text-primary transition-colors cursor-pointer shadow-lg z-10">
+                  <div className="absolute top-4 right-4 bg-primary text-white hover:bg-white hover:text-primary transition-colors cursor-pointer shadow-lg z-10 rounded-full p-2">
                     <ShoppingBag size={20} />
                   </div>
                 </div>
