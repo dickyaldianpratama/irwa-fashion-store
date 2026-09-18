@@ -1,0 +1,80 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight, ChevronDown } from "lucide-react";
+
+interface KoleksiItem {
+  id: string;
+  title: string;
+  image: string;
+  link: string | null;
+}
+
+interface Props {
+  items: KoleksiItem[];
+}
+
+export default function KoleksiTerpopulerList({ items }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Jika items lebih dari 5, batasi tampilan awal hanya 5
+  const displayedItems = isExpanded ? items : items.slice(0, 5);
+  const hasMore = items.length > 5;
+
+  return (
+    <section id="belanja" className="py-10 sm:py-14 bg-gray-50">
+      <div className="container-app">
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <h2 className="section-title !mb-0 text-xl sm:text-2xl">Koleksi Terpopuler</h2>
+          
+          {hasMore && !isExpanded ? (
+            <button 
+              onClick={() => setIsExpanded(true)}
+              className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              Lihat Semua <ChevronDown size={16} />
+            </button>
+          ) : (
+            <Link href="/produk" className="text-sm font-semibold text-primary hover:text-primary-dark flex items-center gap-1 transition-colors">
+              Ke Katalog <ArrowRight size={16} />
+            </Link>
+          )}
+        </div>
+
+        {items.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">Belum ada koleksi terpopuler.</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+            {displayedItems.map((item) => {
+              // Auto-generate link berdasarkan kata kunci pada judul jika db link kosong
+              let autoLink = "/produk";
+              const titleLower = item.title.toLowerCase();
+              
+              if (titleLower.includes("kemeja")) autoLink = "/produk?kategori=kemeja";
+              else if (titleLower.includes("celana")) autoLink = "/produk?kategori=celana";
+              else if (titleLower.includes("kaos") || titleLower.includes("t-shirt")) autoLink = "/produk?kategori=kaos";
+              else if (titleLower.includes("jaket") || titleLower.includes("outer") || titleLower.includes("sweater")) autoLink = "/produk?kategori=jaket";
+              else if (titleLower.includes("aksesoris") || titleLower.includes("topi")) autoLink = "/produk?kategori=aksesoris";
+              
+              const finalLink = (item.link && item.link !== "#") ? item.link : autoLink;
+
+              return (
+                <Link key={item.id} href={finalLink} className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
