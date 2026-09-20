@@ -302,7 +302,7 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-4 border-b dark:border-gray-800 shrink-0">
               <h3 className="font-bold">
                 {editingId ? "Edit Koleksi" : "Tambah Koleksi"}
@@ -392,32 +392,34 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Urutan Tampil
-                </label>
-                <input
-                  type="number"
-                  value={formData.urutan}
-                  onChange={(e) =>
-                    setFormData({ ...formData, urutan: e.target.value })
-                  }
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Teks Garansi (Opsional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.badgeGaransi}
-                  onChange={(e) =>
-                    setFormData({ ...formData, badgeGaransi: e.target.value })
-                  }
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
-                  placeholder="Contoh: Garansi Harga Terbaik"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Urutan Tampil
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.urutan}
+                    onChange={(e) =>
+                      setFormData({ ...formData, urutan: e.target.value })
+                    }
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Teks Garansi (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.badgeGaransi}
+                    onChange={(e) =>
+                      setFormData({ ...formData, badgeGaransi: e.target.value })
+                    }
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                    placeholder="Contoh: Garansi Harga Terbaik"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -504,25 +506,31 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 />
               </div>
 
-              <div>
-                <ImageUploader
-                  value={formData.image}
-                  onChange={(url) => setFormData((p) => ({ ...p, image: url }))}
-                  folder="koleksi"
-                  label="Gambar Banner"
-                  aspectRatio="aspect-[4/5]"
-                />
-              </div>
-              <div>
-                <ImageUploader
-                  value={formData.bestSellerBadge}
-                  onChange={(url) =>
-                    setFormData((p) => ({ ...p, bestSellerBadge: url }))
-                  }
-                  folder="badges"
-                  label="Badge Best Seller (Opsional)"
-                  aspectRatio="aspect-square"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="p-3 bg-gray-50/80 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <ImageUploader
+                    value={formData.image}
+                    onChange={(url) => setFormData((p) => ({ ...p, image: url }))}
+                    folder="koleksi"
+                    label="Gambar Banner *"
+                    aspectRatio="aspect-[4/5]"
+                    compact
+                    previewHeight="h-32"
+                  />
+                </div>
+                <div className="p-3 bg-gray-50/80 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <ImageUploader
+                    value={formData.bestSellerBadge}
+                    onChange={(url) =>
+                      setFormData((p) => ({ ...p, bestSellerBadge: url }))
+                    }
+                    folder="badges"
+                    label="Badge Best Seller (Opsional)"
+                    aspectRatio="aspect-square"
+                    compact
+                    previewHeight="h-24"
+                  />
+                </div>
               </div>
             </div>
             <div className="p-4 border-t dark:border-gray-800 flex gap-2 shrink-0">
