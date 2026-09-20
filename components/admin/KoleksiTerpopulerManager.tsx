@@ -196,20 +196,28 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
             </div>
             <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">{item.title}</h3>
-                <div className="mt-1.5 flex flex-col">
+                <h3 className="font-medium text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                  {item.title}
+                </h3>
+                <div className="mt-2 flex flex-col">
                   {item.hargaDiskon ? (
                     <>
-                      <span className="font-bold text-sm text-red-600">Rp {item.hargaDiskon.toLocaleString('id-ID')}</span>
-                      {item.hargaAsli && (
-                        <span className="text-[10px] sm:text-xs text-gray-500 line-through">Rp {item.hargaAsli.toLocaleString('id-ID')}</span>
-                      )}
+                      <span className="text-[10px] sm:text-[11px] text-gray-400 line-through decoration-gray-300">
+                        Rp {item.hargaAsli?.toLocaleString('id-ID')}
+                      </span>
+                      <span className="font-black text-sm sm:text-base text-red-600 tracking-tight">
+                        Rp {item.hargaDiskon.toLocaleString('id-ID')}
+                      </span>
                     </>
                   ) : (
                     item.hargaAsli ? (
-                      <span className="font-bold text-sm text-gray-900 dark:text-white">Rp {item.hargaAsli.toLocaleString('id-ID')}</span>
+                      <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white tracking-tight">
+                        Rp {item.hargaAsli.toLocaleString('id-ID')}
+                      </span>
                     ) : (
-                      <span className="text-[10px] sm:text-xs text-gray-400 italic">Harga tidak diatur</span>
+                      <span className="text-[10px] sm:text-xs text-gray-400 italic">
+                        Harga belum diatur
+                      </span>
                     )
                   )}
                 </div>
