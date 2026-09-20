@@ -145,6 +145,7 @@ export async function POST(request: Request) {
     
     // 5. Integrasi Midtrans (Buat transaksi Snap)
     let checkoutUrl = null;
+    let snapToken = null;
     try {
       const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
       const midtransRef = pesananBaru.id; // Midtrans disarankan menggunakan ID asli dari database
@@ -165,6 +166,7 @@ export async function POST(request: Request) {
 
       if (midtransRes && midtransRes.redirect_url) {
         checkoutUrl = midtransRes.redirect_url;
+        snapToken = midtransRes.token || null;
         
         await prisma.pesanan.update({
           where: { id: pesananBaru.id },
@@ -183,7 +185,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true, 
       orderId: pesananBaru.id,
-      checkoutUrl: checkoutUrl
+      checkoutUrl: checkoutUrl,
+      token: snapToken
     });
 
   } catch (error: any) {

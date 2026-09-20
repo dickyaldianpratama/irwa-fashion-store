@@ -13,6 +13,9 @@ import {
   Plus,
   X,
   Truck,
+  ShieldCheck,
+  ChevronRight,
+  Lock,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
@@ -26,7 +29,6 @@ export default function CheckoutPage() {
   const [isMounted, setIsMounted] = useState(false);
   const user = useAuthStore((state) => state.user);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("DELIVERY");
-  const [paymentMethod, setPaymentMethod] = useState("qris");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Vouchers
@@ -73,6 +75,24 @@ export default function CheckoutPage() {
       .then((d) => {
         if (d.success) setVouchers(d.data);
       });
+
+    // Inisialisasi snap.js jika clientKey tersedia
+    fetch("/api/midtrans/config")
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (cfg?.clientKey && cfg?.snapScriptUrl) {
+          const existingScript = document.getElementById("midtrans-snap-script");
+          if (!existingScript) {
+            const script = document.createElement("script");
+            script.id = "midtrans-snap-script";
+            script.src = cfg.snapScriptUrl;
+            script.setAttribute("data-client-key", cfg.clientKey);
+            script.async = true;
+            document.body.appendChild(script);
+          }
+        }
+      })
+      .catch((err) => console.warn("Midtrans script loader notice:", err));
   }, []);
 
   const formatRupiah = (angka: number) => {
@@ -173,6 +193,12 @@ export default function CheckoutPage() {
   );
 
   const handleCheckout = async () => {
+    if (deliveryMode === "DELIVERY" && !selectedAddress) {
+      toast.error("Silakan tentukan alamat pengiriman terlebih dahulu");
+      setIsAddressModalOpen(true);
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const response = await fetch("/api/checkout", {
@@ -183,12 +209,7 @@ export default function CheckoutPage() {
           totalHarga: total,
           tipePengiriman: deliveryMode,
           voucherId: selectedVoucher?.id,
-          metodePembayaran:
-            paymentMethod === "qris"
-              ? "QRIS"
-              : paymentMethod === "mandiri"
-                ? "Mandiri Virtual Account"
-                : "Kartu Kredit",
+          metodePembayaran: "Midtrans Payment Gateway",
           alamatPengiriman:
             deliveryMode !== "PICKUP"
               ? `${selectedAddress.title}\n${selectedAddress.detail}\n${selectedAddress.phone}`
@@ -214,17 +235,40 @@ export default function CheckoutPage() {
       if (!response.ok)
         throw new Error(result.error || "Gagal melakukan checkout");
 
-      toast.success("Pesanan Berhasil Dibuat!");
-      clearCart();
-
-      if (result.checkoutUrl) {
+      // Cek apakah snap.js popup tersedia di window
+      if (result.token && typeof window !== "undefined" && (window as any).snap?.pay) {
+        (window as any).snap.pay(result.token, {
+          onSuccess: function (snapResult: any) {
+            toast.success("Pembayaran Berhasil!");
+            clearCart();
+            router.push(`/checkout/success?orderId=${result.orderId}`);
+          },
+          onPending: function (snapResult: any) {
+            toast.success("Pesanan Dibuat, Menunggu Pembayaran!");
+            clearCart();
+            router.push(`/checkout/success?orderId=${result.orderId}`);
+          },
+          onError: function (snapResult: any) {
+            toast.error("Pembayaran gagal diproses.");
+            setIsProcessing(false);
+          },
+          onClose: function () {
+            toast("Layar pembayaran ditutup. Anda dapat melanjutkan pembayaran kapan saja.");
+            setIsProcessing(false);
+          },
+        });
+      } else if (result.checkoutUrl) {
+        // Redirection URL resmi dari Midtrans Snap
+        toast.success("Membuka pembayaran Midtrans...");
+        clearCart();
         window.location.href = result.checkoutUrl;
       } else {
+        toast.success("Pesanan Berhasil Dibuat!");
+        clearCart();
         router.push(`/checkout/success?orderId=${result.orderId}`);
       }
     } catch (error: any) {
       toast.error(error.message);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -407,42 +451,94 @@ export default function CheckoutPage() {
 
           {/* Metode Pembayaran */}
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                2
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                  2
+                </span>
+                Metode Pembayaran
+              </h2>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-100">
+                <ShieldCheck size={14} className="text-emerald-600" />
+                Midtrans Secured
               </span>
-              Metode Pembayaran
-            </h2>
-            <div className="space-y-3">
-              {[
-                {
-                  id: "qris",
-                  name: "QRIS (Scan via E-Wallet/M-Banking)",
-                  icon: "📱",
-                },
-                { id: "bca", name: "BCA Virtual Account", icon: "🏦" },
-                { id: "mandiri", name: "Mandiri Virtual Account", icon: "🏦" },
-                { id: "cc", name: "Kartu Kredit / Debit", icon: "💳" },
-              ].map((method) => (
-                <label
-                  key={method.id}
-                  className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === method.id ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === method.id}
-                      onChange={() => setPaymentMethod(method.id)}
-                      className="w-4 h-4 text-primary accent-primary"
-                    />
-                    <span className="text-xl">{method.icon}</span>
-                    <span className="font-medium text-gray-800">
-                      {method.name}
-                    </span>
+            </div>
+
+            <div className="p-5 border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 rounded-2xl shadow-sm">
+              <div className="mb-4">
+                <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                  Midtrans Payment Gateway
+                  <span className="text-[11px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">
+                    Semua Metode Tersedia
+                  </span>
+                </h3>
+                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                  Tekan tombol di bawah untuk memilih pembayaran lengkap: <b>QRIS</b> (GoPay/ShopeePay), <b>Virtual Account</b> (BCA, Mandiri, BNI, BRI), <b>Kartu Kredit/Debit</b>, atau <b>Gerai Retail</b> langsung pada layar Midtrans.
+                </p>
+              </div>
+
+              {/* Preview Opsi Pembayaran */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+                <div className="flex items-center gap-2 p-2.5 bg-white border border-gray-200/80 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                  <span className="text-xl">📱</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">QRIS / E-Wallet</p>
+                    <p className="text-[10px] text-gray-500">GoPay, ShopeePay</p>
                   </div>
-                </label>
-              ))}
+                </div>
+                <div className="flex items-center gap-2 p-2.5 bg-white border border-gray-200/80 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                  <span className="text-xl">🏦</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Virtual Account</p>
+                    <p className="text-[10px] text-gray-500">BCA, Mandiri, BNI, BRI</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 bg-white border border-gray-200/80 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                  <span className="text-xl">💳</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Kartu Kredit/Debit</p>
+                    <p className="text-[10px] text-gray-500">Visa, Mastercard, JCB</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 bg-white border border-gray-200/80 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                  <span className="text-xl">🏪</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Gerai Retail</p>
+                    <p className="text-[10px] text-gray-500">Indomaret, Alfamart</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tombol Pemicu Layar Midtrans */}
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="w-full py-4 px-5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed group cursor-pointer"
+              >
+                {isProcessing ? (
+                  <span className="flex items-center gap-2 animate-pulse text-sm sm:text-base font-semibold">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Menghubungkan ke Layar Pembayaran Midtrans...
+                  </span>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm sm:text-base">Pilih Metode Pembayaran (Buka Layar Midtrans)</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+
+              <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-gray-500">
+                <span className="flex items-center gap-1">
+                  <Lock size={12} className="text-gray-400" /> Enkripsi SSL 256-bit
+                </span>
+                <span>•</span>
+                <span>Verifikasi Otomatis</span>
+                <span>•</span>
+                <span>Midtrans Official</span>
+              </div>
             </div>
           </section>
         </div>
@@ -582,7 +678,7 @@ export default function CheckoutPage() {
 
             <hr className="border-gray-100 mb-4" />
 
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex justify-between items-end mb-5">
               <span className="font-bold text-gray-900">Total Pembayaran</span>
               <div className="flex flex-col items-end">
                 {discount > 0 && (
@@ -596,22 +692,33 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Informasi Gateway */}
+            <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/80 text-xs text-gray-600 mb-4 flex items-center justify-between">
+              <span className="font-medium text-gray-700">Metode Bayar:</span>
+              <span className="font-bold text-primary flex items-center gap-1">
+                <ShieldCheck size={14} className="text-primary" /> Midtrans Gateway
+              </span>
+            </div>
+
             <button
               onClick={handleCheckout}
               disabled={isProcessing}
-              className="w-full py-4 bg-primary text-white font-bold rounded-xl flex justify-center items-center gap-2 hover:bg-primary-dark transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/30"
+              className="w-full py-4 bg-primary text-white font-bold rounded-xl flex justify-center items-center gap-2 hover:bg-primary-dark transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/30 active:scale-[0.99] cursor-pointer"
             >
               {isProcessing ? (
-                <span className="animate-pulse">Memproses...</span>
+                <span className="animate-pulse flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Membuka Layar Midtrans...
+                </span>
               ) : (
                 <>
                   <CreditCard size={20} />
-                  Bayar Sekarang
+                  Bayar Sekarang via Midtrans
                 </>
               )}
             </button>
             <p className="text-xs text-center text-gray-400 mt-4">
-              Transaksi diproses dengan aman dengan enkripsi SSL.
+              Transaksi diproses dengan aman dengan enkripsi SSL 256-bit.
             </p>
           </div>
         </div>
