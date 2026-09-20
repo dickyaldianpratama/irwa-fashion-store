@@ -114,14 +114,29 @@ export default function KoleksiCard({
           />
         ))}
 
-        {/* Promo Badge */}
+        {/* Promo Badge & Stok Habis Badge */}
         <div className="absolute top-2 left-2 right-12 sm:right-16 z-10 flex flex-col items-start gap-1.5 pointer-events-none">
-          {isDiscounted && (
+          {activePhoto.stok === 0 && (
+            <span className="bg-red-600/95 text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-black rounded-sm uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              Stok Habis
+            </span>
+          )}
+          {isDiscounted && activePhoto.stok !== 0 && (
             <span className="bg-danger text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-sm uppercase tracking-wider shadow-sm">
               Promo
             </span>
           )}
         </div>
+
+        {/* Overlay Habis Terjual jika seluruh stok card = 0 */}
+        {item.stok === 0 && (
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-25 pointer-events-none">
+            <span className="bg-red-600 text-white font-black text-[11px] sm:text-xs px-3.5 py-1 rounded-full uppercase tracking-wider shadow-xl border border-white/40">
+              Habis Terjual
+            </span>
+          </div>
+        )}
 
         {/* Label Promo Bar */}
         {item.labelPromo && (
@@ -159,10 +174,18 @@ export default function KoleksiCard({
           <div
             className={`absolute ${
               item.labelPromo ? "bottom-6" : "bottom-2"
-            } left-2 z-10 flex items-center gap-1.5 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-gray-100 shadow-xs`}
+            } left-2 z-10 flex items-center gap-1.5 backdrop-blur-sm px-2 py-0.5 rounded-md border shadow-xs ${
+              activePhoto.stok === 0
+                ? "bg-red-50/95 border-red-200 text-red-600"
+                : "bg-white/95 dark:bg-gray-900/90 border-gray-100"
+            }`}
           >
             <span className="text-[9px] font-bold text-gray-500">Size:</span>
-            <span className="text-[10px] font-black text-primary">
+            <span
+              className={`text-[10px] font-black ${
+                activePhoto.stok === 0 ? "text-red-600 line-through" : "text-primary"
+              }`}
+            >
               {activePhoto.ukuran[0]}
             </span>
             {activePhoto.stok !== undefined && (
@@ -171,7 +194,7 @@ export default function KoleksiCard({
                 <span
                   className={`text-[9px] font-bold ${
                     activePhoto.stok === 0
-                      ? "text-red-500"
+                      ? "text-red-600 font-black"
                       : activePhoto.stok <= 5
                         ? "text-orange-500 font-black"
                         : "text-gray-600 dark:text-gray-300"

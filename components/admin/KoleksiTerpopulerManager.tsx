@@ -440,23 +440,53 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                     </span>
                   )}
                 </div>
-                {item.ukuran && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {item.ukuran.split(",").map((sz) => (
-                      <span
-                        key={sz}
-                        className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded"
-                      >
-                        {sz.trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Rincian Stok per Foto/Ukuran */}
+                {(() => {
+                  const parsedItems = parseKoleksiItems(item);
+                  return (
+                    <div className="mt-2 space-y-1 bg-gray-50 dark:bg-gray-800/60 p-2 rounded-lg border border-gray-100 dark:border-gray-800 text-[11px]">
+                      <p className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider">
+                        Stok per Foto & Ukuran:
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {parsedItems.map((pi, pidx) => {
+                          const pStok = pi.stok ?? 0;
+                          return (
+                            <span
+                              key={pi.id || pidx}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                pStok === 0
+                                  ? "bg-red-50 border-red-200 text-red-600"
+                                  : pStok <= 5
+                                    ? "bg-orange-50 border-orange-200 text-orange-600"
+                                    : "bg-white dark:bg-gray-800 border-gray-200 text-gray-700 dark:text-gray-300"
+                              }`}
+                            >
+                              <span>Size {pi.ukuran[0] || "-"}:</span>
+                              <span className={pStok === 0 ? "font-black underline" : ""}>
+                                {pStok === 0 ? "Habis" : `${pStok} pcs`}
+                              </span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {item.stok !== null && item.stok !== undefined && (
-                  <div className="mt-1.5 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-                    Total Stok:{" "}
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      {item.stok} pcs
+                  <div className="mt-2 text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                    <span>Total Stok:</span>
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded text-xs border ${
+                        item.stok === 0
+                          ? "bg-red-100 text-red-700 border-red-300 font-black"
+                          : item.stok <= 5
+                            ? "bg-orange-100 text-orange-700 border-orange-300"
+                            : "bg-green-50 text-green-700 border-green-200"
+                      }`}
+                    >
+                      {item.stok === 0 ? "HABIS (0 pcs)" : `${item.stok} pcs`}
                     </span>
                   </div>
                 )}

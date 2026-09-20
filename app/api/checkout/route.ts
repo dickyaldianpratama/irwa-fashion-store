@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 import { createSnapTransaction } from "@/lib/midtrans";
@@ -13,7 +14,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Anda harus login untuk melakukan checkout" }, { status: 401 });
     }
 
-    
     // SINKRONISASI USER: Pastikan user dari Supabase auth benar-benar ada di tabel public.User Prisma
     await prisma.user.upsert({
       where: { id: user.id },
@@ -33,7 +33,76 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Keranjang kosong" }, { status: 400 });
     }
 
-    // 1. Lazy Seed Kategori Dummy (karena kita belum buat panel admin)
+    // 1. VALIDASI STOK: Cek semua item di keranjang sebelum membuat pesanan
+    for (const item of items) {
+      if (!item.productId) continue;
+
+      // Cek apakah item dari KoleksiTerpopuler
+      const koleksi = await prisma.koleksiTerpopuler.findUnique({
+        where: { id: item.productId }
+      });
+
+      if (koleksi) {
+        let parsedItems: any[] = [];
+        if (koleksi.itemsData) {
+          try {
+            parsedItems = JSON.parse(koleksi.itemsData);
+          } catch (e) {}
+        }
+
+        let matchedPhoto = parsedItems.find((p: any) =>
+          Array.isArray(p.ukuran) ? p.ukuran.includes(item.ukuran) : p.ukuran === item.ukuran
+        );
+        if (!matchedPhoto && item.gambar) {
+          matchedPhoto = parsedItems.find((p: any) => p.image === item.gambar);
+        }
+        if (!matchedPhoto && parsedItems.length > 0) {
+          matchedPhoto = parsedItems[0];
+        }
+
+        const availableStock = matchedPhoto && typeof matchedPhoto.stok === "number"
+          ? matchedPhoto.stok
+          : (koleksi.stok ?? 10);
+
+        if (availableStock <= 0) {
+          return NextResponse.json({
+            error: `Maaf, stok untuk "${item.nama}" (Ukuran ${item.ukuran || "-"}) sudah habis dan tidak bisa dipesan!`
+          }, { status: 400 });
+        }
+
+        if (availableStock < (item.jumlah || 1)) {
+          return NextResponse.json({
+            error: `Maaf, stok untuk "${item.nama}" (Ukuran ${item.ukuran || "-"}) hanya tersisa ${availableStock} pcs!`
+          }, { status: 400 });
+        }
+      } else {
+        // Cek Produk reguler
+        const produk = await prisma.produk.findFirst({
+          where: { OR: [{ id: item.productId }, { slug: item.productId }] },
+          include: { varian: true }
+        });
+
+        if (produk && produk.varian && produk.varian.length > 0) {
+          const matchedVariant = produk.varian.find((v: any) =>
+            v.ukuran.toLowerCase() === (item.ukuran || "").toLowerCase()
+          );
+          if (matchedVariant) {
+            if (matchedVariant.stok <= 0) {
+              return NextResponse.json({
+                error: `Maaf, stok untuk "${item.nama}" (Ukuran ${item.ukuran || "-"}) sudah habis!`
+              }, { status: 400 });
+            }
+            if (matchedVariant.stok < (item.jumlah || 1)) {
+              return NextResponse.json({
+                error: `Maaf, stok untuk "${item.nama}" (Ukuran ${item.ukuran || "-"}) hanya tersisa ${matchedVariant.stok} pcs!`
+              }, { status: 400 });
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Lazy Seed Kategori Dummy (jika belum ada)
     const kategoriDummy = await prisma.kategori.upsert({
       where: { slug: "pakaian-pria" },
       update: {},
@@ -43,32 +112,78 @@ export async function POST(request: Request) {
       }
     });
 
-    // 2. Siapkan Array untuk ItemPesanan
+    // 3. Siapkan Array untuk ItemPesanan & KURANGI STOK DI DATABASE
     const pesananItems = [];
 
-    // Loop keranjang dan buat Produk & Varian on-the-fly jika tidak ada
     for (const item of items) {
-      // Karena ID produk dari frontend dummy biasanya string biasa spt "kemeja-linen", kita jadikan slug
+      const jumlahBeli = item.jumlah || 1;
+
+      // A. Jika produk dari KoleksiTerpopuler, kurangi stok pada foto/ukuran dan total stok
+      const koleksi = await prisma.koleksiTerpopuler.findUnique({
+        where: { id: item.productId }
+      });
+
+      if (koleksi) {
+        let parsedItems: any[] = [];
+        if (koleksi.itemsData) {
+          try {
+            parsedItems = JSON.parse(koleksi.itemsData);
+          } catch (e) {}
+        }
+
+        let updated = false;
+        for (let p of parsedItems) {
+          const matchUkuran = Array.isArray(p.ukuran)
+            ? p.ukuran.includes(item.ukuran)
+            : p.ukuran === item.ukuran;
+          if (matchUkuran || (item.gambar && p.image === item.gambar)) {
+            const currentPStok = typeof p.stok === "number" ? p.stok : (koleksi.stok ?? 10);
+            p.stok = Math.max(0, currentPStok - jumlahBeli);
+            updated = true;
+            break;
+          }
+        }
+
+        if (!updated && parsedItems.length > 0) {
+          const currentPStok = typeof parsedItems[0].stok === "number" ? parsedItems[0].stok : (koleksi.stok ?? 10);
+          parsedItems[0].stok = Math.max(0, currentPStok - jumlahBeli);
+        }
+
+        const newTotalStok = parsedItems.length > 0
+          ? parsedItems.reduce((acc: number, curr: any) => acc + (curr.stok || 0), 0)
+          : Math.max(0, (koleksi.stok ?? 10) - jumlahBeli);
+
+        await prisma.koleksiTerpopuler.update({
+          where: { id: koleksi.id },
+          data: {
+            itemsData: JSON.stringify(parsedItems),
+            stok: newTotalStok,
+          }
+        });
+      }
+
+      // B. Sinkronisasi ke tabel Produk & Varian (untuk relasi Pesanan)
       const produkSlug = item.productId || "produk-" + Math.random().toString(36).substring(7);
 
       const produk = await prisma.produk.upsert({
         where: { slug: produkSlug },
-        update: {}, // Biarkan kosong, kita urus gambar di bawah
+        update: {
+          terjual: { increment: jumlahBeli }
+        },
         create: {
           nama: item.nama || "Produk Pakaian",
           slug: produkSlug,
           deskripsi: "Deskripsi singkat produk " + item.nama,
           hargaAsli: item.harga,
           kategoriId: kategoriDummy.id,
+          terjual: jumlahBeli,
         }
       });
 
-      // Paksa sinkronisasi gambar produk (atasi masalah produk yang sudah terlanjur dibuat tanpa gambar)
       if (item.gambar) {
         const existingImage = await prisma.productImage.findFirst({
           where: { produkId: produk.id }
         });
-        
         if (!existingImage) {
           await prisma.productImage.create({
             data: {
@@ -80,26 +195,32 @@ export async function POST(request: Request) {
         }
       }
 
-      // Upsert Varian (Ukuran + Warna)
-      // Kita pakai kombinasi produkId-ukuran-warna sebagai fake SKU untuk keunikan
       const skuDummy = `${produk.id}-${item.ukuran}-${item.warna}`;
-      
+      const existingVarian = await prisma.productVariant.findUnique({
+        where: { sku: skuDummy }
+      });
+
+      const initialVarianStok = existingVarian 
+        ? Math.max(0, existingVarian.stok - jumlahBeli) 
+        : Math.max(0, 100 - jumlahBeli);
+
       const varian = await prisma.productVariant.upsert({
         where: { sku: skuDummy },
-        update: {},
+        update: {
+          stok: initialVarianStok
+        },
         create: {
           produkId: produk.id,
-          ukuran: item.ukuran,
-          warna: item.warna,
+          ukuran: item.ukuran || "-",
+          warna: item.warna || "-",
           sku: skuDummy,
-          stok: 100, // Dummy stok
+          stok: initialVarianStok,
         }
       });
 
-      // Simpan referensi untuk ItemPesanan nanti
       pesananItems.push({
         varianId: varian.id,
-        jumlah: item.jumlah,
+        jumlah: jumlahBeli,
         hargaSatuan: item.harga
       });
     }
@@ -129,6 +250,12 @@ export async function POST(request: Request) {
     const pesananBaru = await prisma.pesanan.create({
       data: pesananData
     });
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/admin/produk/featured");
+      revalidatePath("/koleksi-terpopuler");
+    } catch (e) {}
 
     // 4. Jika ada Alterasi, buat request alterasi
     if (tipePengiriman === "ALTERATION" && alterasiDetails) {

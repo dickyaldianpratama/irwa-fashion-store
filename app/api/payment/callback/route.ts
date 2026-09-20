@@ -51,10 +51,68 @@ export async function POST(request: Request) {
       });
       console.log(`[Webhook Midtrans] Pesanan ${pesanan.id} sukses DIBAYAR!`);
     } else if (transaction_status === "cancel" || transaction_status === "deny" || transaction_status === "expire") {
-      await prisma.pesanan.update({
-        where: { id: pesanan.id, statusPesanan: "UNPAID" },
-        data: { statusPesanan: "CANCELLED" }
+      const cancelledPesanan = await prisma.pesanan.findUnique({
+        where: { id: pesanan.id },
+        include: {
+          items: {
+            include: {
+              varian: {
+                include: { produk: true }
+              }
+            }
+          }
+        }
       });
+
+      if (cancelledPesanan && cancelledPesanan.statusPesanan === "UNPAID") {
+        await prisma.pesanan.update({
+          where: { id: pesanan.id },
+          data: { statusPesanan: "CANCELLED" }
+        });
+
+        // Kembalikan stok yang sebelumnya dipotong
+        for (const itm of cancelledPesanan.items) {
+          if (itm.varian) {
+            await prisma.productVariant.update({
+              where: { id: itm.varian.id },
+              data: {
+                stok: { increment: itm.jumlah }
+              }
+            }).catch(() => {});
+
+            // Cek apakah produk ini berasal dari KoleksiTerpopuler
+            const koleksi = await prisma.koleksiTerpopuler.findUnique({
+              where: { id: itm.varian.produk.slug }
+            }).catch(() => null);
+
+            if (koleksi) {
+              try {
+                const parsed = JSON.parse(koleksi.itemsData || "[]");
+                let restored = false;
+                for (let p of parsed) {
+                  const matchUkuran = Array.isArray(p.ukuran) ? p.ukuran.includes(itm.varian.ukuran) : p.ukuran === itm.varian.ukuran;
+                  if (matchUkuran) {
+                    p.stok = (p.stok || 0) + itm.jumlah;
+                    restored = true;
+                    break;
+                  }
+                }
+                if (!restored && parsed.length > 0) {
+                  parsed[0].stok = (parsed[0].stok || 0) + itm.jumlah;
+                }
+                const newTotal = parsed.reduce((a: number, b: any) => a + (b.stok || 0), 0);
+                await prisma.koleksiTerpopuler.update({
+                  where: { id: koleksi.id },
+                  data: {
+                    itemsData: JSON.stringify(parsed),
+                    stok: newTotal
+                  }
+                });
+              } catch (e) {}
+            }
+          }
+        }
+      }
       console.log(`[Webhook Midtrans] Pesanan ${pesanan.id} DIBATALKAN/EXPIRED!`);
     }
 

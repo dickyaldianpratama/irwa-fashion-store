@@ -244,8 +244,15 @@ export default function KoleksiDetailPage({
                 <img
                   src={activePhoto.image}
                   alt={item.title}
-                  className="w-full h-full object-cover transition-all duration-300"
+                  className={`w-full h-full object-cover transition-all duration-300 ${isHabis ? "grayscale-[30%]" : ""}`}
                 />
+                {isHabis && (
+                  <div className="absolute inset-0 bg-black/35 backdrop-blur-[1px] flex items-center justify-center z-20 pointer-events-none">
+                    <span className="bg-red-600 text-white font-black text-sm px-4 py-1.5 rounded-full uppercase tracking-wider shadow-xl border-2 border-white">
+                      Stok Habis
+                    </span>
+                  </div>
+                )}
                 {item.labelPromo && (
                   <div className="absolute bottom-0 left-0 w-full bg-gradient-to-r from-warning to-orange-500 py-1 text-center">
                     <span className="text-white text-xs font-bold tracking-wider uppercase">
@@ -412,17 +419,35 @@ export default function KoleksiDetailPage({
                   <div className="flex flex-wrap gap-2">
                     {allSizes.map((size) => {
                       const isSelected = selectedSize === size;
+                      const sizePhoto = photoItems.find((p) => p.ukuran?.[0] === size);
+                      const sizeStok =
+                        sizePhoto && typeof sizePhoto.stok === "number"
+                          ? sizePhoto.stok
+                          : (item.stok ?? 10);
+                      const isSizeOutOfStock = sizeStok <= 0;
+
                       return (
                         <button
                           key={size}
                           onClick={() => handleSelectSize(size)}
-                          className={`min-w-[48px] h-11 px-3 rounded-xl border-2 font-bold text-sm transition-all ${
-                            isSelected
-                              ? "bg-primary border-primary text-white shadow-md shadow-primary/20"
-                              : "bg-white border-gray-200 text-gray-700 hover:border-primary/50"
+                          className={`relative min-w-[56px] h-12 px-3 rounded-xl border-2 font-bold text-sm transition-all flex flex-col items-center justify-center leading-tight cursor-pointer ${
+                            isSizeOutOfStock
+                              ? isSelected
+                                ? "bg-red-50 border-red-500 text-red-600 shadow-xs"
+                                : "bg-gray-100 border-gray-200 text-gray-400 hover:border-red-300"
+                              : isSelected
+                                ? "bg-primary border-primary text-white shadow-md shadow-primary/20"
+                                : "bg-white border-gray-200 text-gray-700 hover:border-primary/50"
                           }`}
                         >
-                          {size}
+                          <span className={isSizeOutOfStock ? "line-through text-gray-400" : ""}>
+                            {size}
+                          </span>
+                          {isSizeOutOfStock ? (
+                            <span className="text-[9px] font-black text-red-500">Habis</span>
+                          ) : (
+                            <span className="text-[9px] font-normal opacity-75">{sizeStok} pcs</span>
+                          )}
                         </button>
                       );
                     })}
@@ -430,40 +455,57 @@ export default function KoleksiDetailPage({
                 </div>
               )}
 
-              {currentStock !== null && (
+              {isHabis ? (
+                <div className="p-3.5 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 font-bold text-lg">
+                    ✕
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-red-800 text-sm">Stok Habis (0 pcs)</h4>
+                    <p className="text-xs text-red-600 mt-0.5">
+                      Pakaian untuk ukuran <b>{selectedSize || activePhoto.ukuran?.[0] || "-"}</b> ini sedang habis terjual dan <b>tidak bisa dipesan</b>.
+                    </p>
+                  </div>
+                </div>
+              ) : currentStock !== null ? (
                 <div
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium mb-4 ${
-                    isHabis
-                      ? "bg-red-50 text-red-600 border border-red-200"
-                      : isHampirHabis
-                        ? "bg-orange-50 text-orange-600 border border-orange-200"
-                        : "bg-green-50 text-green-700 border border-green-200"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium mb-5 ${
+                    isHampirHabis
+                      ? "bg-orange-50 text-orange-600 border border-orange-200"
+                      : "bg-green-50 text-green-700 border border-green-200"
                   }`}
                 >
                   <Package size={14} />
-                  {isHabis
-                    ? "Stok Habis"
-                    : isHampirHabis
-                      ? `Hampir Habis! Sisa ${currentStock} pcs`
-                      : `Stok: ${currentStock} pcs`}
+                  {isHampirHabis
+                    ? `Hampir Habis! Sisa ${currentStock} pcs`
+                    : `Stok: ${currentStock} pcs`}
                 </div>
-              )}
+              ) : null}
 
               <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={isHabis}
-                  className="flex-1 h-13 py-3.5 bg-white border-2 border-primary text-primary font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                  className={`flex-1 h-13 py-3.5 font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${
+                    isHabis
+                      ? "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                      : "bg-white border-2 border-primary text-primary hover:bg-primary/5 active:scale-[0.98] cursor-pointer"
+                  }`}
                 >
-                  <ShoppingBag size={20} />+ Keranjang
+                  <ShoppingBag size={20} />
+                  {isHabis ? "Stok Habis" : "+ Keranjang"}
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={isHabis}
-                  className="flex-1 h-13 py-3.5 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                  className={`flex-1 h-13 py-3.5 font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${
+                    isHabis
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60 shadow-none"
+                      : "bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-dark active:scale-[0.98] cursor-pointer"
+                  }`}
                 >
                   <Zap size={20} />
-                  Beli Sekarang
+                  {isHabis ? "Tidak Bisa Dipesan" : "Beli Sekarang"}
                 </button>
               </div>
 
