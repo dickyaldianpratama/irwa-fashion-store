@@ -137,14 +137,14 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                     )}
                   </div>
                   <div className="p-3 flex-1 flex flex-col">
-                    <h3 className="font-medium text-xs sm:text-sm text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                    <h3 className="font-medium text-xs sm:text-sm text-gray-700 leading-snug group-hover:text-primary transition-colors truncate">
                       {item.title}
                     </h3>
 
-                    <div className="mt-auto pt-2">
+                    <div className="mt-2">
                       {/* Harga Pintar */}
                       {(item.hargaAsli || item.hargaDiskon) && (
-                        <div className="flex flex-col min-h-[38px] justify-end">
+                        <div className="flex flex-col">
                           {isDiscounted ? (
                             <>
                               <span className="text-gray-400 text-[10px] sm:text-[11px] line-through decoration-gray-300">

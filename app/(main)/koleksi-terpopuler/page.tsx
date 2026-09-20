@@ -132,14 +132,14 @@ export default async function KoleksiTerpopulerPage() {
                     )}
                   </div>
                   <div className="p-3 sm:p-4 flex-1 flex flex-col">
-                    <h3 className="font-medium text-sm sm:text-base text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                    <h3 className="font-medium text-sm sm:text-base text-gray-700 leading-snug group-hover:text-primary transition-colors truncate">
                       {item.title}
                     </h3>
 
-                    <div className="mt-auto pt-2">
+                    <div className="mt-2">
                       {/* Harga Pintar */}
                       {(item.hargaAsli || item.hargaDiskon) && (
-                        <div className="flex flex-col min-h-[44px] justify-end">
+                        <div className="flex flex-col">
                           {isDiscounted ? (
                             <>
                               <span className="text-gray-400 text-xs line-through decoration-gray-300">
