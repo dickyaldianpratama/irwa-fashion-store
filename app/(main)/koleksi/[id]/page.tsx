@@ -16,10 +16,17 @@ import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import toast from "react-hot-toast";
 
+interface KoleksiPhotoItem {
+  id: string;
+  image: string;
+  ukuran: string[];
+}
+
 interface KoleksiItem {
   id: string;
   title: string;
   image: string;
+  itemsData?: string | null;
   link: string | null;
   hargaAsli: number | null;
   hargaDiskon: number | null;
@@ -41,6 +48,8 @@ export default function KoleksiDetailPage({
   const router = useRouter();
   const [item, setItem] = useState<KoleksiItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [photoItems, setPhotoItems] = useState<KoleksiPhotoItem[]>([]);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useUIStore((state) => state.openCart);
@@ -50,17 +59,44 @@ export default function KoleksiDetailPage({
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setItem(d.data);
-        const sizes = d.data.ukuran
-          ? d.data.ukuran
-              .split(",")
-              .map((s: string) => s.trim())
-              .filter(Boolean)
-          : [];
-        if (sizes.length > 0) setSelectedSize(sizes[0]);
+        let parsed: KoleksiPhotoItem[] = [];
+        if (d.data.itemsData) {
+          try {
+            const arr = JSON.parse(d.data.itemsData);
+            if (Array.isArray(arr) && arr.length > 0) parsed = arr;
+          } catch (e) {}
+        }
+        if (parsed.length === 0) {
+          parsed = [
+            {
+              id: "1",
+              image: d.data.image,
+              ukuran: d.data.ukuran
+                ? d.data.ukuran
+                    .split(",")
+                    .map((s: string) => s.trim())
+                    .filter(Boolean)
+                : [],
+            },
+          ];
+        }
+        setPhotoItems(parsed);
+        setActivePhotoIndex(0);
+        if (parsed[0]?.ukuran?.length > 0) {
+          setSelectedSize(parsed[0].ukuran[0]);
+        }
       })
       .catch(() => router.push("/koleksi-terpopuler"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
+
+  const handleSelectPhoto = (index: number) => {
+    setActivePhotoIndex(index);
+    const targetSizes = photoItems[index]?.ukuran || [];
+    if (!targetSizes.includes(selectedSize)) {
+      setSelectedSize(targetSizes[0] || "");
+    }
+  };
 
   if (loading) {
     return (
@@ -75,12 +111,10 @@ export default function KoleksiDetailPage({
 
   if (!item) return null;
 
-  const sizes = item.ukuran
-    ? item.ukuran
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
+  const activePhoto =
+    photoItems[activePhotoIndex] ||
+    photoItems[0] || { image: item.image, ukuran: [] };
+  const currentSizes = activePhoto.ukuran || [];
   const isDiscounted = !!(
     item.hargaAsli &&
     item.hargaDiskon &&
@@ -103,7 +137,7 @@ export default function KoleksiDetailPage({
     }).format(n);
 
   const handleAddToCart = () => {
-    if (sizes.length > 0 && !selectedSize) {
+    if (currentSizes.length > 0 && !selectedSize) {
       toast.error("Pilih ukuran terlebih dahulu");
       return;
     }
@@ -115,7 +149,7 @@ export default function KoleksiDetailPage({
       productId: item.id,
       nama: item.title,
       harga: displayPrice,
-      gambar: item.image,
+      gambar: activePhoto.image,
       ukuran: selectedSize || "-",
       warna: "-",
       jumlah: 1,
@@ -125,7 +159,7 @@ export default function KoleksiDetailPage({
   };
 
   const handleBuyNow = () => {
-    if (sizes.length > 0 && !selectedSize) {
+    if (currentSizes.length > 0 && !selectedSize) {
       toast.error("Pilih ukuran terlebih dahulu");
       return;
     }
@@ -137,7 +171,7 @@ export default function KoleksiDetailPage({
       productId: item.id,
       nama: item.title,
       harga: displayPrice,
-      gambar: item.image,
+      gambar: activePhoto.image,
       ukuran: selectedSize || "-",
       warna: "-",
       jumlah: 1,
@@ -176,9 +210,9 @@ export default function KoleksiDetailPage({
             <div className="w-full md:w-[45%] lg:w-[320px] xl:w-[350px] shrink-0 mx-auto md:mx-0">
               <div className="relative w-full aspect-square sm:aspect-[4/5] lg:aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
                 <img
-                  src={item.image}
+                  src={activePhoto.image}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-all duration-300"
                 />
                 {item.labelPromo && (
                   <div className="absolute bottom-0 left-0 w-full bg-gradient-to-r from-warning to-orange-500 py-1 text-center">
@@ -202,6 +236,35 @@ export default function KoleksiDetailPage({
                   </div>
                 )}
               </div>
+
+              {/* Photo Thumbnails Gallery */}
+              {photoItems.length > 1 && (
+                <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {photoItems.map((p, idx) => (
+                    <button
+                      key={p.id || idx}
+                      type="button"
+                      onClick={() => handleSelectPhoto(idx)}
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                        activePhotoIndex === idx
+                          ? "border-primary ring-2 ring-primary/30 scale-105"
+                          : "border-gray-200 opacity-70 hover:opacity-100 hover:border-gray-300"
+                      }`}
+                    >
+                      <img
+                        src={p.image}
+                        alt={`Foto ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {p.ukuran && p.ukuran.length > 0 && (
+                        <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-bold text-center py-0.5 truncate px-0.5">
+                          {p.ukuran.join("/")}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="w-full md:flex-1">
@@ -260,12 +323,19 @@ export default function KoleksiDetailPage({
 
               <hr className="border-gray-100 my-4" />
 
-              {sizes.length > 0 && (
+              {currentSizes.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      Pilih Ukuran
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Pilih Ukuran
+                      </h3>
+                      {photoItems.length > 1 && (
+                        <span className="text-xs text-gray-500 font-normal">
+                          (Foto {activePhotoIndex + 1})
+                        </span>
+                      )}
+                    </div>
                     {selectedSize && (
                       <span className="text-sm text-primary font-bold">
                         Dipilih: {selectedSize}
@@ -273,7 +343,7 @@ export default function KoleksiDetailPage({
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {sizes.map((size) => (
+                    {currentSizes.map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}

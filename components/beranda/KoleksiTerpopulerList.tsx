@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import KoleksiCard from "@/components/beranda/KoleksiCard";
 
 interface KoleksiItem {
   id: string;
   title: string;
   image: string;
+  itemsData?: string | null;
   link: string | null;
   hargaAsli?: number | null;
   hargaDiskon?: number | null;
@@ -17,6 +18,7 @@ interface KoleksiItem {
   badgeGaransi?: string | null;
   rating?: string | null;
   terjual?: string | null;
+  ukuran?: string | null;
 }
 
 interface Props {
@@ -65,140 +67,9 @@ export default function KoleksiTerpopulerList({ items }: Props) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-            {displayedItems.map((item) => {
-              const finalLink =
-                item.link && item.link !== "#"
-                  ? item.link
-                  : `/koleksi/${item.id}`;
-              const isDiscounted =
-                !!item.hargaAsli &&
-                !!item.hargaDiskon &&
-                item.hargaAsli > item.hargaDiskon;
-
-              return (
-                <Link
-                  key={item.id}
-                  href={finalLink}
-                  className="group flex flex-col rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow relative"
-                >
-                  <div className="relative w-full aspect-square bg-gray-100 overflow-hidden shrink-0">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-2 left-2 right-12 sm:right-16 z-10 flex flex-col items-start gap-1.5 pointer-events-none">
-                      {isDiscounted && (
-                        <span className="bg-danger text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-sm uppercase tracking-wider shadow-sm">
-                          Promo
-                        </span>
-                      )}
-                    </div>
-                    {item.labelPromo && (
-                      <div className="absolute bottom-0 left-0 w-full z-10 bg-gradient-to-r from-warning to-orange-500 shadow-sm border-t border-white/20">
-                        <div className="px-2 py-[3px] text-center">
-                          <span className="text-white text-[9px] sm:text-[10px] font-bold tracking-wider uppercase truncate block drop-shadow-sm">
-                            {item.labelPromo}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {item.bestSellerBadge && (
-                      <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
-                        <img
-                          src={item.bestSellerBadge}
-                          alt="Best Seller"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 flex-1 flex flex-col">
-                    <h3 className="font-medium text-xs sm:text-sm text-gray-700 leading-snug group-hover:text-primary transition-colors truncate">
-                      {item.title}
-                    </h3>
-
-                    <div className="mt-2">
-                      {/* Harga Pintar */}
-                      {(item.hargaAsli || item.hargaDiskon) && (
-                        <div className="flex flex-col">
-                          {isDiscounted ? (
-                            <>
-                              <span className="text-gray-400 text-[10px] sm:text-[11px] line-through decoration-gray-300">
-                                Rp{" "}
-                                {(item.hargaAsli || 0).toLocaleString("id-ID")}
-                              </span>
-                              <span className="text-danger font-black text-sm sm:text-base tracking-tight">
-                                Rp{" "}
-                                {(item.hargaDiskon || 0).toLocaleString(
-                                  "id-ID",
-                                )}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-gray-900 font-bold text-sm sm:text-base tracking-tight">
-                              Rp{" "}
-                              {(
-                                item.hargaAsli ||
-                                item.hargaDiskon ||
-                                0
-                              ).toLocaleString("id-ID")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {/* UI Element ala Shopee (Dynamic) */}
-                      {(item.badgeGaransi || item.rating || item.terjual) && (
-                        <div className="mt-2 flex flex-col gap-1.5">
-                          {item.badgeGaransi && (
-                            <div className="flex items-center gap-1 bg-gradient-to-r from-primary-400 to-primary-600 text-white w-fit pl-1 pr-1.5 py-[2px] rounded-[3px] shadow-sm">
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                className="w-[12px] h-[12px] text-white -mt-[3px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]"
-                              >
-                                <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z" />
-                              </svg>
-                              <span className="text-[9px] font-medium tracking-wide">
-                                {item.badgeGaransi}
-                              </span>
-                            </div>
-                          )}
-
-                          {(item.rating || item.terjual) && (
-                            <div className="flex items-center text-[10px] sm:text-[11px] text-gray-600 mt-0.5">
-                              {item.rating && (
-                                <div className="flex items-center gap-0.5 border border-yellow-400 bg-yellow-50/50 px-1 py-[1px] rounded-[2px]">
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    fill="#facc15"
-                                    className="w-3 h-3"
-                                  >
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                  </svg>
-                                  <span className="font-semibold text-gray-700">
-                                    {item.rating}
-                                  </span>
-                                </div>
-                              )}
-
-                              {item.rating && item.terjual && (
-                                <span className="mx-1.5 text-gray-300">|</span>
-                              )}
-
-                              {item.terjual && (
-                                <span className="truncate">{item.terjual}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {displayedItems.map((item) => (
+              <KoleksiCard key={item.id} item={item} />
+            ))}
           </div>
         )}
       </div>

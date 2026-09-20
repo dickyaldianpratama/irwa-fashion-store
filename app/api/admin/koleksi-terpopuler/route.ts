@@ -20,9 +20,12 @@ export async function POST(request: Request) {
     if (!admin)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    const body = await request.json();
     const {
       title,
-      image,
+      items,
+      image: rawImage,
+      itemsData: rawItemsData,
       link,
       urutan,
       hargaAsli,
@@ -32,20 +35,67 @@ export async function POST(request: Request) {
       badgeGaransi,
       rating,
       terjual,
-      ukuran,
+      ukuran: rawUkuran,
       stok,
-    } = await request.json();
-    if (!title || !image) {
+    } = body;
+
+    // Parse and validate items
+    let finalItems: { id: string; image: string; ukuran: string[] }[] = [];
+    if (Array.isArray(items) && items.length > 0) {
+      finalItems = items;
+    } else if (rawItemsData) {
+      try {
+        finalItems = JSON.parse(rawItemsData);
+      } catch (e) {}
+    } else if (rawImage) {
+      finalItems = [
+        {
+          id: "1",
+          image: rawImage,
+          ukuran: rawUkuran
+            ? rawUkuran
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            : [],
+        },
+      ];
+    }
+
+    if (!title || finalItems.length === 0 || !finalItems[0].image) {
       return NextResponse.json(
-        { error: "Title dan image wajib diisi" },
+        { error: "Judul dan minimal 1 foto pakaian wajib diisi" },
         { status: 400 },
       );
     }
 
+    // Validasi setiap foto memiliki gambar dan ukuran
+    for (let i = 0; i < finalItems.length; i++) {
+      if (!finalItems[i].image) {
+        return NextResponse.json(
+          { error: `Foto ke-${i + 1} belum diupload` },
+          { status: 400 },
+        );
+      }
+      if (!finalItems[i].ukuran || finalItems[i].ukuran.length === 0) {
+        return NextResponse.json(
+          { error: `Pilih minimal 1 ukuran untuk foto ke-${i + 1}` },
+          { status: 400 },
+        );
+      }
+    }
+
+    const coverImage = finalItems[0].image;
+    const combinedUkuran = Array.from(
+      new Set(finalItems.flatMap((i) => i.ukuran)),
+    ).join(",");
+    const serializedItemsData = JSON.stringify(finalItems);
+
     const newData = await prisma.koleksiTerpopuler.create({
       data: {
         title,
-        image,
+        image: coverImage,
+        itemsData: serializedItemsData,
         link: link || null,
         urutan: parseInt(urutan) || 0,
         hargaAsli: hargaAsli ? parseInt(hargaAsli) : null,
@@ -55,7 +105,7 @@ export async function POST(request: Request) {
         badgeGaransi: badgeGaransi || null,
         rating: rating || null,
         terjual: terjual || null,
-        ukuran: ukuran || null,
+        ukuran: combinedUkuran || null,
         stok: stok ? parseInt(stok) : null,
       },
     });
@@ -73,10 +123,13 @@ export async function PATCH(request: Request) {
     if (!admin)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    const body = await request.json();
     const {
       id,
       title,
-      image,
+      items,
+      image: rawImage,
+      itemsData: rawItemsData,
       link,
       urutan,
       hargaAsli,
@@ -86,17 +139,68 @@ export async function PATCH(request: Request) {
       badgeGaransi,
       rating,
       terjual,
-      ukuran,
+      ukuran: rawUkuran,
       stok,
-    } = await request.json();
+    } = body;
+
     if (!id)
       return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
+
+    let finalItems: { id: string; image: string; ukuran: string[] }[] | undefined = undefined;
+    if (Array.isArray(items) && items.length > 0) {
+      finalItems = items;
+    } else if (rawItemsData) {
+      try {
+        finalItems = JSON.parse(rawItemsData);
+      } catch (e) {}
+    } else if (rawImage) {
+      finalItems = [
+        {
+          id: "1",
+          image: rawImage,
+          ukuran: rawUkuran
+            ? rawUkuran
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            : [],
+        },
+      ];
+    }
+
+    let coverImage: string | undefined = undefined;
+    let combinedUkuran: string | undefined = undefined;
+    let serializedItemsData: string | undefined = undefined;
+
+    if (finalItems) {
+      for (let i = 0; i < finalItems.length; i++) {
+        if (!finalItems[i].image) {
+          return NextResponse.json(
+            { error: `Foto ke-${i + 1} belum diupload` },
+            { status: 400 },
+          );
+        }
+        if (!finalItems[i].ukuran || finalItems[i].ukuran.length === 0) {
+          return NextResponse.json(
+            { error: `Pilih minimal 1 ukuran untuk foto ke-${i + 1}` },
+            { status: 400 },
+          );
+        }
+      }
+      coverImage = finalItems[0].image;
+      combinedUkuran = Array.from(
+        new Set(finalItems.flatMap((i) => i.ukuran)),
+      ).join(",");
+      serializedItemsData = JSON.stringify(finalItems);
+    }
 
     const updated = await prisma.koleksiTerpopuler.update({
       where: { id },
       data: {
         ...(title && { title }),
-        ...(image && { image }),
+        ...(coverImage && { image: coverImage }),
+        ...(serializedItemsData !== undefined && { itemsData: serializedItemsData }),
+        ...(combinedUkuran !== undefined && { ukuran: combinedUkuran }),
         ...(link !== undefined && { link }),
         ...(urutan !== undefined && { urutan: parseInt(urutan) }),
         ...(hargaAsli !== undefined && {
@@ -114,7 +218,6 @@ export async function PATCH(request: Request) {
         }),
         ...(rating !== undefined && { rating: rating || null }),
         ...(terjual !== undefined && { terjual: terjual || null }),
-        ...(ukuran !== undefined && { ukuran: ukuran || null }),
         ...(stok !== undefined && { stok: stok ? parseInt(stok) : null }),
       },
     });

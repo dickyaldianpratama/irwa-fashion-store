@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, Loader2, X } from "lucide-react";
+import { Plus, Edit2, Trash2, Loader2, X, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/admin/ImageUploader";
 import Swal from "sweetalert2";
@@ -10,10 +10,17 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-interface Koleksi {
+export interface KoleksiImageItem {
+  id: string;
+  image: string;
+  ukuran: string[];
+}
+
+export interface Koleksi {
   id: string;
   title: string;
   image: string;
+  itemsData?: string | null;
   link: string | null;
   urutan: number;
   hargaAsli?: number | null;
@@ -27,13 +34,40 @@ interface Koleksi {
   stok?: number | null;
 }
 
+export function parseKoleksiItems(item: Koleksi): KoleksiImageItem[] {
+  if (item.itemsData) {
+    try {
+      const parsed = JSON.parse(item.itemsData);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {}
+  }
+  return [
+    {
+      id: "item-1",
+      image: item.image || "",
+      ukuran: item.ukuran
+        ? item.ukuran
+            .split(",")
+            .map((u) => u.trim())
+            .filter(Boolean)
+        : [],
+    },
+  ];
+}
+
 interface Props {
   koleksi: Koleksi[];
 }
 
 const emptyData = {
   title: "",
-  image: "",
+  items: [
+    {
+      id: "item-1",
+      image: "",
+      ukuran: [] as string[],
+    },
+  ] as KoleksiImageItem[],
   link: "",
   urutan: "0",
   hargaAsli: "",
@@ -44,7 +78,6 @@ const emptyData = {
   badgeGaransi: "",
   rating: "",
   terjual: "",
-  ukuran: [] as string[],
   stok: "",
 };
 
@@ -58,7 +91,16 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
   const openCreate = () => {
     setEditingId(null);
-    setFormData(emptyData);
+    setFormData({
+      ...emptyData,
+      items: [
+        {
+          id: `item-${Date.now()}`,
+          image: "",
+          ukuran: [],
+        },
+      ],
+    });
     setShowModal(true);
   };
 
@@ -74,9 +116,20 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       }
     }
 
+    const parsedItems = parseKoleksiItems(item);
+
     setFormData({
       title: item.title,
-      image: item.image,
+      items:
+        parsedItems.length > 0
+          ? parsedItems
+          : [
+              {
+                id: `item-${Date.now()}`,
+                image: item.image || "",
+                ukuran: [],
+              },
+            ],
       link: item.link || "",
       urutan: item.urutan.toString(),
       hargaAsli: item.hargaAsli?.toString() || "",
@@ -87,15 +140,59 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       badgeGaransi: item.badgeGaransi || "",
       rating: item.rating || "",
       terjual: item.terjual || "",
-      ukuran: item.ukuran
-        ? item.ukuran
-            .split(",")
-            .map((u) => u.trim())
-            .filter(Boolean)
-        : [],
       stok: item.stok?.toString() || "",
     });
     setShowModal(true);
+  };
+
+  const handleAddItem = () => {
+    setFormData((prev) => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          image: "",
+          ukuran: [],
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveItem = (id: string) => {
+    if (formData.items.length <= 1) {
+      toast.error("Minimal harus ada 1 foto pakaian");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== id),
+    }));
+  };
+
+  const handleItemImageChange = (id: string, url: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((item) =>
+        item.id === id ? { ...item, image: url } : item,
+      ),
+    }));
+  };
+
+  const handleToggleItemSize = (id: string, size: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => {
+        if (item.id !== id) return item;
+        const exists = item.ukuran.includes(size);
+        return {
+          ...item,
+          ukuran: exists
+            ? item.ukuran.filter((s) => s !== size)
+            : [...item.ukuran, size],
+        };
+      }),
+    }));
   };
 
   const handleHargaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,9 +216,26 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.image) {
-      toast.error("Title dan gambar wajib diisi");
+    if (!formData.title) {
+      toast.error("Judul / Nama Pakaian wajib diisi");
       return;
+    }
+
+    if (formData.items.length === 0) {
+      toast.error("Minimal harus ada 1 foto pakaian");
+      return;
+    }
+
+    for (let i = 0; i < formData.items.length; i++) {
+      const itm = formData.items[i];
+      if (!itm.image) {
+        toast.error(`Foto #${i + 1} belum diupload gambarnya`);
+        return;
+      }
+      if (itm.ukuran.length === 0) {
+        toast.error(`Pilih minimal 1 ukuran untuk Foto #${i + 1}`);
+        return;
+      }
     }
 
     setSaving(true);
@@ -131,13 +245,20 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
           id: editingId,
+          title: formData.title,
+          items: formData.items,
+          link: formData.link || null,
+          urutan: formData.urutan,
           hargaAsli: formData.hargaAsli ? parseInt(formData.hargaAsli) : null,
           hargaDiskon: formData.hargaDiskon
             ? parseInt(formData.hargaDiskon)
             : null,
-          ukuran: formData.ukuran.length > 0 ? formData.ukuran.join(",") : null,
+          labelPromo: formData.labelPromo || null,
+          bestSellerBadge: formData.bestSellerBadge || null,
+          badgeGaransi: formData.badgeGaransi || null,
+          rating: formData.rating || null,
+          terjual: formData.terjual || null,
           stok: formData.stok ? parseInt(formData.stok) : null,
         }),
       });
@@ -219,31 +340,42 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
             key={item.id}
             className="group bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col relative"
           >
-            <div className="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 overflow-hidden">
-              <Image
-                src={item.image}
-                alt={item.title}
-                fill
-                className="object-cover text-transparent transition-transform duration-500 group-hover:scale-105"
-                unoptimized
-              />
-              <div className="absolute top-2 left-2 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-700 z-10">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                Urutan {item.urutan}
-              </div>
-
-              {item.bestSellerBadge && (
-                <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 animate-pulse drop-shadow-lg z-10 transform origin-top-right scale-110">
+            {(() => {
+              const parsed = parseKoleksiItems(item);
+              return (
+                <div className="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 overflow-hidden">
                   <Image
-                    src={item.bestSellerBadge}
-                    alt="Best Seller"
+                    src={parsed[0]?.image || item.image}
+                    alt={item.title}
                     fill
-                    className="object-contain"
+                    className="object-cover text-transparent transition-transform duration-500 group-hover:scale-105"
                     unoptimized
                   />
+                  <div className="absolute top-2 left-2 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-700 z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                    Urutan {item.urutan}
+                  </div>
+
+                  {parsed.length > 1 && (
+                    <div className="absolute bottom-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 z-10 shadow-sm">
+                      <Layers size={10} /> {parsed.length} Foto
+                    </div>
+                  )}
+
+                  {item.bestSellerBadge && (
+                    <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 animate-pulse drop-shadow-lg z-10 transform origin-top-right scale-110">
+                      <Image
+                        src={item.bestSellerBadge}
+                        alt="Best Seller"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
             <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-3">
               <div>
                 <h3 className="font-medium text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-snug group-hover:text-primary transition-colors line-clamp-2">
@@ -269,6 +401,18 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                     </span>
                   )}
                 </div>
+                {item.ukuran && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {item.ukuran.split(",").map((sz) => (
+                      <span
+                        key={sz}
+                        className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded"
+                      >
+                        {sz.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <button
@@ -454,43 +598,6 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Ukuran Tersedia (Opsional)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {["S", "M", "L", "XL", "XXL"].map((size) => {
-                    const checked = formData.ukuran.includes(size);
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => {
-                          if (checked) {
-                            setFormData((p) => ({
-                              ...p,
-                              ukuran: p.ukuran.filter((u) => u !== size),
-                            }));
-                          } else {
-                            setFormData((p) => ({
-                              ...p,
-                              ukuran: [...p.ukuran, size],
-                            }));
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all ${
-                          checked
-                            ? "bg-primary text-white border-primary"
-                            : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-primary/50"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium mb-1">
                   Stok Barang (Opsional)
                 </label>
@@ -506,18 +613,109 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                <div className="p-3 bg-gray-50/80 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800">
-                  <ImageUploader
-                    value={formData.image}
-                    onChange={(url) => setFormData((p) => ({ ...p, image: url }))}
-                    folder="koleksi"
-                    label="Gambar Banner *"
-                    aspectRatio="aspect-[4/5]"
-                    compact
-                    previewHeight="h-32"
-                  />
+              {/* Daftar Foto & Ukuran Pakaian */}
+              <div className="space-y-3 pt-3 border-t dark:border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                      <Layers size={16} className="text-primary" />
+                      Daftar Foto & Ukuran Pakaian ({formData.items.length})
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Setiap foto pakaian wajib memiliki pilihan ukuran masing-masing.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddItem}
+                    className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors flex items-center gap-1 shrink-0"
+                  >
+                    <Plus size={14} /> Tambah Foto
+                  </button>
                 </div>
+
+                <div className="space-y-3">
+                  {formData.items.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="p-3 bg-gray-50/90 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-black flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          {idx === 0 ? "Foto #1 (Cover Utama)" : `Foto Pakaian #${idx + 1}`}
+                        </span>
+                        {formData.items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1"
+                            title="Hapus foto ini"
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Image Uploader */}
+                      <ImageUploader
+                        value={item.image}
+                        onChange={(url) => handleItemImageChange(item.id, url)}
+                        folder="koleksi"
+                        label={`Upload Foto ${idx === 0 ? "Utama" : `#${idx + 1}`} *`}
+                        aspectRatio="aspect-[4/5]"
+                        compact
+                        previewHeight="h-28"
+                      />
+
+                      {/* Ukuran untuk foto ini */}
+                      <div className="pt-1">
+                        <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
+                          Pilih Ukuran Foto Ini (Wajib):
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {["S", "M", "L", "XL", "XXL"].map((size) => {
+                            const checked = item.ukuran.includes(size);
+                            return (
+                              <button
+                                key={size}
+                                type="button"
+                                onClick={() => handleToggleItemSize(item.id, size)}
+                                className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${
+                                  checked
+                                    ? "bg-primary text-white border-primary shadow-xs"
+                                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-primary/50"
+                                }`}
+                              >
+                                {size}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {item.ukuran.length === 0 && (
+                          <p className="text-[10px] text-red-500 mt-1 italic">
+                            * Wajib memilih minimal 1 ukuran untuk foto ini
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="w-full py-2.5 border-2 border-dashed border-primary/30 text-primary hover:bg-primary/5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Plus size={15} /> Tambah Foto / Pakaian Lainnya
+                </button>
+              </div>
+
+              {/* Badge Best Seller */}
+              <div className="pt-3 border-t dark:border-gray-800">
                 <div className="p-3 bg-gray-50/80 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800">
                   <ImageUploader
                     value={formData.bestSellerBadge}

@@ -88,6 +88,7 @@ model KoleksiTerpopuler {
   id              String  @id @default(uuid())
   title           String
   image           String
+  itemsData       String? @db.Text // JSON string: [{ id, image, ukuran: [] }]
   link            String?
   urutan          Int     @default(0)
   hargaAsli       Int?
@@ -97,7 +98,7 @@ model KoleksiTerpopuler {
   badgeGaransi    String?
   rating          String?
   terjual         String?
-  ukuran          String? // e.g. "S,M,L,XL"
+  ukuran          String? // e.g. "S,M,L,XL" (gabungan untuk search/fallback)
   stok            Int? // e.g. 50
 }
 
