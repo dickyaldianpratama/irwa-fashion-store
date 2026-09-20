@@ -86,40 +86,45 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                         </span>
                       )}
                     </div>
-                    {item.bestSellerBadge && (
-                      <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
-                        <img 
-                          src={item.bestSellerBadge} 
-                          alt="Best Seller" 
-                          className="w-full h-full object-contain" 
-                        />
-                      </div>
-                    )}
-                  </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
                     
-                    {/* Harga Pintar */}
-                    {(item.hargaAsli || item.hargaDiskon) && (
-                      <div className="mt-2 flex flex-col">
-                        {isDiscounted ? (
-                          <>
-                            <span className="text-gray-400 text-[11px] sm:text-xs line-through">
-                              Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
+                    <div className="mt-2 flex items-end justify-between gap-2">
+                      {/* Harga Pintar */}
+                      {(item.hargaAsli || item.hargaDiskon) ? (
+                        <div className="flex flex-col">
+                          {isDiscounted ? (
+                            <>
+                              <span className="text-gray-400 text-[11px] sm:text-xs line-through leading-tight">
+                                Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
+                              </span>
+                              <span className="text-danger font-bold text-sm sm:text-base leading-tight">
+                                Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-gray-900 font-bold text-sm sm:text-base leading-tight">
+                              Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
-                            <span className="text-danger font-bold text-sm sm:text-base">
-                              Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-gray-900 font-bold text-sm sm:text-base">
-                            Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      ) : (
+                        <div></div>
+                      )}
+
+                      {/* Best Seller Badge di kanan harga */}
+                      {item.bestSellerBadge && (
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 animate-pulse drop-shadow-sm pointer-events-none mb-0.5">
+                          <img 
+                            src={item.bestSellerBadge} 
+                            alt="Best Seller" 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );

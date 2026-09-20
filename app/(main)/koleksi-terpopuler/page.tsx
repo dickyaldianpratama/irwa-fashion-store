@@ -83,40 +83,45 @@ export default async function KoleksiTerpopulerPage() {
                         </span>
                       )}
                     </div>
-                    {item.bestSellerBadge && (
-                      <div className="absolute top-0 right-0 w-14 h-14 sm:w-20 sm:h-20 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
-                        <img 
-                          src={item.bestSellerBadge} 
-                          alt="Best Seller" 
-                          className="w-full h-full object-contain" 
-                        />
-                      </div>
-                    )}
-                  </div>
                   <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors leading-snug">
                       {item.title}
                     </h3>
 
-                    {/* Harga Pintar */}
-                    {(item.hargaAsli || item.hargaDiskon) && (
-                      <div className="mt-auto pt-3 flex flex-col">
-                        {isDiscounted ? (
-                          <>
-                            <span className="text-gray-400 text-xs line-through">
-                              Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
+                    <div className="mt-auto pt-3 flex items-end justify-between gap-2">
+                      {/* Harga Pintar */}
+                      {(item.hargaAsli || item.hargaDiskon) ? (
+                        <div className="flex flex-col">
+                          {isDiscounted ? (
+                            <>
+                              <span className="text-gray-400 text-xs line-through leading-tight">
+                                Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
+                              </span>
+                              <span className="text-danger font-bold text-base leading-tight">
+                                Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-gray-900 font-bold text-base leading-tight">
+                              Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
-                            <span className="text-danger font-bold text-base">
-                              Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-gray-900 font-bold text-base">
-                            Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      ) : (
+                        <div></div>
+                      )}
+
+                      {/* Best Seller Badge di kanan harga */}
+                      {item.bestSellerBadge && (
+                        <div className="w-9 h-9 sm:w-12 sm:h-12 shrink-0 animate-pulse drop-shadow-sm pointer-events-none mb-0.5">
+                          <img 
+                            src={item.bestSellerBadge} 
+                            alt="Best Seller" 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );
