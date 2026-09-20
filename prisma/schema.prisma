@@ -94,6 +94,9 @@ model KoleksiTerpopuler {
   hargaDiskon     Int?
   labelPromo      String?
   bestSellerBadge String?
+  badgeGaransi    String?
+  rating          String?
+  terjual         String?
 }
 
 model Produk {

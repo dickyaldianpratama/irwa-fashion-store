@@ -20,13 +20,16 @@ interface Koleksi {
   hargaDiskon?: number | null;
   labelPromo?: string | null;
   bestSellerBadge?: string | null;
+  badgeGaransi?: string | null;
+  rating?: string | null;
+  terjual?: string | null;
 }
 
 interface Props {
   koleksi: Koleksi[];
 }
 
-const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "", labelPromo: "", bestSellerBadge: "" };
+const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "", labelPromo: "", bestSellerBadge: "", badgeGaransi: "", rating: "", terjual: "" };
 
 export default function KoleksiTerpopulerManager({ koleksi }: Props) {
   const [items, setItems] = useState<Koleksi[]>(koleksi);
@@ -61,7 +64,10 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       hargaDiskon: item.hargaDiskon?.toString() || "",
       persenDiskon: initialPersen,
       labelPromo: item.labelPromo || "",
-      bestSellerBadge: item.bestSellerBadge || ""
+      bestSellerBadge: item.bestSellerBadge || "",
+      badgeGaransi: item.badgeGaransi || "",
+      rating: item.rating || "",
+      terjual: item.terjual || ""
     });
     setShowModal(true);
   };
@@ -318,6 +324,40 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                   className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Teks Garansi (Opsional)</label>
+                <input 
+                  type="text" 
+                  value={formData.badgeGaransi}
+                  onChange={e => setFormData({...formData, badgeGaransi: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                  placeholder="Contoh: Garansi Harga Terbaik"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Rating (Opsional)</label>
+                  <input 
+                    type="text" 
+                    value={formData.rating}
+                    onChange={e => setFormData({...formData, rating: e.target.value})}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                    placeholder="Contoh: 4.8"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Terjual (Opsional)</label>
+                  <input 
+                    type="text" 
+                    value={formData.terjual}
+                    onChange={e => setFormData({...formData, terjual: e.target.value})}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                    placeholder="Contoh: 10RB+ terjual"
+                  />
+                </div>
+              </div>
+
               <div>
                 <ImageUploader value={formData.image} onChange={url => setFormData(p => ({...p, image: url}))} folder="koleksi" label="Gambar Banner" aspectRatio="aspect-[4/5]" />
               </div>

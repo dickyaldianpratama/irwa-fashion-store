@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge } = await request.json();
+    const { title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge, badgeGaransi, rating, terjual } = await request.json();
     if (!title || !image) {
       return NextResponse.json({ error: "Title dan image wajib diisi" }, { status: 400 });
     }
@@ -31,7 +31,10 @@ export async function POST(request: Request) {
         hargaAsli: hargaAsli ? parseInt(hargaAsli) : null,
         hargaDiskon: hargaDiskon ? parseInt(hargaDiskon) : null,
         labelPromo: labelPromo || null,
-        bestSellerBadge: bestSellerBadge || null
+        bestSellerBadge: bestSellerBadge || null,
+        badgeGaransi: badgeGaransi || null,
+        rating: rating || null,
+        terjual: terjual || null
       },
     });
 
@@ -47,7 +50,7 @@ export async function PATCH(request: Request) {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { id, title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge } = await request.json();
+    const { id, title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge, badgeGaransi, rating, terjual } = await request.json();
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
 
     const updated = await prisma.koleksiTerpopuler.update({
@@ -61,6 +64,9 @@ export async function PATCH(request: Request) {
         ...(hargaDiskon !== undefined && { hargaDiskon: hargaDiskon ? parseInt(hargaDiskon) : null }),
         ...(labelPromo !== undefined && { labelPromo: labelPromo || null }),
         ...(bestSellerBadge !== undefined && { bestSellerBadge: bestSellerBadge || null }),
+        ...(badgeGaransi !== undefined && { badgeGaransi: badgeGaransi || null }),
+        ...(rating !== undefined && { rating: rating || null }),
+        ...(terjual !== undefined && { terjual: terjual || null }),
       },
     });
 

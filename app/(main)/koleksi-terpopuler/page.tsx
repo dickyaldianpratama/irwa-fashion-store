@@ -158,36 +158,50 @@ export default async function KoleksiTerpopulerPage() {
                       </div>
                     )}
 
-                    {/* UI Element ala Shopee */}
-                    <div className="mt-2.5 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1 bg-gradient-to-r from-[#ff6633] to-[#ee4d2d] text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
-                        <div className="flex items-center justify-center bg-white text-[#ee4d2d] rounded-[2px] px-[3px] py-[1px]">
-                          <span className="font-extrabold text-[8px] leading-none">
-                            Rp
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-medium tracking-wide">
-                          Garansi Harga Terbaik
-                        </span>
-                      </div>
+                    {/* UI Element ala Shopee (Dynamic) */}
+                    {(item.badgeGaransi || item.rating || item.terjual) && (
+                      <div className="mt-2.5 flex flex-col gap-1.5">
+                        {item.badgeGaransi && (
+                          <div className="flex items-center gap-1 bg-gradient-to-r from-blue-400 to-blue-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
+                            <div className="flex items-center justify-center bg-white text-blue-600 rounded-[2px] px-[3px] py-[1px]">
+                              <span className="font-extrabold text-[8px] leading-none">
+                                Rp
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-medium tracking-wide">
+                              {item.badgeGaransi}
+                            </span>
+                          </div>
+                        )}
 
-                      <div className="flex items-center text-xs text-gray-600 mt-0.5">
-                        <div className="flex items-center gap-0.5 border border-yellow-400 bg-yellow-50/50 px-1.5 py-[2px] rounded-[3px]">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="#facc15"
-                            className="w-3.5 h-3.5"
-                          >
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                          </svg>
-                          <span className="font-semibold text-gray-700 text-[11px]">
-                            4.8
-                          </span>
-                        </div>
-                        <span className="mx-1.5 text-gray-300">|</span>
-                        <span className="truncate">10RB+ terjual</span>
+                        {(item.rating || item.terjual) && (
+                          <div className="flex items-center text-xs text-gray-600 mt-0.5">
+                            {item.rating && (
+                              <div className="flex items-center gap-0.5 border border-yellow-400 bg-yellow-50/50 px-1.5 py-[2px] rounded-[3px]">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="#facc15"
+                                  className="w-3.5 h-3.5"
+                                >
+                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                                <span className="font-semibold text-gray-700 text-[11px]">
+                                  {item.rating}
+                                </span>
+                              </div>
+                            )}
+
+                            {item.rating && item.terjual && (
+                              <span className="mx-1.5 text-gray-300">|</span>
+                            )}
+
+                            {item.terjual && (
+                              <span className="truncate">{item.terjual}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </Link>
               );
