@@ -84,12 +84,14 @@ export default function CartDrawer() {
               {items.map((item) => (
                 <div key={item.id} className="flex gap-4">
                   <div className="relative w-20 h-24 rounded-lg overflow-hidden shrink-0 border border-gray-100 bg-gray-50">
-                    <Image 
+                    <img 
                       src={item.gambar || "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=400"} 
                       alt={item.nama || "Product Image"} 
-                      fill 
-                      className="object-cover" 
-                      sizes="80px" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=400";
+                      }}
                     />
                   </div>
                   <div className="flex-1 flex flex-col justify-between">

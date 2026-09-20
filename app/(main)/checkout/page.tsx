@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -458,15 +458,17 @@ export default function CheckoutPage() {
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
                   <div className="w-16 h-20 relative rounded-md overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
-                    <Image
+                    <img
                       src={
                         item.gambar ||
                         "https://images.unsplash.com/photo-1581655353564-df123a1eb820"
                       }
                       alt={item.nama || "Product"}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1581655353564-df123a1eb820";
+                      }}
                     />
                   </div>
                   <div className="flex-1">
