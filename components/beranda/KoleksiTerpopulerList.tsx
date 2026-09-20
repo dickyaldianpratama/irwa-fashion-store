@@ -167,8 +167,8 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                     {(item.badgeGaransi || item.rating || item.terjual) && (
                       <div className="mt-2 flex flex-col gap-1.5">
                         {item.badgeGaransi && (
-                          <div className="flex items-center gap-1 bg-gradient-to-r from-blue-400 to-blue-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
-                            <div className="flex items-center justify-center bg-white text-blue-600 rounded-[2px] px-[3px] py-[1px]">
+                          <div className="flex items-center gap-1 bg-gradient-to-r from-primary-400 to-primary-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
+                            <div className="flex items-center justify-center bg-white text-primary rounded-[2px] px-[3px] py-[1px]">
                               <span className="font-extrabold text-[7px] leading-none">
                                 Rp
                               </span>
