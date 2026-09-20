@@ -69,7 +69,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validasi setiap foto memiliki gambar dan ukuran
+    // Pastikan setiap item hanya memiliki 1 ukuran
+    finalItems = finalItems.map((item) => ({
+      ...item,
+      ukuran: Array.isArray(item.ukuran)
+        ? item.ukuran.slice(0, 1)
+        : typeof item.ukuran === "string" && item.ukuran
+          ? [item.ukuran]
+          : [],
+    }));
+
+    // Validasi setiap foto memiliki gambar dan tepat 1 ukuran
     for (let i = 0; i < finalItems.length; i++) {
       if (!finalItems[i].image) {
         return NextResponse.json(
@@ -77,9 +87,9 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      if (!finalItems[i].ukuran || finalItems[i].ukuran.length === 0) {
+      if (!finalItems[i].ukuran || finalItems[i].ukuran.length !== 1) {
         return NextResponse.json(
-          { error: `Pilih minimal 1 ukuran untuk foto ke-${i + 1}` },
+          { error: `Pilih 1 ukuran untuk foto ke-${i + 1}` },
           { status: 400 },
         );
       }
@@ -173,6 +183,16 @@ export async function PATCH(request: Request) {
     let serializedItemsData: string | undefined = undefined;
 
     if (finalItems) {
+      // Pastikan setiap item hanya memiliki 1 ukuran
+      finalItems = finalItems.map((item) => ({
+        ...item,
+        ukuran: Array.isArray(item.ukuran)
+          ? item.ukuran.slice(0, 1)
+          : typeof item.ukuran === "string" && item.ukuran
+            ? [item.ukuran]
+            : [],
+      }));
+
       for (let i = 0; i < finalItems.length; i++) {
         if (!finalItems[i].image) {
           return NextResponse.json(
@@ -180,9 +200,9 @@ export async function PATCH(request: Request) {
             { status: 400 },
           );
         }
-        if (!finalItems[i].ukuran || finalItems[i].ukuran.length === 0) {
+        if (!finalItems[i].ukuran || finalItems[i].ukuran.length !== 1) {
           return NextResponse.json(
-            { error: `Pilih minimal 1 ukuran untuk foto ke-${i + 1}` },
+            { error: `Pilih 1 ukuran untuk foto ke-${i + 1}` },
             { status: 400 },
           );
         }

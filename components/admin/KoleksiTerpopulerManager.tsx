@@ -38,19 +38,31 @@ export function parseKoleksiItems(item: Koleksi): KoleksiImageItem[] {
   if (item.itemsData) {
     try {
       const parsed = JSON.parse(item.itemsData);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((p, idx) => ({
+          id: p.id || `item-${idx + 1}`,
+          image: p.image || "",
+          ukuran:
+            Array.isArray(p.ukuran) && p.ukuran.length > 0
+              ? [p.ukuran[0]]
+              : typeof p.ukuran === "string" && p.ukuran
+                ? [p.ukuran]
+                : [],
+        }));
+      }
     } catch (e) {}
   }
+  const firstUkuran = item.ukuran
+    ? item.ukuran
+        .split(",")
+        .map((u) => u.trim())
+        .filter(Boolean)[0]
+    : undefined;
   return [
     {
       id: "item-1",
       image: item.image || "",
-      ukuran: item.ukuran
-        ? item.ukuran
-            .split(",")
-            .map((u) => u.trim())
-            .filter(Boolean)
-        : [],
+      ukuran: firstUkuran ? [firstUkuran] : [],
     },
   ];
 }
@@ -179,19 +191,12 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
     }));
   };
 
-  const handleToggleItemSize = (id: string, size: string) => {
+  const handleSetItemSize = (id: string, size: string) => {
     setFormData((prev) => ({
       ...prev,
-      items: prev.items.map((item) => {
-        if (item.id !== id) return item;
-        const exists = item.ukuran.includes(size);
-        return {
-          ...item,
-          ukuran: exists
-            ? item.ukuran.filter((s) => s !== size)
-            : [...item.ukuran, size],
-        };
-      }),
+      items: prev.items.map((item) =>
+        item.id === id ? { ...item, ukuran: [size] } : item,
+      ),
     }));
   };
 
@@ -232,8 +237,8 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
         toast.error(`Foto #${i + 1} belum diupload gambarnya`);
         return;
       }
-      if (itm.ukuran.length === 0) {
-        toast.error(`Pilih minimal 1 ukuran untuk Foto #${i + 1}`);
+      if (!itm.ukuran || itm.ukuran.length !== 1) {
+        toast.error(`Pilih 1 ukuran untuk Foto #${i + 1}`);
         return;
       }
     }
@@ -674,19 +679,19 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                       {/* Ukuran untuk foto ini */}
                       <div className="pt-1">
                         <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
-                          Pilih Ukuran Foto Ini (Wajib):
+                          Pilih Ukuran Foto Ini (Wajib 1 Ukuran per Foto):
                         </label>
                         <div className="flex flex-wrap gap-1.5">
                           {["S", "M", "L", "XL", "XXL"].map((size) => {
-                            const checked = item.ukuran.includes(size);
+                            const checked = item.ukuran[0] === size;
                             return (
                               <button
                                 key={size}
                                 type="button"
-                                onClick={() => handleToggleItemSize(item.id, size)}
-                                className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${
+                                onClick={() => handleSetItemSize(item.id, size)}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                                   checked
-                                    ? "bg-primary text-white border-primary shadow-xs"
+                                    ? "bg-primary text-white border-primary shadow-xs ring-2 ring-primary/20"
                                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-primary/50"
                                 }`}
                               >
@@ -695,9 +700,9 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                             );
                           })}
                         </div>
-                        {item.ukuran.length === 0 && (
+                        {(!item.ukuran || item.ukuran.length === 0) && (
                           <p className="text-[10px] text-red-500 mt-1 italic">
-                            * Wajib memilih minimal 1 ukuran untuk foto ini
+                            * Wajib memilih 1 ukuran untuk foto ini
                           </p>
                         )}
                       </div>

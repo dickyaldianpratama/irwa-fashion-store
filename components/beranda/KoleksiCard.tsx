@@ -38,19 +38,31 @@ export default function KoleksiCard({
     if (item.itemsData) {
       try {
         const parsed = JSON.parse(item.itemsData);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((p, idx) => ({
+            id: p.id || `item-${idx + 1}`,
+            image: p.image || "",
+            ukuran:
+              Array.isArray(p.ukuran) && p.ukuran.length > 0
+                ? [p.ukuran[0]]
+                : typeof p.ukuran === "string" && p.ukuran
+                  ? [p.ukuran]
+                  : [],
+          }));
+        }
       } catch (e) {}
     }
+    const firstUkuran = item.ukuran
+      ? item.ukuran
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)[0]
+      : undefined;
     return [
       {
         id: "1",
         image: item.image,
-        ukuran: item.ukuran
-          ? item.ukuran
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [],
+        ukuran: firstUkuran ? [firstUkuran] : [],
       },
     ];
   })();
@@ -144,16 +156,12 @@ export default function KoleksiCard({
           <div
             className={`absolute ${
               item.labelPromo ? "bottom-6" : "bottom-2"
-            } left-2 z-10 flex items-center gap-1 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md border border-gray-100 shadow-xs`}
+            } left-2 z-10 flex items-center gap-1 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-gray-100 shadow-xs`}
           >
             <span className="text-[9px] font-bold text-gray-500">Size:</span>
-            <div className="flex gap-0.5">
-              {activePhoto.ukuran.map((sz) => (
-                <span key={sz} className="text-[9px] font-black text-primary">
-                  {sz}
-                </span>
-              ))}
-            </div>
+            <span className="text-[10px] font-black text-primary">
+              {activePhoto.ukuran[0]}
+            </span>
           </div>
         )}
 

@@ -63,26 +63,38 @@ export default function KoleksiDetailPage({
         if (d.data.itemsData) {
           try {
             const arr = JSON.parse(d.data.itemsData);
-            if (Array.isArray(arr) && arr.length > 0) parsed = arr;
+            if (Array.isArray(arr) && arr.length > 0) {
+              parsed = arr.map((p: any, idx: number) => ({
+                id: p.id || `item-${idx + 1}`,
+                image: p.image || "",
+                ukuran:
+                  Array.isArray(p.ukuran) && p.ukuran.length > 0
+                    ? [p.ukuran[0]]
+                    : typeof p.ukuran === "string" && p.ukuran
+                      ? [p.ukuran]
+                      : [],
+              }));
+            }
           } catch (e) {}
         }
         if (parsed.length === 0) {
+          const firstUkuran = d.data.ukuran
+            ? d.data.ukuran
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)[0]
+            : undefined;
           parsed = [
             {
               id: "1",
               image: d.data.image,
-              ukuran: d.data.ukuran
-                ? d.data.ukuran
-                    .split(",")
-                    .map((s: string) => s.trim())
-                    .filter(Boolean)
-                : [],
+              ukuran: firstUkuran ? [firstUkuran] : [],
             },
           ];
         }
         setPhotoItems(parsed);
         setActivePhotoIndex(0);
-        if (parsed[0]?.ukuran?.length > 0) {
+        if (parsed[0]?.ukuran?.[0]) {
           setSelectedSize(parsed[0].ukuran[0]);
         }
       })
@@ -92,9 +104,15 @@ export default function KoleksiDetailPage({
 
   const handleSelectPhoto = (index: number) => {
     setActivePhotoIndex(index);
-    const targetSizes = photoItems[index]?.ukuran || [];
-    if (!targetSizes.includes(selectedSize)) {
-      setSelectedSize(targetSizes[0] || "");
+    const sz = photoItems[index]?.ukuran?.[0] || "";
+    setSelectedSize(sz);
+  };
+
+  const handleSelectSize = (sz: string) => {
+    setSelectedSize(sz);
+    const targetIdx = photoItems.findIndex((p) => p.ukuran?.[0] === sz);
+    if (targetIdx !== -1) {
+      setActivePhotoIndex(targetIdx);
     }
   };
 
@@ -114,7 +132,13 @@ export default function KoleksiDetailPage({
   const activePhoto =
     photoItems[activePhotoIndex] ||
     photoItems[0] || { image: item.image, ukuran: [] };
-  const currentSizes = activePhoto.ukuran || [];
+  const allSizes = Array.from(
+    new Set(
+      photoItems
+        .map((p) => p.ukuran?.[0])
+        .filter((s): s is string => Boolean(s)),
+    ),
+  );
   const isDiscounted = !!(
     item.hargaAsli &&
     item.hargaDiskon &&
@@ -137,7 +161,7 @@ export default function KoleksiDetailPage({
     }).format(n);
 
   const handleAddToCart = () => {
-    if (currentSizes.length > 0 && !selectedSize) {
+    if (allSizes.length > 0 && !selectedSize) {
       toast.error("Pilih ukuran terlebih dahulu");
       return;
     }
@@ -159,7 +183,7 @@ export default function KoleksiDetailPage({
   };
 
   const handleBuyNow = () => {
-    if (currentSizes.length > 0 && !selectedSize) {
+    if (allSizes.length > 0 && !selectedSize) {
       toast.error("Pilih ukuran terlebih dahulu");
       return;
     }
@@ -235,34 +259,52 @@ export default function KoleksiDetailPage({
                     />
                   </div>
                 )}
+                {activePhoto.ukuran && activePhoto.ukuran.length > 0 && (
+                  <div
+                    className={`absolute ${
+                      item.labelPromo ? "bottom-8" : "bottom-3"
+                    } left-3 z-10 flex items-center gap-1.5 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-gray-100 shadow-sm`}
+                  >
+                    <span className="text-[11px] font-bold text-gray-500">
+                      Ukuran:
+                    </span>
+                    <span className="text-xs font-black text-primary">
+                      {activePhoto.ukuran[0]}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Photo Thumbnails Gallery */}
               {photoItems.length > 1 && (
                 <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {photoItems.map((p, idx) => (
-                    <button
-                      key={p.id || idx}
-                      type="button"
-                      onClick={() => handleSelectPhoto(idx)}
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
-                        activePhotoIndex === idx
-                          ? "border-primary ring-2 ring-primary/30 scale-105"
-                          : "border-gray-200 opacity-70 hover:opacity-100 hover:border-gray-300"
-                      }`}
-                    >
-                      <img
-                        src={p.image}
-                        alt={`Foto ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {p.ukuran && p.ukuran.length > 0 && (
-                        <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-bold text-center py-0.5 truncate px-0.5">
-                          {p.ukuran.join("/")}
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                  {photoItems.map((p, idx) => {
+                    const pSize = p.ukuran?.[0];
+                    const isActive = activePhotoIndex === idx;
+                    return (
+                      <button
+                        key={p.id || idx}
+                        type="button"
+                        onClick={() => handleSelectPhoto(idx)}
+                        className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                          isActive
+                            ? "border-primary ring-2 ring-primary/30 scale-105"
+                            : "border-gray-200 opacity-75 hover:opacity-100 hover:border-gray-300"
+                        }`}
+                      >
+                        <img
+                          src={p.image}
+                          alt={`Foto ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {pSize && (
+                          <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[10px] text-white font-black text-center py-0.5 truncate px-0.5">
+                            {pSize}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -323,7 +365,7 @@ export default function KoleksiDetailPage({
 
               <hr className="border-gray-100 my-4" />
 
-              {currentSizes.length > 0 && (
+              {allSizes.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -343,19 +385,22 @@ export default function KoleksiDetailPage({
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {currentSizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`min-w-[48px] h-11 px-3 rounded-xl border-2 font-bold text-sm transition-all ${
-                          selectedSize === size
-                            ? "bg-primary border-primary text-white shadow-md shadow-primary/20"
-                            : "bg-white border-gray-200 text-gray-700 hover:border-primary/50"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                    {allSizes.map((size) => {
+                      const isSelected = selectedSize === size;
+                      return (
+                        <button
+                          key={size}
+                          onClick={() => handleSelectSize(size)}
+                          className={`min-w-[48px] h-11 px-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                            isSelected
+                              ? "bg-primary border-primary text-white shadow-md shadow-primary/20"
+                              : "bg-white border-gray-200 text-gray-700 hover:border-primary/50"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
