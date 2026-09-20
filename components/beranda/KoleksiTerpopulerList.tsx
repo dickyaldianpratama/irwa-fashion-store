@@ -116,12 +116,16 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                           Promo
                         </span>
                       )}
-                      {item.labelPromo && (
-                        <span className="bg-warning text-white px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-sm tracking-wider shadow-sm leading-tight max-w-full text-left line-clamp-3">
-                          {item.labelPromo}
-                        </span>
-                      )}
                     </div>
+                    {item.labelPromo && (
+                      <div className="absolute bottom-0 left-0 w-full z-10 bg-gradient-to-r from-warning to-orange-500 shadow-sm border-t border-white/20">
+                        <div className="px-2 py-[3px] text-center">
+                          <span className="text-white text-[9px] sm:text-[10px] font-bold tracking-wider uppercase truncate block drop-shadow-sm">
+                            {item.labelPromo}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {item.bestSellerBadge && (
                       <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
                         <img

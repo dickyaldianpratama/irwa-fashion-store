@@ -111,12 +111,16 @@ export default async function KoleksiTerpopulerPage() {
                           Promo
                         </span>
                       )}
-                      {item.labelPromo && (
-                        <span className="bg-warning text-white px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-sm tracking-wider shadow-sm leading-tight max-w-full text-left line-clamp-3">
-                          {item.labelPromo}
-                        </span>
-                      )}
                     </div>
+                    {item.labelPromo && (
+                      <div className="absolute bottom-0 left-0 w-full z-10 bg-gradient-to-r from-warning to-orange-500 shadow-sm border-t border-white/20">
+                        <div className="px-2.5 py-1 text-center">
+                          <span className="text-white text-[10px] sm:text-xs font-bold tracking-wider uppercase truncate block drop-shadow-sm">
+                            {item.labelPromo}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {item.bestSellerBadge && (
                       <div className="absolute top-0 right-0 w-14 h-14 sm:w-20 sm:h-20 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
                         <img
