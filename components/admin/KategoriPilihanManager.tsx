@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -158,11 +158,11 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         </div>
       ) : (
         /* â”€â”€ RESPONSIVE GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-           Mobile  : 1 kolom (full width, layout horizontal)
-           Tablet  : 2 kolom
-           Desktop : 3 kolom
+           Mobile  : 2 kolom
+           Tablet  : 3 kolom
+           Desktop : 4-5 kolom
         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {items.map((item) => {
             const isEditing = editingId === item.id;
             const isExpanded = expandedId === item.id;
@@ -172,11 +172,11 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                 key={item.id}
                 className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm transition-shadow hover:shadow-md"
               >
-                {/* â”€â”€â”€ MOBILE: Layout horizontal (gambar kiri + info kanan) â”€â”€â”€ */}
+                {/* â”€â”€â”€ CARD LAYOUT â”€â”€â”€ */}
                 {!isEditing && (
-                  <div className="flex sm:flex-col">
+                  <div className="flex flex-col">
                     {/* Gambar */}
-                    <div className="relative w-24 h-24 sm:w-full sm:h-auto sm:aspect-[4/3] shrink-0 bg-gray-100 dark:bg-gray-800">
+                    <div className="relative w-full aspect-[4/3] shrink-0 bg-gray-100 dark:bg-gray-800">
                       {item.image ? (
                         <Image
                           src={item.image}
@@ -187,28 +187,24 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center w-full h-full text-gray-400 gap-1">
-                          <ImageIcon size={20} className="sm:w-8 sm:h-8" />
-                          <span className="text-[10px] sm:text-xs hidden sm:block">Belum ada gambar</span>
+                          <ImageIcon size={20} className="w-6 h-6 sm:w-8 sm:h-8" />
+                          <span className="text-[10px] sm:text-xs">Belum ada gambar</span>
                         </div>
                       )}
                     </div>
 
                     {/* Info + Aksi */}
-                    <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white truncate">{item.nama}</p>
-                          <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">/{item.slug}</p>
+                    <div className="flex-1 p-2.5 sm:p-3 flex flex-col justify-between min-w-0">
+                      <div className="flex items-start justify-center gap-2 mb-2">
+                        <div className="min-w-0 w-full text-center">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">{item.nama}</p>
                         </div>
-                        
                       </div>
 
-                      
-
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => startEdit(item)}
-                          className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-[10px] sm:text-xs font-semibold py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
                         >
                           <Edit2 size={12} />
                           <span>Edit</span>
@@ -216,7 +212,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                         <button
                           onClick={() => handleDelete(item)}
                           disabled={deletingId === item.id}
-                          className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           title="Hapus Kategori Pilihan"
                         >
                           {deletingId === item.id
