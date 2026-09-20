@@ -83,6 +83,15 @@ export default async function KoleksiTerpopulerPage() {
                         </span>
                       )}
                     </div>
+                    {item.bestSellerBadge && (
+                      <div className="absolute top-0 right-0 w-14 h-14 sm:w-20 sm:h-20 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
+                        <img 
+                          src={item.bestSellerBadge} 
+                          alt="Best Seller" 
+                          className="w-full h-full object-contain" 
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="p-4 sm:p-5 flex-1 flex flex-col">
                     <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors leading-snug">

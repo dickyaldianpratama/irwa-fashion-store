@@ -13,23 +13,23 @@ datasource db {
 // -----------------------------------------------------
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  name          String
-  phone         String?
-  avatar        String?
-  birthDate     DateTime?
-  role          Role      @default(CUSTOMER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String
+  phone     String?
+  avatar    String?
+  birthDate DateTime?
+  role      Role      @default(CUSTOMER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  ukuran        UkuranUser?
-  alamat        Alamat[]
-  pesanan       Pesanan[]
-  wishlist      Wishlist[]
-  ulasan        Ulasan[]
-  vouchers      VoucherUser[]
-  poin          Poin?
+  ukuran   UkuranUser?
+  alamat   Alamat[]
+  pesanan  Pesanan[]
+  wishlist Wishlist[]
+  ulasan   Ulasan[]
+  vouchers VoucherUser[]
+  poin     Poin?
 }
 
 enum Role {
@@ -42,26 +42,26 @@ model UkuranUser {
   id              String   @id @default(uuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tinggiBadan     Float?   // cm
-  beratBadan      Float?   // kg
-  lingkarDada     Float?   // cm
-  lingkarPinggang Float?   // cm
-  lebarBahu       Float?   // cm
-  panjangLengan   Float?   // cm
+  tinggiBadan     Float? // cm
+  beratBadan      Float? // kg
+  lingkarDada     Float? // cm
+  lingkarPinggang Float? // cm
+  lebarBahu       Float? // cm
+  panjangLengan   Float? // cm
   updatedAt       DateTime @updatedAt
 }
 
 model Alamat {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label         String   // Contoh: Rumah, Kantor
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String // Contoh: Rumah, Kantor
   penerima      String
   telepon       String
-  alamatLengkap String   @db.Text
+  alamatLengkap String  @db.Text
   kota          String
   kodePos       String
-  isUtama       Boolean  @default(false)
+  isUtama       Boolean @default(false)
 }
 
 // -----------------------------------------------------
@@ -69,95 +69,96 @@ model Alamat {
 // -----------------------------------------------------
 
 model Kategori {
-  id        String   @id @default(uuid())
-  nama      String
-  slug      String   @unique
-  image     String?
-  produk    Produk[]
+  id     String   @id @default(uuid())
+  nama   String
+  slug   String   @unique
+  image  String?
+  produk Produk[]
 }
 
 // Fitur Homepage Standalone
 model KategoriPilihan {
-  id        String   @id @default(uuid())
-  nama      String
-  slug      String   @unique
-  image     String?
+  id    String  @id @default(uuid())
+  nama  String
+  slug  String  @unique
+  image String?
 }
 
 model KoleksiTerpopuler {
-  id          String   @id @default(uuid())
-  title       String
-  image       String
-  link        String?
-  urutan      Int      @default(0)
-  hargaAsli   Int?
-  hargaDiskon Int?
-  labelPromo  String?
+  id              String  @id @default(uuid())
+  title           String
+  image           String
+  link            String?
+  urutan          Int     @default(0)
+  hargaAsli       Int?
+  hargaDiskon     Int?
+  labelPromo      String?
+  bestSellerBadge String?
 }
 
 model Produk {
-  id            String   @id @default(uuid())
-  kategoriId    String
-  kategori      Kategori @relation(fields: [kategoriId], references: [id])
-  nama          String
-  slug          String   @unique
-  deskripsi     String   @db.Text
-  bahanKain     String?  // Untuk Fitur Filter Bahan
-  occasion      String?  // Untuk Fitur Filter Occasion
-  hargaAsli     Int
-  hargaDiskon   Int?
-  labelPromo    String?
-  rating        Float    @default(0)
-  terjual       Int      @default(0)
-  isPreOrder    Boolean  @default(false) // Fitur 22: Pre-Order Tracker
-  isFeatured    Boolean  @default(false) // Tampil di section Koleksi Terpopuler homepage
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(uuid())
+  kategoriId  String
+  kategori    Kategori @relation(fields: [kategoriId], references: [id])
+  nama        String
+  slug        String   @unique
+  deskripsi   String   @db.Text
+  bahanKain   String? // Untuk Fitur Filter Bahan
+  occasion    String? // Untuk Fitur Filter Occasion
+  hargaAsli   Int
+  hargaDiskon Int?
+  labelPromo  String?
+  rating      Float    @default(0)
+  terjual     Int      @default(0)
+  isPreOrder  Boolean  @default(false) // Fitur 22: Pre-Order Tracker
+  isFeatured  Boolean  @default(false) // Tampil di section Koleksi Terpopuler homepage
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  images        ProductImage[]
-  varian        ProductVariant[]
-  ulasan        Ulasan[]
-  wishlistedBy  Wishlist[]
-  lookItems     ShopTheLookItem[]
+  images       ProductImage[]
+  varian       ProductVariant[]
+  ulasan       Ulasan[]
+  wishlistedBy Wishlist[]
+  lookItems    ShopTheLookItem[]
 }
 
 model ProductImage {
-  id        String  @id @default(uuid())
-  produkId  String
-  produk    Produk  @relation(fields: [produkId], references: [id], onDelete: Cascade)
-  url       String
-  isUtama   Boolean @default(false)
+  id       String  @id @default(uuid())
+  produkId String
+  produk   Produk  @relation(fields: [produkId], references: [id], onDelete: Cascade)
+  url      String
+  isUtama  Boolean @default(false)
 }
 
 model ProductVariant {
-  id        String   @id @default(uuid())
-  produkId  String
-  produk    Produk   @relation(fields: [produkId], references: [id], onDelete: Cascade)
-  ukuran    String   // S, M, L, XL
-  warna     String
-  stok      Int      @default(0)
-  sku       String?  @unique
+  id       String  @id @default(uuid())
+  produkId String
+  produk   Produk  @relation(fields: [produkId], references: [id], onDelete: Cascade)
+  ukuran   String // S, M, L, XL
+  warna    String
+  stok     Int     @default(0)
+  sku      String? @unique
 
   itemsPesanan ItemPesanan[]
 }
 
 // Fitur 6: Shop The Look (Beli 1 Set)
 model ShopTheLook {
-  id          String   @id @default(uuid())
-  title       String
-  deskripsi   String?
-  image       String
-  totalHarga  Int
-  
-  items       ShopTheLookItem[]
+  id         String  @id @default(uuid())
+  title      String
+  deskripsi  String?
+  image      String
+  totalHarga Int
+
+  items ShopTheLookItem[]
 }
 
 model ShopTheLookItem {
-  id          String       @id @default(uuid())
-  lookId      String
-  look        ShopTheLook  @relation(fields: [lookId], references: [id], onDelete: Cascade)
-  produkId    String
-  produk      Produk       @relation(fields: [produkId], references: [id], onDelete: Cascade)
+  id       String      @id @default(uuid())
+  lookId   String
+  look     ShopTheLook @relation(fields: [lookId], references: [id], onDelete: Cascade)
+  produkId String
+  produk   Produk      @relation(fields: [produkId], references: [id], onDelete: Cascade)
 }
 
 // -----------------------------------------------------
@@ -165,24 +166,24 @@ model ShopTheLookItem {
 // -----------------------------------------------------
 
 model Pesanan {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  totalHarga      Int
-  statusPesanan   StatusPesanan  @default(UNPAID)
-  tipePengiriman  TipePengiriman @default(DELIVERY)
-  pickupCode      String?  @unique // Fitur 8: QR Code Pick-up in Store
-  resiKurir       String?
+  id               String         @id @default(uuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id])
+  totalHarga       Int
+  statusPesanan    StatusPesanan  @default(UNPAID)
+  tipePengiriman   TipePengiriman @default(DELIVERY)
+  pickupCode       String?        @unique // Fitur 8: QR Code Pick-up in Store
+  resiKurir        String?
   metodePembayaran String?
-  paymentReference String? @unique // Tripay Reference ID
+  paymentReference String?        @unique // Tripay Reference ID
   paymentUrl       String? // Tripay Checkout URL
-  alamatPengiriman String? @db.Text
-  isHiddenByUser   Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  alamatPengiriman String?        @db.Text
+  isHiddenByUser   Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  items           ItemPesanan[]
-  alterasi        AlterasiRequest? // Fitur 9: Hemming / Alterasi
+  items    ItemPesanan[]
+  alterasi AlterasiRequest? // Fitur 9: Hemming / Alterasi
 }
 
 enum StatusPesanan {
@@ -213,12 +214,12 @@ model ItemPesanan {
 
 // Fitur 9: Request Alterasi & Hemming
 model AlterasiRequest {
-  id                String   @id @default(uuid())
-  pesananId         String   @unique
-  pesanan           Pesanan  @relation(fields: [pesananId], references: [id], onDelete: Cascade)
-  potongPanjang     Int?     // Dalam satuan cm
-  sesuaikanPinggang Int?     // Dalam satuan cm
-  catatan           String?  @db.Text
+  id                String  @id @default(uuid())
+  pesananId         String  @unique
+  pesanan           Pesanan @relation(fields: [pesananId], references: [id], onDelete: Cascade)
+  potongPanjang     Int? // Dalam satuan cm
+  sesuaikanPinggang Int? // Dalam satuan cm
+  catatan           String? @db.Text
 }
 
 // -----------------------------------------------------
@@ -250,12 +251,12 @@ model Wishlist {
 
 // Fitur 19: Sistem Poin & Membership
 model Poin {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  saldo       Int      @default(0)
+  id          String      @id @default(uuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  saldo       Int         @default(0)
   levelMember LevelMember @default(BRONZE)
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime    @updatedAt
 }
 
 enum LevelMember {
@@ -265,19 +266,16 @@ enum LevelMember {
   PLATINUM
 }
 
-
 // Fitur 21: Voucher & Kupon
 model VoucherUser {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kode        String   @unique
-  judul       String
-  tipe        String   // "discount", "shipping", "merch"
-  nilai       Int
-  isUsed      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  expiredAt   DateTime?
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kode      String    @unique
+  judul     String
+  tipe      String // "discount", "shipping", "merch"
+  nilai     Int
+  isUsed    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  expiredAt DateTime?
 }
-
-

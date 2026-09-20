@@ -19,13 +19,14 @@ interface Koleksi {
   hargaAsli?: number | null;
   hargaDiskon?: number | null;
   labelPromo?: string | null;
+  bestSellerBadge?: string | null;
 }
 
 interface Props {
   koleksi: Koleksi[];
 }
 
-const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "", labelPromo: "" };
+const emptyData = { title: "", image: "", link: "", urutan: "0", hargaAsli: "", hargaDiskon: "", persenDiskon: "", labelPromo: "", bestSellerBadge: "" };
 
 export default function KoleksiTerpopulerManager({ koleksi }: Props) {
   const [items, setItems] = useState<Koleksi[]>(koleksi);
@@ -59,7 +60,8 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       hargaAsli: item.hargaAsli?.toString() || "",
       hargaDiskon: item.hargaDiskon?.toString() || "",
       persenDiskon: initialPersen,
-      labelPromo: item.labelPromo || ""
+      labelPromo: item.labelPromo || "",
+      bestSellerBadge: item.bestSellerBadge || ""
     });
     setShowModal(true);
   };
@@ -175,10 +177,22 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 className="object-cover text-transparent transition-transform duration-500 group-hover:scale-105" 
                 unoptimized 
               />
-              <div className="absolute top-2 left-2 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-700">
+              <div className="absolute top-2 left-2 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-700 z-10">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                 Urutan {item.urutan}
               </div>
+
+              {item.bestSellerBadge && (
+                <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 animate-pulse drop-shadow-lg z-10 transform origin-top-right scale-110">
+                  <Image 
+                    src={item.bestSellerBadge} 
+                    alt="Best Seller" 
+                    fill 
+                    className="object-contain" 
+                    unoptimized 
+                  />
+                </div>
+              )}
             </div>
             <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-3">
               <div>
@@ -298,6 +312,9 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
               </div>
               <div>
                 <ImageUploader value={formData.image} onChange={url => setFormData(p => ({...p, image: url}))} folder="koleksi" label="Gambar Banner" aspectRatio="aspect-[4/5]" />
+              </div>
+              <div>
+                <ImageUploader value={formData.bestSellerBadge} onChange={url => setFormData(p => ({...p, bestSellerBadge: url}))} folder="badges" label="Badge Best Seller (Opsional)" aspectRatio="aspect-square" />
               </div>
             </div>
             <div className="p-4 border-t dark:border-gray-800 flex gap-2 shrink-0">

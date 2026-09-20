@@ -13,6 +13,7 @@ interface KoleksiItem {
   hargaAsli?: number | null;
   hargaDiskon?: number | null;
   labelPromo?: string | null;
+  bestSellerBadge?: string | null;
 }
 
 interface Props {
@@ -70,7 +71,7 @@ export default function KoleksiTerpopulerList({ items }: Props) {
               const isDiscounted = !!item.hargaAsli && !!item.hargaDiskon && item.hargaAsli > item.hargaDiskon;
 
               return (
-                <Link key={item.id} href={finalLink} className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow">
+                <Link key={item.id} href={finalLink} className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow relative">
                   <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
@@ -85,6 +86,15 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                         </span>
                       )}
                     </div>
+                    {item.bestSellerBadge && (
+                      <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 z-20 animate-pulse origin-top-right transform scale-110 drop-shadow-lg pointer-events-none">
+                        <img 
+                          src={item.bestSellerBadge} 
+                          alt="Best Seller" 
+                          className="w-full h-full object-contain" 
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">

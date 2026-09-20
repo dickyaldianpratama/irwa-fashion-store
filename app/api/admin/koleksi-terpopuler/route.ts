@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo } = await request.json();
+    const { title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge } = await request.json();
     if (!title || !image) {
       return NextResponse.json({ error: "Title dan image wajib diisi" }, { status: 400 });
     }
@@ -30,7 +30,8 @@ export async function POST(request: Request) {
         urutan: parseInt(urutan) || 0,
         hargaAsli: hargaAsli ? parseInt(hargaAsli) : null,
         hargaDiskon: hargaDiskon ? parseInt(hargaDiskon) : null,
-        labelPromo: labelPromo || null
+        labelPromo: labelPromo || null,
+        bestSellerBadge: bestSellerBadge || null
       },
     });
 
@@ -46,7 +47,7 @@ export async function PATCH(request: Request) {
     const admin = await checkAdmin();
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { id, title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo } = await request.json();
+    const { id, title, image, link, urutan, hargaAsli, hargaDiskon, labelPromo, bestSellerBadge } = await request.json();
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
 
     const updated = await prisma.koleksiTerpopuler.update({
@@ -59,6 +60,7 @@ export async function PATCH(request: Request) {
         ...(hargaAsli !== undefined && { hargaAsli: hargaAsli ? parseInt(hargaAsli) : null }),
         ...(hargaDiskon !== undefined && { hargaDiskon: hargaDiskon ? parseInt(hargaDiskon) : null }),
         ...(labelPromo !== undefined && { labelPromo: labelPromo || null }),
+        ...(bestSellerBadge !== undefined && { bestSellerBadge: bestSellerBadge || null }),
       },
     });
 
