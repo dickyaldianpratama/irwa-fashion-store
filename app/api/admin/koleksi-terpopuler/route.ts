@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         title,
         image: coverImage,
         itemsData: serializedItemsData,
-        link: link || null,
+        link: null,
         urutan: parseInt(urutan) || 0,
         hargaAsli: hargaAsli ? parseInt(hargaAsli) : null,
         hargaDiskon: hargaDiskon ? parseInt(hargaDiskon) : null,
@@ -221,7 +221,7 @@ export async function PATCH(request: Request) {
         ...(coverImage && { image: coverImage }),
         ...(serializedItemsData !== undefined && { itemsData: serializedItemsData }),
         ...(combinedUkuran !== undefined && { ukuran: combinedUkuran }),
-        ...(link !== undefined && { link }),
+        link: null,
         ...(urutan !== undefined && { urutan: parseInt(urutan) }),
         ...(hargaAsli !== undefined && {
           hargaAsli: hargaAsli ? parseInt(hargaAsli) : null,

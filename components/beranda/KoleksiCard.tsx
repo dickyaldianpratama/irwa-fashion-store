@@ -80,8 +80,7 @@ export default function KoleksiCard({
   }, [photoItems.length, isHovered]);
 
   const activePhoto = photoItems[currentIndex] || photoItems[0];
-  const finalLink =
-    item.link && item.link !== "#" ? item.link : `/koleksi/${item.id}`;
+  const finalLink = `/koleksi/${item.id}`;
   const isDiscounted =
     !!item.hargaAsli &&
     !!item.hargaDiskon &&
