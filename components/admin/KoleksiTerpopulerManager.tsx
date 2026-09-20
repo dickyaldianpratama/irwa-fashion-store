@@ -164,9 +164,9 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
         {items.map(item => (
-          <div key={item.id} className="group bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[16px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative">
+          <div key={item.id} className="group bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col relative">
             <div className="relative w-full aspect-[4/5] bg-gray-100 dark:bg-gray-800 overflow-hidden">
               <Image 
                 src={item.image} 
@@ -175,21 +175,37 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 className="object-cover text-transparent transition-transform duration-500 group-hover:scale-105" 
                 unoptimized 
               />
-              <div className="absolute top-3 left-3 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-gray-100 dark:border-gray-700">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              <div className="absolute top-2 left-2 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm shadow-sm text-gray-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                 Urutan {item.urutan}
               </div>
             </div>
-            <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{item.title}</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">{item.title}</h3>
+                <div className="mt-1.5 flex flex-col">
+                  {item.hargaDiskon ? (
+                    <>
+                      <span className="font-bold text-sm text-red-600">Rp {item.hargaDiskon.toLocaleString('id-ID')}</span>
+                      {item.hargaAsli && (
+                        <span className="text-[10px] sm:text-xs text-gray-500 line-through">Rp {item.hargaAsli.toLocaleString('id-ID')}</span>
+                      )}
+                    </>
+                  ) : (
+                    item.hargaAsli ? (
+                      <span className="font-bold text-sm text-gray-900 dark:text-white">Rp {item.hargaAsli.toLocaleString('id-ID')}</span>
+                    ) : (
+                      <span className="text-[10px] sm:text-xs text-gray-400 italic">Harga tidak diatur</span>
+                    )
+                  )}
+                </div>
               </div>
-              <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-800 mt-auto">
-                <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 text-primary border border-primary/20 bg-primary/5 py-2 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-all">
-                  <Edit2 size={15} /> Edit
+              <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
+                <button onClick={() => openEdit(item)} className="flex-1 flex items-center justify-center gap-1 text-primary border border-primary/20 bg-primary/5 py-1.5 rounded-lg text-xs font-semibold hover:bg-primary hover:text-white transition-all">
+                  <Edit2 size={13} /> Edit
                 </button>
-                <button onClick={() => handleDelete(item)} disabled={deletingId === item.id} className="flex-1 flex items-center justify-center gap-1.5 text-red-600 border border-red-500/20 bg-red-50 dark:bg-red-900/10 py-2 rounded-xl text-sm font-semibold hover:bg-red-500 hover:text-white transition-all disabled:opacity-50">
-                  {deletingId === item.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Hapus
+                <button onClick={() => handleDelete(item)} disabled={deletingId === item.id} className="flex-1 flex items-center justify-center gap-1 text-red-600 border border-red-500/20 bg-red-50 dark:bg-red-900/10 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-500 hover:text-white transition-all disabled:opacity-50">
+                  {deletingId === item.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} Hapus
                 </button>
               </div>
             </div>
