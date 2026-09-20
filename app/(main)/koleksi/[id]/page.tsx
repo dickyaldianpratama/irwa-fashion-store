@@ -20,6 +20,7 @@ interface KoleksiPhotoItem {
   id: string;
   image: string;
   ukuran: string[];
+  stok?: number;
 }
 
 interface KoleksiItem {
@@ -73,6 +74,7 @@ export default function KoleksiDetailPage({
                     : typeof p.ukuran === "string" && p.ukuran
                       ? [p.ukuran]
                       : [],
+                stok: typeof p.stok === "number" ? p.stok : undefined,
               }));
             }
           } catch (e) {}
@@ -89,6 +91,7 @@ export default function KoleksiDetailPage({
               id: "1",
               image: d.data.image,
               ukuran: firstUkuran ? [firstUkuran] : [],
+              stok: d.data.stok ?? undefined,
             },
           ];
         }
@@ -139,6 +142,13 @@ export default function KoleksiDetailPage({
         .filter((s): s is string => Boolean(s)),
     ),
   );
+  const currentStock =
+    activePhoto.stok !== undefined && activePhoto.stok !== null
+      ? activePhoto.stok
+      : (item.stok ?? null);
+  const isHabis = currentStock !== null && currentStock === 0;
+  const isHampirHabis =
+    currentStock !== null && currentStock > 0 && currentStock <= 5;
   const isDiscounted = !!(
     item.hargaAsli &&
     item.hargaDiskon &&
@@ -150,8 +160,6 @@ export default function KoleksiDetailPage({
         ((item.hargaAsli! - item.hargaDiskon!) / item.hargaAsli!) * 100,
       )
     : 0;
-  const isHampirHabis = item.stok !== null && item.stok <= 5;
-  const isHabis = item.stok !== null && item.stok === 0;
 
   const formatRupiah = (n: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -271,6 +279,22 @@ export default function KoleksiDetailPage({
                     <span className="text-xs font-black text-primary">
                       {activePhoto.ukuran[0]}
                     </span>
+                    {currentStock !== null && (
+                      <>
+                        <span className="text-gray-300">|</span>
+                        <span
+                          className={`text-xs font-bold ${
+                            isHabis
+                              ? "text-red-500"
+                              : isHampirHabis
+                                ? "text-orange-500"
+                                : "text-gray-600 dark:text-gray-300"
+                          }`}
+                        >
+                          {isHabis ? "Habis" : `${currentStock} pcs`}
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -281,6 +305,7 @@ export default function KoleksiDetailPage({
                   {photoItems.map((p, idx) => {
                     const pSize = p.ukuran?.[0];
                     const isActive = activePhotoIndex === idx;
+                    const isOutOfStock = p.stok !== undefined && p.stok === 0;
                     return (
                       <button
                         key={p.id || idx}
@@ -290,7 +315,7 @@ export default function KoleksiDetailPage({
                           isActive
                             ? "border-primary ring-2 ring-primary/30 scale-105"
                             : "border-gray-200 opacity-75 hover:opacity-100 hover:border-gray-300"
-                        }`}
+                        } ${isOutOfStock ? "grayscale opacity-50" : ""}`}
                       >
                         <img
                           src={p.image}
@@ -299,7 +324,7 @@ export default function KoleksiDetailPage({
                         />
                         {pSize && (
                           <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[10px] text-white font-black text-center py-0.5 truncate px-0.5">
-                            {pSize}
+                            {pSize} {isOutOfStock ? "(Habis)" : ""}
                           </div>
                         )}
                       </button>
@@ -405,7 +430,7 @@ export default function KoleksiDetailPage({
                 </div>
               )}
 
-              {item.stok !== null && (
+              {currentStock !== null && (
                 <div
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium mb-4 ${
                     isHabis
@@ -419,8 +444,8 @@ export default function KoleksiDetailPage({
                   {isHabis
                     ? "Stok Habis"
                     : isHampirHabis
-                      ? `Hampir Habis! Sisa ${item.stok} pcs`
-                      : `Stok: ${item.stok} pcs`}
+                      ? `Hampir Habis! Sisa ${currentStock} pcs`
+                      : `Stok: ${currentStock} pcs`}
                 </div>
               )}
 

@@ -7,6 +7,7 @@ export interface KoleksiItemData {
   id: string;
   image: string;
   ukuran: string[];
+  stok?: number;
 }
 
 export interface KoleksiCardProps {
@@ -24,6 +25,7 @@ export interface KoleksiCardProps {
     rating?: string | null;
     terjual?: string | null;
     ukuran?: string | null;
+    stok?: number | null;
   };
   cardClassName?: string;
   aspectRatioClassName?: string;
@@ -48,6 +50,7 @@ export default function KoleksiCard({
                 : typeof p.ukuran === "string" && p.ukuran
                   ? [p.ukuran]
                   : [],
+            stok: typeof p.stok === "number" ? p.stok : (item.stok ?? undefined),
           }));
         }
       } catch (e) {}
@@ -63,6 +66,7 @@ export default function KoleksiCard({
         id: "1",
         image: item.image,
         ukuran: firstUkuran ? [firstUkuran] : [],
+        stok: item.stok ?? undefined,
       },
     ];
   })();
@@ -150,17 +154,35 @@ export default function KoleksiCard({
           </div>
         )}
 
-        {/* Badge Ukuran Pakaian untuk Foto yang Aktif */}
+        {/* Badge Ukuran & Stok Pakaian untuk Foto yang Aktif */}
         {activePhoto.ukuran && activePhoto.ukuran.length > 0 && (
           <div
             className={`absolute ${
               item.labelPromo ? "bottom-6" : "bottom-2"
-            } left-2 z-10 flex items-center gap-1 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-gray-100 shadow-xs`}
+            } left-2 z-10 flex items-center gap-1.5 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-gray-100 shadow-xs`}
           >
             <span className="text-[9px] font-bold text-gray-500">Size:</span>
             <span className="text-[10px] font-black text-primary">
               {activePhoto.ukuran[0]}
             </span>
+            {activePhoto.stok !== undefined && (
+              <>
+                <span className="text-gray-300 text-[9px]">|</span>
+                <span
+                  className={`text-[9px] font-bold ${
+                    activePhoto.stok === 0
+                      ? "text-red-500"
+                      : activePhoto.stok <= 5
+                        ? "text-orange-500 font-black"
+                        : "text-gray-600 dark:text-gray-300"
+                  }`}
+                >
+                  {activePhoto.stok === 0
+                    ? "Habis"
+                    : `${activePhoto.stok} pcs`}
+                </span>
+              </>
+            )}
           </div>
         )}
 

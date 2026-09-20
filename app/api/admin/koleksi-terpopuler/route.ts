@@ -14,6 +14,13 @@ async function checkAdmin() {
   return dbUser;
 }
 
+interface ItemPayload {
+  id: string;
+  image: string;
+  ukuran: string[];
+  stok?: number;
+}
+
 export async function POST(request: Request) {
   try {
     const admin = await checkAdmin();
@@ -40,7 +47,7 @@ export async function POST(request: Request) {
     } = body;
 
     // Parse and validate items
-    let finalItems: { id: string; image: string; ukuran: string[] }[] = [];
+    let finalItems: ItemPayload[] = [];
     if (Array.isArray(items) && items.length > 0) {
       finalItems = items;
     } else if (rawItemsData) {
@@ -69,7 +76,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Pastikan setiap item hanya memiliki 1 ukuran
+    // Pastikan setiap item hanya memiliki 1 ukuran dan stok angka
     finalItems = finalItems.map((item) => ({
       ...item,
       ukuran: Array.isArray(item.ukuran)
@@ -77,6 +84,10 @@ export async function POST(request: Request) {
         : typeof item.ukuran === "string" && item.ukuran
           ? [item.ukuran]
           : [],
+      stok:
+        item.stok !== undefined && item.stok !== null
+          ? Math.max(0, parseInt(String(item.stok)) || 0)
+          : 10,
     }));
 
     // Validasi setiap foto memiliki gambar dan tepat 1 ukuran
@@ -100,6 +111,10 @@ export async function POST(request: Request) {
       new Set(finalItems.flatMap((i) => i.ukuran)),
     ).join(",");
     const serializedItemsData = JSON.stringify(finalItems);
+    const totalStok =
+      stok !== undefined && stok !== null && stok !== ""
+        ? parseInt(String(stok))
+        : finalItems.reduce((acc, curr) => acc + (curr.stok || 0), 0);
 
     const newData = await prisma.koleksiTerpopuler.create({
       data: {
@@ -116,7 +131,7 @@ export async function POST(request: Request) {
         rating: rating || null,
         terjual: terjual || null,
         ukuran: combinedUkuran || null,
-        stok: stok ? parseInt(stok) : null,
+        stok: totalStok,
       },
     });
 
@@ -156,7 +171,7 @@ export async function PATCH(request: Request) {
     if (!id)
       return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
 
-    let finalItems: { id: string; image: string; ukuran: string[] }[] | undefined = undefined;
+    let finalItems: ItemPayload[] | undefined = undefined;
     if (Array.isArray(items) && items.length > 0) {
       finalItems = items;
     } else if (rawItemsData) {
@@ -183,7 +198,7 @@ export async function PATCH(request: Request) {
     let serializedItemsData: string | undefined = undefined;
 
     if (finalItems) {
-      // Pastikan setiap item hanya memiliki 1 ukuran
+      // Pastikan setiap item hanya memiliki 1 ukuran dan stok angka
       finalItems = finalItems.map((item) => ({
         ...item,
         ukuran: Array.isArray(item.ukuran)
@@ -191,6 +206,10 @@ export async function PATCH(request: Request) {
           : typeof item.ukuran === "string" && item.ukuran
             ? [item.ukuran]
             : [],
+        stok:
+          item.stok !== undefined && item.stok !== null
+            ? Math.max(0, parseInt(String(item.stok)) || 0)
+            : 10,
       }));
 
       for (let i = 0; i < finalItems.length; i++) {
@@ -213,6 +232,13 @@ export async function PATCH(request: Request) {
       ).join(",");
       serializedItemsData = JSON.stringify(finalItems);
     }
+
+    const calculatedStok =
+      stok !== undefined && stok !== null && stok !== ""
+        ? parseInt(String(stok))
+        : finalItems
+          ? finalItems.reduce((acc, curr) => acc + (curr.stok || 0), 0)
+          : undefined;
 
     const updated = await prisma.koleksiTerpopuler.update({
       where: { id },
@@ -238,7 +264,7 @@ export async function PATCH(request: Request) {
         }),
         ...(rating !== undefined && { rating: rating || null }),
         ...(terjual !== undefined && { terjual: terjual || null }),
-        ...(stok !== undefined && { stok: stok ? parseInt(stok) : null }),
+        ...(calculatedStok !== undefined && { stok: calculatedStok }),
       },
     });
 

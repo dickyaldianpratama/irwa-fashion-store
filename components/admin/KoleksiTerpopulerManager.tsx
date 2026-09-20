@@ -14,6 +14,7 @@ export interface KoleksiImageItem {
   id: string;
   image: string;
   ukuran: string[];
+  stok?: number;
 }
 
 export interface Koleksi {
@@ -48,6 +49,7 @@ export function parseKoleksiItems(item: Koleksi): KoleksiImageItem[] {
               : typeof p.ukuran === "string" && p.ukuran
                 ? [p.ukuran]
                 : [],
+          stok: typeof p.stok === "number" ? p.stok : (item.stok ?? 10),
         }));
       }
     } catch (e) {}
@@ -63,6 +65,7 @@ export function parseKoleksiItems(item: Koleksi): KoleksiImageItem[] {
       id: "item-1",
       image: item.image || "",
       ukuran: firstUkuran ? [firstUkuran] : [],
+      stok: item.stok ?? 10,
     },
   ];
 }
@@ -78,6 +81,7 @@ const emptyData = {
       id: "item-1",
       image: "",
       ukuran: [] as string[],
+      stok: 10,
     },
   ] as KoleksiImageItem[],
   link: "",
@@ -90,7 +94,7 @@ const emptyData = {
   badgeGaransi: "",
   rating: "",
   terjual: "",
-  stok: "",
+  stok: "10",
 };
 
 export default function KoleksiTerpopulerManager({ koleksi }: Props) {
@@ -110,8 +114,10 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
           id: `item-${Date.now()}`,
           image: "",
           ukuran: [],
+          stok: 10,
         },
       ],
+      stok: "10",
     });
     setShowModal(true);
   };
@@ -129,6 +135,7 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
     }
 
     const parsedItems = parseKoleksiItems(item);
+    const totalStok = parsedItems.reduce((acc, curr) => acc + (curr.stok || 0), 0);
 
     setFormData({
       title: item.title,
@@ -138,37 +145,44 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
           : [
               {
                 id: `item-${Date.now()}`,
-                image: item.image || "",
+                image: "",
                 ukuran: [],
+                stok: 10,
               },
             ],
       link: item.link || "",
       urutan: item.urutan.toString(),
-      hargaAsli: item.hargaAsli?.toString() || "",
-      hargaDiskon: item.hargaDiskon?.toString() || "",
+      hargaAsli: item.hargaAsli ? item.hargaAsli.toString() : "",
+      hargaDiskon: item.hargaDiskon ? item.hargaDiskon.toString() : "",
       persenDiskon: initialPersen,
       labelPromo: item.labelPromo || "",
       bestSellerBadge: item.bestSellerBadge || "",
       badgeGaransi: item.badgeGaransi || "",
       rating: item.rating || "",
       terjual: item.terjual || "",
-      stok: item.stok?.toString() || "",
+      stok: item.stok !== null && item.stok !== undefined ? item.stok.toString() : totalStok.toString(),
     });
     setShowModal(true);
   };
 
   const handleAddItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      items: [
+    setFormData((prev) => {
+      const newItems = [
         ...prev.items,
         {
           id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           image: "",
           ukuran: [],
+          stok: 10,
         },
-      ],
-    }));
+      ];
+      const totalStok = newItems.reduce((acc, curr) => acc + (curr.stok || 0), 0);
+      return {
+        ...prev,
+        items: newItems,
+        stok: totalStok.toString(),
+      };
+    });
   };
 
   const handleRemoveItem = (id: string) => {
@@ -176,10 +190,15 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
       toast.error("Minimal harus ada 1 foto pakaian");
       return;
     }
-    setFormData((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== id),
-    }));
+    setFormData((prev) => {
+      const newItems = prev.items.filter((item) => item.id !== id);
+      const totalStok = newItems.reduce((acc, curr) => acc + (curr.stok || 0), 0);
+      return {
+        ...prev,
+        items: newItems,
+        stok: totalStok.toString(),
+      };
+    });
   };
 
   const handleItemImageChange = (id: string, url: string) => {
@@ -198,6 +217,21 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
         item.id === id ? { ...item, ukuran: [size] } : item,
       ),
     }));
+  };
+
+  const handleItemStokChange = (id: string, val: string) => {
+    const num = val === "" ? undefined : Math.max(0, parseInt(val) || 0);
+    setFormData((prev) => {
+      const updatedItems = prev.items.map((item) =>
+        item.id === id ? { ...item, stok: num } : item,
+      );
+      const totalStok = updatedItems.reduce((acc, curr) => acc + (curr.stok || 0), 0);
+      return {
+        ...prev,
+        items: updatedItems,
+        stok: totalStok.toString(),
+      };
+    });
   };
 
   const handleHargaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -418,6 +452,14 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                     ))}
                   </div>
                 )}
+                {item.stok !== null && item.stok !== undefined && (
+                  <div className="mt-1.5 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+                    Total Stok:{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {item.stok} pcs
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <button
@@ -604,7 +646,7 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Stok Barang (Opsional)
+                  Total Stok Barang (pcs)
                 </label>
                 <input
                   type="number"
@@ -614,8 +656,11 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                     setFormData({ ...formData, stok: e.target.value })
                   }
                   className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
-                  placeholder="Contoh: 50"
+                  placeholder="Otomatis dihitung dari jumlah stok foto"
                 />
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                  * Otomatis terakumulasi dari masing-masing stok foto pakaian di bawah.
+                </p>
               </div>
 
               {/* Daftar Foto & Ukuran Pakaian */}
@@ -705,6 +750,24 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                             * Wajib memilih 1 ukuran untuk foto ini
                           </p>
                         )}
+                      </div>
+
+                      {/* Stok untuk foto ini */}
+                      <div className="pt-2 border-t border-gray-200/70 dark:border-gray-700/70">
+                        <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                          Stok Pakaian Foto Ini:
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={item.stok ?? ""}
+                            onChange={(e) => handleItemStokChange(item.id, e.target.value)}
+                            placeholder="Contoh: 15"
+                            className="w-28 p-2 border rounded-lg text-xs font-semibold focus:ring-2 focus:ring-primary focus:border-primary outline-none dark:bg-gray-800 dark:border-gray-700"
+                          />
+                          <span className="text-xs text-gray-500 font-medium">pcs</span>
+                        </div>
                       </div>
                     </div>
                   ))}
