@@ -110,14 +110,14 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                       alt={item.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
+                    <div className="absolute top-2 left-2 right-12 sm:right-16 z-10 flex flex-col items-start gap-1.5 pointer-events-none">
                       {isDiscounted && (
-                        <span className="bg-danger text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full uppercase tracking-wider shadow-sm self-start">
+                        <span className="bg-danger text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-sm uppercase tracking-wider shadow-sm">
                           Promo
                         </span>
                       )}
                       {item.labelPromo && (
-                        <span className="bg-warning text-white px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-full tracking-wider shadow-sm self-start">
+                        <span className="bg-warning text-white px-2 py-1 text-[9px] sm:text-[10px] font-bold rounded-sm tracking-wider shadow-sm leading-tight max-w-full text-left line-clamp-3">
                           {item.labelPromo}
                         </span>
                       )}

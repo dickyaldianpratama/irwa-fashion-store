@@ -105,14 +105,14 @@ export default async function KoleksiTerpopulerPage() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+                    <div className="absolute top-3 left-3 right-14 sm:right-20 z-10 flex flex-col items-start gap-1.5 pointer-events-none">
                       {isDiscounted && (
-                        <span className="bg-danger text-white px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm self-start">
+                        <span className="bg-danger text-white px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-sm uppercase tracking-wider shadow-sm">
                           Promo
                         </span>
                       )}
                       {item.labelPromo && (
-                        <span className="bg-warning text-white px-2.5 py-1 text-xs font-bold rounded-full tracking-wider shadow-sm self-start">
+                        <span className="bg-warning text-white px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-sm tracking-wider shadow-sm leading-tight max-w-full text-left line-clamp-3">
                           {item.labelPromo}
                         </span>
                       )}
