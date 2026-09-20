@@ -102,9 +102,9 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                 <Link
                   key={item.id}
                   href={finalLink}
-                  className="group block rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow relative"
+                  className="group flex flex-col rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow relative"
                 >
-                  <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
+                  <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden shrink-0">
                     <img
                       src={item.image}
                       alt={item.title}
@@ -132,81 +132,86 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                       </div>
                     )}
                   </div>
-                  <div className="p-3">
+                  <div className="p-3 flex-1 flex flex-col">
                     <h3 className="font-medium text-xs sm:text-sm text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {item.title}
                     </h3>
 
-                    {/* Harga Pintar */}
-                    {(item.hargaAsli || item.hargaDiskon) && (
-                      <div className="mt-2 flex flex-col">
-                        {isDiscounted ? (
-                          <>
-                            <span className="text-gray-400 text-[10px] sm:text-[11px] line-through decoration-gray-300">
-                              Rp {(item.hargaAsli || 0).toLocaleString("id-ID")}
-                            </span>
-                            <span className="text-danger font-black text-sm sm:text-base tracking-tight">
-                              Rp{" "}
-                              {(item.hargaDiskon || 0).toLocaleString("id-ID")}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-gray-900 font-bold text-sm sm:text-base tracking-tight">
-                            Rp{" "}
-                            {(
-                              item.hargaAsli ||
-                              item.hargaDiskon ||
-                              0
-                            ).toLocaleString("id-ID")}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* UI Element ala Shopee (Dynamic) */}
-                    {(item.badgeGaransi || item.rating || item.terjual) && (
-                      <div className="mt-2 flex flex-col gap-1.5">
-                        {item.badgeGaransi && (
-                          <div className="flex items-center gap-1 bg-gradient-to-r from-primary-400 to-primary-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
-                            <div className="flex items-center justify-center bg-white text-primary rounded-[2px] px-[3px] py-[1px]">
-                              <span className="font-extrabold text-[7px] leading-none">
-                                Rp
+                    <div className="mt-auto pt-2">
+                      {/* Harga Pintar */}
+                      {(item.hargaAsli || item.hargaDiskon) && (
+                        <div className="flex flex-col min-h-[38px] justify-end">
+                          {isDiscounted ? (
+                            <>
+                              <span className="text-gray-400 text-[10px] sm:text-[11px] line-through decoration-gray-300">
+                                Rp{" "}
+                                {(item.hargaAsli || 0).toLocaleString("id-ID")}
                               </span>
-                            </div>
-                            <span className="text-[9px] font-medium tracking-wide">
-                              {item.badgeGaransi}
+                              <span className="text-danger font-black text-sm sm:text-base tracking-tight">
+                                Rp{" "}
+                                {(item.hargaDiskon || 0).toLocaleString(
+                                  "id-ID",
+                                )}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-gray-900 font-bold text-sm sm:text-base tracking-tight">
+                              Rp{" "}
+                              {(
+                                item.hargaAsli ||
+                                item.hargaDiskon ||
+                                0
+                              ).toLocaleString("id-ID")}
                             </span>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      )}
 
-                        {(item.rating || item.terjual) && (
-                          <div className="flex items-center text-[10px] sm:text-[11px] text-gray-600 mt-0.5">
-                            {item.rating && (
-                              <div className="flex items-center gap-0.5 border border-yellow-400 bg-yellow-50/50 px-1 py-[1px] rounded-[2px]">
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  fill="#facc15"
-                                  className="w-3 h-3"
-                                >
-                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>
-                                <span className="font-semibold text-gray-700">
-                                  {item.rating}
+                      {/* UI Element ala Shopee (Dynamic) */}
+                      {(item.badgeGaransi || item.rating || item.terjual) && (
+                        <div className="mt-2 flex flex-col gap-1.5">
+                          {item.badgeGaransi && (
+                            <div className="flex items-center gap-1 bg-gradient-to-r from-primary-400 to-primary-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
+                              <div className="flex items-center justify-center bg-white text-primary rounded-[2px] px-[3px] py-[1px]">
+                                <span className="font-extrabold text-[7px] leading-none">
+                                  Rp
                                 </span>
                               </div>
-                            )}
+                              <span className="text-[9px] font-medium tracking-wide">
+                                {item.badgeGaransi}
+                              </span>
+                            </div>
+                          )}
 
-                            {item.rating && item.terjual && (
-                              <span className="mx-1.5 text-gray-300">|</span>
-                            )}
+                          {(item.rating || item.terjual) && (
+                            <div className="flex items-center text-[10px] sm:text-[11px] text-gray-600 mt-0.5">
+                              {item.rating && (
+                                <div className="flex items-center gap-0.5 border border-yellow-400 bg-yellow-50/50 px-1 py-[1px] rounded-[2px]">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    fill="#facc15"
+                                    className="w-3 h-3"
+                                  >
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                  </svg>
+                                  <span className="font-semibold text-gray-700">
+                                    {item.rating}
+                                  </span>
+                                </div>
+                              )}
 
-                            {item.terjual && (
-                              <span className="truncate">{item.terjual}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                              {item.rating && item.terjual && (
+                                <span className="mx-1.5 text-gray-300">|</span>
+                              )}
+
+                              {item.terjual && (
+                                <span className="truncate">{item.terjual}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );
