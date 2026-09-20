@@ -14,6 +14,9 @@ interface KoleksiItem {
   hargaDiskon?: number | null;
   labelPromo?: string | null;
   bestSellerBadge?: string | null;
+  badgeGaransi?: string | null;
+  rating?: string | null;
+  terjual?: string | null;
 }
 
 interface Props {
