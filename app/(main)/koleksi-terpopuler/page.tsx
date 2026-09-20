@@ -60,33 +60,10 @@ export default async function KoleksiTerpopulerPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {koleksiTerpopuler.map((item) => {
-              // Auto-generate link berdasarkan kata kunci pada judul jika db link kosong
-              let autoLink = "/produk";
-              const titleLower = item.title.toLowerCase();
-
-              if (titleLower.includes("kemeja"))
-                autoLink = "/produk?kategori=kemeja";
-              else if (titleLower.includes("celana"))
-                autoLink = "/produk?kategori=celana";
-              else if (
-                titleLower.includes("kaos") ||
-                titleLower.includes("t-shirt")
-              )
-                autoLink = "/produk?kategori=kaos";
-              else if (
-                titleLower.includes("jaket") ||
-                titleLower.includes("outer") ||
-                titleLower.includes("sweater")
-              )
-                autoLink = "/produk?kategori=jaket";
-              else if (
-                titleLower.includes("aksesoris") ||
-                titleLower.includes("topi")
-              )
-                autoLink = "/produk?kategori=aksesoris";
-
               const finalLink =
-                item.link && item.link !== "#" ? item.link : autoLink;
+                item.link && item.link !== "#"
+                  ? item.link
+                  : `/koleksi/${item.id}`;
               const isDiscounted =
                 !!item.hargaAsli &&
                 !!item.hargaDiskon &&

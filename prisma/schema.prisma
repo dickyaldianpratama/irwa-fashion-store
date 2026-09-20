@@ -97,6 +97,8 @@ model KoleksiTerpopuler {
   badgeGaransi    String?
   rating          String?
   terjual         String?
+  ukuran          String? // e.g. "S,M,L,XL"
+  stok            Int? // e.g. 50
 }
 
 model Produk {
