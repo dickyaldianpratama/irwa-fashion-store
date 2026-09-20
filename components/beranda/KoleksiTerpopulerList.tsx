@@ -172,10 +172,14 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                         <div className="mt-2 flex flex-col gap-1.5">
                           {item.badgeGaransi && (
                             <div className="flex items-center gap-1 bg-gradient-to-r from-primary-400 to-primary-600 text-white w-fit px-1.5 py-[2px] rounded-[3px] shadow-sm">
-                              <div className="flex items-center justify-center bg-white text-primary rounded-[2px] px-[3px] py-[1px]">
-                                <span className="font-extrabold text-[7px] leading-none">
-                                  Rp
-                                </span>
+                              <div className="flex items-center justify-center bg-white text-primary rounded-[2px] p-[2px]">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  className="w-[9px] h-[9px]"
+                                >
+                                  <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z" />
+                                </svg>
                               </div>
                               <span className="text-[9px] font-medium tracking-wide">
                                 {item.badgeGaransi}
