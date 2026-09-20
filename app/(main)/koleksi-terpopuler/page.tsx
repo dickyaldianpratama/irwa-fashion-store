@@ -98,7 +98,7 @@ export default async function KoleksiTerpopulerPage() {
                   href={finalLink}
                   className="group flex flex-col rounded-2xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
+                  <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
                     <img
                       src={item.image}
                       alt={item.title}
@@ -127,7 +127,7 @@ export default async function KoleksiTerpopulerPage() {
                       </div>
                     )}
                   </div>
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                  <div className="p-3 sm:p-4 flex-1 flex flex-col">
                     <h3 className="font-medium text-sm sm:text-base text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {item.title}
                     </h3>

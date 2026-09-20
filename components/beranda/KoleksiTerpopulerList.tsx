@@ -104,7 +104,7 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                   href={finalLink}
                   className="group flex flex-col rounded-xl overflow-hidden shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow relative"
                 >
-                  <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden shrink-0">
+                  <div className="relative w-full aspect-square bg-gray-100 overflow-hidden shrink-0">
                     <img
                       src={item.image}
                       alt={item.title}
