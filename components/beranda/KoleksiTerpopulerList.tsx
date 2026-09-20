@@ -97,7 +97,7 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors">
+                    <h3 className="font-medium text-xs sm:text-sm text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {item.title}
                     </h3>
                     
@@ -106,15 +106,15 @@ export default function KoleksiTerpopulerList({ items }: Props) {
                       <div className="mt-2 flex flex-col">
                         {isDiscounted ? (
                           <>
-                            <span className="text-gray-400 text-[11px] sm:text-xs line-through">
+                            <span className="text-gray-400 text-[10px] sm:text-[11px] line-through decoration-gray-300">
                               Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
                             </span>
-                            <span className="text-danger font-bold text-sm sm:text-base">
+                            <span className="text-danger font-black text-sm sm:text-base tracking-tight">
                               Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
                           </>
                         ) : (
-                          <span className="text-gray-900 font-bold text-sm sm:text-base">
+                          <span className="text-gray-900 font-bold text-sm sm:text-base tracking-tight">
                             Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                           </span>
                         )}

@@ -94,7 +94,7 @@ export default async function KoleksiTerpopulerPage() {
                     )}
                   </div>
                   <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                    <h3 className="font-bold text-gray-900 line-clamp-2 text-sm sm:text-base group-hover:text-primary transition-colors leading-snug">
+                    <h3 className="font-medium text-sm sm:text-base text-gray-700 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {item.title}
                     </h3>
 
@@ -103,15 +103,15 @@ export default async function KoleksiTerpopulerPage() {
                       <div className="mt-auto pt-3 flex flex-col">
                         {isDiscounted ? (
                           <>
-                            <span className="text-gray-400 text-xs line-through">
+                            <span className="text-gray-400 text-xs line-through decoration-gray-300">
                               Rp {(item.hargaAsli || 0).toLocaleString('id-ID')}
                             </span>
-                            <span className="text-danger font-bold text-base">
+                            <span className="text-danger font-black text-base tracking-tight">
                               Rp {(item.hargaDiskon || 0).toLocaleString('id-ID')}
                             </span>
                           </>
                         ) : (
-                          <span className="text-gray-900 font-bold text-base">
+                          <span className="text-gray-900 font-bold text-base tracking-tight">
                             Rp {(item.hargaAsli || item.hargaDiskon || 0).toLocaleString('id-ID')}
                           </span>
                         )}
