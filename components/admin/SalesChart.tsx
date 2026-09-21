@@ -309,20 +309,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
                   </>
                 )}
               </div>
-
-              {/* Pemesan pada tanggal ini */}
-              {activeItem.buyers && activeItem.buyers.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap text-[11px] pt-1 border-t border-blue-200/50 dark:border-blue-800/50">
-                  <span className="font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                    <User size={11} /> Pemesan Tgl Ini ({activeItem.buyers.length}):
-                  </span>
-                  {activeItem.buyers.map((b, bi) => (
-                    <span key={bi} className="bg-white/80 dark:bg-blue-900/60 px-2 py-0.5 rounded-md font-medium text-gray-800 dark:text-gray-200 flex items-center gap-1">
-                      <strong>{b.name}</strong> <span className="opacity-65">({b.email})</span>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-gray-400 dark:text-gray-500 text-[11px] flex items-center gap-1">
@@ -515,7 +501,7 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
             {summary.customerStats.map((cust, idx) => (
               <div
                 key={idx}
