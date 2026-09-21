@@ -16,46 +16,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let addresses = await prisma.alamat.findMany({
+    const addresses = await prisma.alamat.findMany({
       where: { userId: user.id },
       orderBy: [{ isUtama: "desc" }, { id: "asc" }],
     });
-
-    // Inisialisasi alamat awal jika user belum memiliki alamat sama sekali
-    if (addresses.length === 0) {
-      const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-      const userName = dbUser?.name || "Penerima";
-
-      await prisma.alamat.createMany({
-        data: [
-          {
-            userId: user.id,
-            label: "Rumah",
-            penerima: userName,
-            telepon: dbUser?.phone || "081234567890",
-            alamatLengkap: "Jl. Sudirman No. 123, Jakarta Selatan",
-            kota: "Jakarta Selatan",
-            kodePos: "12190",
-            isUtama: true,
-          },
-          {
-            userId: user.id,
-            label: "Kantor",
-            penerima: userName,
-            telepon: "081987654321",
-            alamatLengkap: "Gedung Cyber Lt. 5, Kuningan, Jakarta Selatan",
-            kota: "Jakarta Selatan",
-            kodePos: "12950",
-            isUtama: false,
-          },
-        ],
-      });
-
-      addresses = await prisma.alamat.findMany({
-        where: { userId: user.id },
-        orderBy: [{ isUtama: "desc" }, { id: "asc" }],
-      });
-    }
 
     const formatted = addresses.map((a) => ({
       id: a.id,
