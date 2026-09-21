@@ -260,26 +260,81 @@ export default function CheckoutPage() {
       if (!response.ok)
         throw new Error(result.error || "Gagal melakukan checkout");
 
-      // Cek apakah snap.js popup tersedia di window
+      // 1. Kosongkan keranjang belanja seketika karena pesanan sudah sukses tersimpan di database
+      clearCart();
+
+      // 2. Cek apakah snap.js popup tersedia di window
       if (result.token && typeof window !== "undefined" && (window as any).snap?.pay) {
+        let isHandled = false;
+        let pollTimer: any = null;
+
+        const stopPolling = () => {
+          if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+          }
+        };
+
+        const handleSuccessRedirect = () => {
+          if (isHandled) return;
+          isHandled = true;
+          stopPolling();
+          clearCart();
+          toast.success("Pembayaran Berhasil Terverifikasi!");
+          router.push(`/checkout/success?orderId=${result.orderId}`);
+        };
+
+        // Real-time polling untuk mendeteksi pembayaran dari server Midtrans (misal bayar via simulator/m-banking)
+        pollTimer = setInterval(async () => {
+          if (isHandled) return;
+          try {
+            const chkRes = await fetch(`/api/payment/check?orderId=${result.orderId}`, { cache: "no-store" });
+            if (chkRes.ok) {
+              const chk = await chkRes.json();
+              if (chk.status === "PAID") {
+                handleSuccessRedirect();
+              }
+            }
+          } catch (e) {
+            // Abaikan kesalahan sementara pada polling
+          }
+        }, 2000);
+
         (window as any).snap.pay(result.token, {
           onSuccess: function (snapResult: any) {
-            toast.success("Pembayaran Berhasil!");
-            clearCart();
-            router.push(`/checkout/success?orderId=${result.orderId}`);
+            handleSuccessRedirect();
           },
           onPending: function (snapResult: any) {
-            toast.success("Pesanan Dibuat, Menunggu Pembayaran!");
+            if (isHandled) return;
+            isHandled = true;
+            stopPolling();
             clearCart();
+            toast.success("Pesanan Dibuat, Menunggu Pembayaran!");
             router.push(`/checkout/success?orderId=${result.orderId}`);
           },
           onError: function (snapResult: any) {
+            stopPolling();
             toast.error("Pembayaran gagal diproses.");
             setIsProcessing(false);
           },
-          onClose: function () {
-            toast("Layar pembayaran ditutup. Anda dapat melanjutkan pembayaran kapan saja.");
+          onClose: async function () {
+            stopPolling();
+            // Cek langsung status terakhir ke Midtrans sebelum navigasi
+            try {
+              const chkRes = await fetch(`/api/payment/check?orderId=${result.orderId}`, { cache: "no-store" });
+              if (chkRes.ok) {
+                const chk = await chkRes.json();
+                if (chk.status === "PAID") {
+                  handleSuccessRedirect();
+                  return;
+                }
+              }
+            } catch (e) {}
+
+            clearCart();
+            toast("Layar pembayaran ditutup. Anda dapat melanjutkan pembayaran kapan saja di menu Pesanan.");
             setIsProcessing(false);
+            router.push(`/akun/pesanan/${result.orderId}`);
           },
         });
       } else if (result.checkoutUrl) {

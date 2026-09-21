@@ -36,9 +36,9 @@ export async function createSnapTransaction({
       email: customerEmail,
       phone: customerPhone
     },
-    // Untuk mencegah error validasi Midtrans (gross_amount != sum of items) karena ongkir/diskon, 
-    // kita hilangkan item_details agar Midtrans hanya fokus pada Total Harga saja.
-    // item_details: items.map(item => ({ ... }))
+    callbacks: {
+      finish: `${process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost') ? process.env.NEXT_PUBLIC_APP_URL : 'https://irwa-fashion-store.vercel.app'}/checkout/success?orderId=${orderId}`
+    }
   };
 
   try {

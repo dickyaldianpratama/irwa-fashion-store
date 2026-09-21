@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { CheckCircle, QrCode, FileText, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useCartStore } from "@/store/cartStore";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId") || "1";
+  const clearCart = useCartStore((state) => state.clearCart);
+
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
   
   // Format order ID singkat (ambil 8 karakter pertama untuk display)
   const shortOrderId = orderId === "1" ? "INV-20260913-001" : orderId.split("-")[0].toUpperCase();
