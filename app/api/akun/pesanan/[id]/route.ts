@@ -92,7 +92,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       user: order.user,
       metodePembayaran: order.metodePembayaran || "Transfer Bank",
       items: order.items.map((item: any) => {
-        const productImage = item.varian?.produk?.images?.[0]?.url;
+        const productImage = item.gambar || item.varian?.produk?.images?.[0]?.url;
         return {
           id: item.id,
           nama: item.varian?.produk?.nama || "Produk",

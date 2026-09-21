@@ -217,6 +217,7 @@ model ItemPesanan {
   varian      ProductVariant @relation(fields: [varianId], references: [id])
   jumlah      Int
   hargaSatuan Int
+  gambar      String?        @db.Text
 }
 
 // Fitur 9: Request Alterasi & Hemming

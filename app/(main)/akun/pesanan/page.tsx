@@ -181,8 +181,16 @@ export default function PesananPage() {
               </div>
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
                 <div className="flex gap-4 items-center">
-                  <div className="w-16 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                    <Package size={24} />
+                  <div className="w-16 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden shrink-0">
+                    {(order.items?.[0] as any)?.gambar || order.items?.[0]?.varian?.produk?.images?.[0]?.url ? (
+                      <img
+                        src={(order.items?.[0] as any)?.gambar || order.items?.[0]?.varian?.produk?.images?.[0]?.url}
+                        alt="Produk"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package size={24} />
+                    )}
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900 text-sm md:text-base">Pesanan {order.items?.length || 0} Item</h4>

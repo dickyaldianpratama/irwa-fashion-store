@@ -90,7 +90,7 @@ export async function GET(
         warna: item.varian?.warna || "-",
         harga: item.hargaSatuan,
         qty: item.jumlah,
-        image: item.varian?.produk?.images?.[0]?.url || "",
+        image: item.gambar || item.varian?.produk?.images?.[0]?.url || "",
       })),
     };
 

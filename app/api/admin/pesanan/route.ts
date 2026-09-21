@@ -145,7 +145,7 @@ export async function GET(request: Request) {
         ukuran: it.varian?.ukuran || "-",
         warna: it.varian?.warna || "-",
         qty: it.jumlah,
-        image: it.varian?.produk?.images?.[0]?.url || "",
+        image: it.gambar || it.varian?.produk?.images?.[0]?.url || "",
       })),
     }));
 

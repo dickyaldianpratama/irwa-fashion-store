@@ -182,14 +182,17 @@ export async function POST(request: Request) {
 
       if (item.gambar) {
         const existingImage = await prisma.productImage.findFirst({
-          where: { produkId: produk.id }
+          where: { produkId: produk.id, url: item.gambar }
         });
         if (!existingImage) {
+          const hasMainImage = await prisma.productImage.findFirst({
+            where: { produkId: produk.id, isUtama: true }
+          });
           await prisma.productImage.create({
             data: {
               produkId: produk.id,
               url: item.gambar,
-              isUtama: true
+              isUtama: !hasMainImage
             }
           });
         }
@@ -221,7 +224,8 @@ export async function POST(request: Request) {
       pesananItems.push({
         varianId: varian.id,
         jumlah: jumlahBeli,
-        hargaSatuan: item.harga
+        hargaSatuan: item.harga,
+        gambar: item.gambar || null,
       });
     }
 
