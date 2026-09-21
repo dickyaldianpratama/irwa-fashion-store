@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
-import { Package, ShoppingBag, Users, DollarSign, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowRight, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
 
@@ -22,13 +23,20 @@ export default async function AdminDashboard() {
     return <AdminLoginForm />;
   }
 
-  const [totalProducts, totalOrders, totalUsers, totalRevenue] = await Promise.all([
+  const [totalProducts, totalOrders, totalUsers, totalRevenue, recentOrders] = await Promise.all([
     prisma.produk.count(),
     prisma.pesanan.count(),
     prisma.user.count({ where: { role: "CUSTOMER" } }),
     prisma.pesanan.aggregate({
       _sum: { totalHarga: true },
-      where: { statusPesanan: { in: ["DELIVERED", "SHIPPED", "PROCESSING"] } }
+      where: { statusPesanan: { in: ["DELIVERED", "SHIPPED", "READY_FOR_PICKUP", "PROCESSING", "PAID"] } }
+    }),
+    prisma.pesanan.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { name: true, email: true } }
+      }
     })
   ]);
 
@@ -45,6 +53,12 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+        <Link
+          href="/admin/pesanan"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+        >
+          Kelola Pesanan <ArrowRight size={14} />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -71,9 +85,72 @@ export default async function AdminDashboard() {
           <TrendingUp size={48} className="mb-4 opacity-50" />
           <p>Grafik Penjualan (Segera Hadir)</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 h-96 flex flex-col items-center justify-center text-gray-500">
-          <ShoppingBag size={48} className="mb-4 opacity-50" />
-          <p>Pesanan Terbaru (Segera Hadir)</p>
+        
+        {/* Pesanan Terbaru */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+                <ShoppingBag size={18} className="text-blue-500" /> Pesanan Terbaru
+              </h2>
+              <Link
+                href="/admin/pesanan"
+                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+              >
+                Lihat Semua <ArrowRight size={12} />
+              </Link>
+            </div>
+
+            {recentOrders.length === 0 ? (
+              <div className="py-16 text-center text-gray-400 text-sm">
+                Belum ada pesanan masuk.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentOrders.map((ord) => (
+                  <Link
+                    key={ord.id}
+                    href={`/admin/pesanan/${ord.id}`}
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-gray-50 dark:border-gray-800/50"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-gray-900 dark:text-white">
+                          #{ord.id.split("-")[0].toUpperCase()}
+                        </span>
+                        <span className="text-[11px] text-gray-400">•</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
+                          {ord.user?.name || ord.user?.email || "Pelanggan"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                        <Clock size={11} /> {new Date(ord.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-bold text-xs text-gray-900 dark:text-white">
+                        Rp {ord.totalHarga.toLocaleString("id-ID")}
+                      </p>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 ${
+                        ord.statusPesanan === "DELIVERED"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                          : ord.statusPesanan === "SHIPPED"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                          : ord.statusPesanan === "PROCESSING"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                          : ord.statusPesanan === "PAID"
+                          ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      }`}>
+                        {ord.statusPesanan}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

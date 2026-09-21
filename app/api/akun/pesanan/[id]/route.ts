@@ -13,15 +13,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    const isAdmin = dbUser?.role === "ADMIN";
+
     const resolvedParams = await params;
     const { id } = resolvedParams;
 
-    // Ganti findUnique menjadi findFirst karena userId bukan parameter unik
+    // Admin bisa melihat pesanan apa pun, customer hanya miliknya sendiri
     const order = await prisma.pesanan.findFirst({
-      where: { 
-        id: id,
-        userId: user.id // Pastikan hanya milik user ybs
-      },
+      where: isAdmin ? { id: id } : { id: id, userId: user.id },
       include: {
         user: true,
         items: {
@@ -78,7 +78,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const formattedOrder = {
       id: order.id,
       status: order.statusPesanan,
+      statusPesanan: order.statusPesanan,
       tipePengiriman: order.tipePengiriman,
+      resiKurir: order.resiKurir,
+      pickupCode: order.pickupCode,
       tanggal: new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
       waktu: new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
       lokasiPickup: order.tipePengiriman === "PICKUP" ? "IRWA Store Terdekat" : "Sesuai Alamat Pengiriman",
@@ -111,5 +114,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
-
-

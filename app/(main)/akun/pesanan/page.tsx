@@ -162,13 +162,21 @@ export default function PesananPage() {
                 </div>
                 {/* --- DYNAMIC BADGE --- */}
                 <div className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  order.statusPesanan === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800' :
+                  order.statusPesanan === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
+                  order.statusPesanan === 'READY_FOR_PICKUP' ? 'bg-purple-100 text-purple-800' :
+                  order.statusPesanan === 'PROCESSING' ? 'bg-amber-100 text-amber-800' :
                   order.statusPesanan === 'PAID' ? 'bg-green-100 text-green-800' :
-                  order.statusPesanan === 'UNPAID' ? 'bg-yellow-100 text-yellow-800' :
                   order.statusPesanan === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                  order.statusPesanan === 'DELIVERED' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
+                  'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {order.statusPesanan}
+                  {order.statusPesanan === 'DELIVERED' ? 'Selesai' :
+                   order.statusPesanan === 'SHIPPED' ? 'Dikirim' :
+                   order.statusPesanan === 'READY_FOR_PICKUP' ? 'Siap Diambil' :
+                   order.statusPesanan === 'PROCESSING' ? 'Diproses' :
+                   order.statusPesanan === 'PAID' ? 'Dibayar' :
+                   order.statusPesanan === 'CANCELLED' ? 'Dibatalkan' :
+                   'Menunggu Pembayaran'}
                 </div>
               </div>
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
