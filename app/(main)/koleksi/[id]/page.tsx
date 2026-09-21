@@ -15,6 +15,7 @@ import {
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import toast from "react-hot-toast";
+import BuyNowBagIcon from "@/components/ui/BuyNowBagIcon";
 
 interface KoleksiPhotoItem {
   id: string;
@@ -504,7 +505,7 @@ export default function KoleksiDetailPage({
                       : "bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-dark active:scale-[0.98] cursor-pointer"
                   }`}
                 >
-                  <Zap size={20} />
+                  <BuyNowBagIcon size={20} />
                   {isHabis ? "Tidak Bisa Dipesan" : "Beli Sekarang"}
                 </button>
               </div>

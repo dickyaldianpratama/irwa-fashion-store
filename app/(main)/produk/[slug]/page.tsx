@@ -12,6 +12,7 @@ import ColorSwatch from "@/components/produk/ColorSwatch";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import toast from "react-hot-toast";
+import BuyNowBagIcon from "@/components/ui/BuyNowBagIcon";
 
 // Helper map warna ke hex untuk ColorSwatch
 const colorToHex: Record<string, string> = {
@@ -231,7 +232,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </button>
             <button 
               onClick={handleBuyNow}
-              className="flex-1 min-w-[140px] h-14 bg-primary text-white font-bold rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all active:scale-[0.98]">
+              className="flex-1 min-w-[140px] h-14 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all active:scale-[0.98]">
+              <BuyNowBagIcon size={20} />
               Beli Sekarang
             </button>
             <button 
