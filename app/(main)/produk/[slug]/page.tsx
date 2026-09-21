@@ -11,6 +11,7 @@ import ColorSwatch from "@/components/produk/ColorSwatch";
 // Store Zustand
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
+import { useWishlistStore } from "@/store/wishlistStore";
 import toast from "react-hot-toast";
 import BuyNowBagIcon from "@/components/ui/BuyNowBagIcon";
 
@@ -34,11 +35,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   // Zustand Actions
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useUIStore((state) => state.openCart);
+  const isWishlisted = useWishlistStore((state) => state.isWishlisted(product?.id || ""));
+  const toggleWishlistStore = useWishlistStore((state) => state.toggleWishlist);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -55,15 +57,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         if (uniqueSizes.length > 0) setSelectedSize(uniqueSizes[0] as string);
         
         setProduct(data);
-        
-        // Fetch wishlist status
-        const wlRes = await fetch("/api/akun/wishlist");
-        if (wlRes.ok) {
-          const wlData = await wlRes.json();
-          const wishlisted = wlData.data?.some((w: any) => w.produkId === data.id);
-          setIsWishlisted(wishlisted);
-        }
-
       } catch (err) {
         setError(true);
       } finally {
@@ -75,26 +68,32 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
   const toggleWishlist = async () => {
     if (!product) return;
-    
-    // Optimistic
-    const newStatus = !isWishlisted;
-    setIsWishlisted(newStatus);
-    
-    try {
-      if (newStatus) {
-        await fetch("/api/akun/wishlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ produkId: product.id })
-        });
-        toast.success("Disimpan ke wishlist");
-      } else {
-        await fetch(`/api/akun/wishlist?produkId=${product.id}`, { method: "DELETE" });
-        toast.success("Dihapus dari wishlist");
-      }
-    } catch (e) {
-      setIsWishlisted(!newStatus); // revert
-      toast.error("Gagal mengubah wishlist");
+
+    const firstImg = product.images?.[0]?.url || "https://images.unsplash.com/photo-1593998066526-65fcab3021a2?w=800";
+    const added = toggleWishlistStore({
+      id: product.id,
+      type: "produk",
+      nama: product.nama,
+      link: `/produk/${product.slug}`,
+      harga: product.hargaDiskon || product.hargaAsli,
+      hargaAsli: product.hargaAsli,
+      gambar: firstImg,
+      kategori: product.kategori?.nama || null,
+      stok: product.stokTotal ?? null,
+      ukuranDefault: selectedSize,
+      warnaDefault: selectedColor,
+    });
+
+    if (added) {
+      toast.success("Disimpan ke wishlist");
+      fetch("/api/akun/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produkId: product.id }),
+      }).catch(() => {});
+    } else {
+      toast.success("Dihapus dari wishlist");
+      fetch(`/api/akun/wishlist?produkId=${product.id}`, { method: "DELETE" }).catch(() => {});
     }
   };
 

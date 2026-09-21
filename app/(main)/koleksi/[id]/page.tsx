@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   ShoppingBag,
-  Zap,
+  Heart,
   Shield,
   Star,
   Package,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
+import { useWishlistStore } from "@/store/wishlistStore";
 import toast from "react-hot-toast";
 import BuyNowBagIcon from "@/components/ui/BuyNowBagIcon";
 
@@ -210,6 +211,30 @@ export default function KoleksiDetailPage({
       jumlah: 1,
     });
     router.push("/checkout");
+  };
+
+  const isWishlisted = useWishlistStore((state) => state.isWishlisted(item?.id || ""));
+  const toggleWishlistStore = useWishlistStore((state) => state.toggleWishlist);
+
+  const handleToggleWishlist = () => {
+    if (!item) return;
+    const added = toggleWishlistStore({
+      id: item.id,
+      type: "koleksi",
+      nama: item.title,
+      link: `/koleksi/${item.id}`,
+      harga: displayPrice,
+      hargaAsli: item.hargaAsli,
+      gambar: activePhoto.image || item.image,
+      kategori: "Koleksi Terpopuler",
+      stok: currentStock,
+      ukuranDefault: selectedSize || activePhoto.ukuran?.[0] || "-",
+    });
+    if (added) {
+      toast.success("Berhasil ditambahkan ke wishlist!");
+    } else {
+      toast.success("Dihapus dari wishlist");
+    }
   };
 
   return (
@@ -483,7 +508,7 @@ export default function KoleksiDetailPage({
                 </div>
               ) : null}
 
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={isHabis}
@@ -507,6 +532,23 @@ export default function KoleksiDetailPage({
                 >
                   <BuyNowBagIcon size={20} />
                   {isHabis ? "Tidak Bisa Dipesan" : "Beli Sekarang"}
+                </button>
+                <button
+                  onClick={handleToggleWishlist}
+                  className={`w-13 h-13 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 ${
+                    isWishlisted
+                      ? "bg-red-50 border-red-200 text-red-500 shadow-sm"
+                      : "bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200"
+                  }`}
+                  title={isWishlisted ? "Hapus dari Wishlist" : "Simpan ke Wishlist"}
+                  aria-label="Wishlist"
+                >
+                  <Heart
+                    size={22}
+                    className={`transition-transform duration-200 ${
+                      isWishlisted ? "fill-red-500 text-red-500 scale-110" : ""
+                    }`}
+                  />
                 </button>
               </div>
 

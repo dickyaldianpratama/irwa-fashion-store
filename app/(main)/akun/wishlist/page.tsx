@@ -3,146 +3,204 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Trash2, ShoppingCart, Loader2 } from "lucide-react";
+import { Heart, Trash2, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
+import { useWishlistStore, WishlistItem } from "@/store/wishlistStore";
+import { useCartStore } from "@/store/cartStore";
+import { useUIStore } from "@/store/uiStore";
 
 export default function WishlistPage() {
-  const [items, setItems] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { items, removeItem } = useWishlistStore();
+  const addItem = useCartStore((state) => state.addItem);
+  const openCart = useUIStore((state) => state.openCart);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    fetchWishlist();
+    setIsMounted(true);
+    // Sync with server if logged in
+    fetch("/api/akun/wishlist")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((resData) => {
+        if (resData?.data && Array.isArray(resData.data)) {
+          const addStoreItem = useWishlistStore.getState().addItem;
+          resData.data.forEach((w: any) => {
+            if (w.produk) {
+              const p = w.produk;
+              const imgUrl = p.images?.[0]?.url || "https://images.unsplash.com/photo-1593998066526-65fcab3021a2?q=80&w=600";
+              addStoreItem({
+                id: p.id,
+                type: "produk",
+                nama: p.nama,
+                link: `/produk/${p.slug}`,
+                harga: p.hargaDiskon || p.hargaAsli || 0,
+                hargaAsli: p.hargaAsli,
+                gambar: imgUrl,
+                kategori: p.kategori?.nama || "Pakaian",
+                stok: 10,
+              });
+            }
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const fetchWishlist = async () => {
-    try {
-      const res = await fetch("/api/akun/wishlist");
-      if (res.ok) {
-        const { data } = await res.json();
-        setItems(data || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch wishlist", error);
-      toast.error("Gagal memuat wishlist");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const removeFromWishlist = async (produkId: string) => {
-    // Optimistic UI update
-    const previousItems = [...items];
-    setItems((prev) => prev.filter((item) => item.produkId !== produkId));
+  const handleRemove = (id: string) => {
+    removeItem(id);
     toast.success("Dihapus dari Wishlist");
-
-    try {
-      const res = await fetch(`/api/akun/wishlist?produkId=${produkId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Gagal menghapus");
-    } catch (error) {
-      console.error(error);
-      setItems(previousItems); // revert on error
-      toast.error("Gagal menghapus item dari wishlist");
-    }
+    // Sync delete to server if logged in
+    fetch(`/api/akun/wishlist?produkId=${id}`, { method: "DELETE" }).catch(() => {});
   };
 
-  if (isLoading) {
+  const handleAddToCart = (item: WishlistItem) => {
+    addItem({
+      productId: item.id,
+      nama: item.nama,
+      harga: item.harga,
+      gambar: item.gambar,
+      ukuran: item.ukuranDefault || "-",
+      warna: item.warnaDefault || "-",
+      jumlah: 1,
+    });
+    toast.success("Berhasil ditambahkan ke keranjang!");
+    openCart();
+  };
+
+  if (!isMounted) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
-        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-        <p className="text-sm font-medium text-gray-500">Memuat koleksi impianmu...</p>
+      <div className="py-20 flex flex-col items-center justify-center animate-pulse">
+        <div className="w-12 h-12 bg-gray-200 rounded-full mb-3" />
+        <div className="h-4 w-36 bg-gray-200 rounded" />
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-          <Heart className="text-rose-500" fill="currentColor" /> Wishlist Saya
-        </h1>
-        <p className="text-gray-500 text-sm">
-          Simpan produk favoritmu di sini dan beli kapan saja kamu mau.
-        </p>
+    <div className="animate-fade-in pb-16">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Heart className="text-red-500 fill-red-500" size={24} />
+              Wishlist Saya
+              <span className="text-xs bg-red-50 text-red-600 font-bold px-2.5 py-0.5 rounded-full border border-red-100">
+                {items.length} item
+              </span>
+            </h1>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1">
+              Simpan pakaian dan koleksi impianmu di sini untuk dibeli kapan saja.
+            </p>
+          </div>
+        </div>
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-white border border-gray-100 border-dashed rounded-2xl flex flex-col items-center justify-center text-center py-24 px-4 shadow-sm">
-          <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6">
-            <Heart size={36} className="text-rose-300" />
+        <div className="bg-white border border-gray-100 border-dashed rounded-3xl flex flex-col items-center justify-center text-center py-20 px-4 shadow-xs">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-5">
+            <Heart size={36} className="text-red-300" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Wishlist Masih Kosong</h3>
-          <p className="text-gray-500 text-sm max-w-sm mb-8">
-            Kamu belum menambahkan produk apapun ke daftar keinginan. Yuk, cari gaya terbaikmu sekarang!
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5">
+            Wishlist Masih Kosong
+          </h3>
+          <p className="text-gray-500 text-xs sm:text-sm max-w-sm mb-6">
+            Kamu belum menandai produk atau koleksi favorit. Yuk, cari pakaian pria terbaikmu sekarang!
           </p>
-          <Link 
-            href="/#belanja" 
-            className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            Mulai Eksplorasi
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/"
+              className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/20 flex items-center gap-1.5"
+            >
+              Mulai Eksplorasi <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/koleksi-terpopuler"
+              className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+            >
+              <Sparkles size={16} className="text-amber-500" /> Koleksi Terpopuler
+            </Link>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {items.map((item) => {
-            const product = item.produk;
-            const imageUrl = product.images?.[0]?.url || "https://images.unsplash.com/photo-1593998066526-65fcab3021a2?q=80&w=600";
-            
-            // Mengambil harga dari produk (harga diskon jika ada, jika tidak harga asli)
-            const displayPrice = product.hargaDiskon || product.hargaAsli || 0;
+            const isDiscounted =
+              !!item.hargaAsli && item.hargaAsli > item.harga;
 
             return (
-              <div 
-                key={item.id} 
-                className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col"
+              <div
+                key={item.id}
+                className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 relative flex flex-col"
               >
-                {/* Tombol Hapus - Absolute Top Right */}
+                {/* Tombol Hapus */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    removeFromWishlist(item.produkId);
+                    e.stopPropagation();
+                    handleRemove(item.id);
                   }}
-                  className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full shadow-sm flex items-center justify-center text-gray-400 hover:text-rose-500 transition-colors"
+                  className="absolute top-2.5 right-2.5 z-20 w-8 h-8 bg-white/90 backdrop-blur-xs rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
                   title="Hapus dari Wishlist"
+                  aria-label="Hapus dari Wishlist"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
 
-                <Link href={`/produk/${product.slug}`} className="flex flex-col h-full">
-                  {/* Gambar Produk */}
-                  <div className="relative aspect-[4/5] bg-gray-50 w-full overflow-hidden">
-                    <Image
-                      src={imageUrl}
-                      alt={product.nama}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 50vw, 25vw"
+                {/* Badge Tipe / Kategori */}
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  {item.type === "koleksi" ? (
+                    <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold rounded-md bg-gradient-to-r from-primary-500 to-sky-500 text-white shadow-xs tracking-wider uppercase">
+                      Koleksi
+                    </span>
+                  ) : item.kategori ? (
+                    <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold rounded-md bg-white/90 backdrop-blur-xs text-gray-700 border border-gray-100 shadow-xs">
+                      {item.kategori}
+                    </span>
+                  ) : null}
+                </div>
+
+                {/* Card Thumbnail & Info */}
+                <Link href={item.link} className="flex flex-col flex-1">
+                  <div className="relative aspect-square sm:aspect-[4/5] bg-gray-50 w-full overflow-hidden">
+                    <img
+                      src={item.gambar}
+                      alt={item.nama}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 
-                  {/* Info Produk */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <p className="text-xs font-semibold text-gray-400 mb-1 tracking-wider">{product.kategori?.nama || "KATEGORI"}</p>
-                    <h3 className="font-bold text-gray-900 text-sm md:text-base leading-tight mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                      {product.nama}
+                  <div className="p-3 sm:p-4 flex flex-col flex-1">
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                      {item.nama}
                     </h3>
-                    
-                    <div className="mt-auto pt-4 flex items-center justify-between">
-                      <p className="font-black text-gray-900">
-                        Rp {displayPrice.toLocaleString("id-ID")}
+
+                    <div className="mt-auto pt-2.5">
+                      {isDiscounted && (
+                        <span className="text-[10px] sm:text-[11px] text-gray-400 line-through block">
+                          Rp {item.hargaAsli?.toLocaleString("id-ID")}
+                        </span>
+                      )}
+                      <p className="font-black text-gray-900 text-sm sm:text-base">
+                        Rp {item.harga.toLocaleString("id-ID")}
                       </p>
                     </div>
                   </div>
                 </Link>
-                
-                {/* Tombol Add to Cart (Quick Add) */}
-                <div className="p-4 pt-0">
-                   <Link 
-                    href={`/produk/${product.slug}`}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-xl hover:bg-gray-800 transition-colors"
+
+                {/* Action Buttons */}
+                <div className="p-3 pt-0 flex gap-1.5">
+                  <button
+                    onClick={() => handleAddToCart(item)}
+                    className="flex-1 py-2 sm:py-2.5 bg-primary text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary-dark transition-all shadow-sm shadow-primary/20 active:scale-[0.98] cursor-pointer"
                   >
-                    <ShoppingCart size={16} /> Lihat Produk
+                    <ShoppingBag size={14} />
+                    <span>+ Keranjang</span>
+                  </button>
+                  <Link
+                    href={item.link}
+                    className="px-2.5 py-2 sm:py-2.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center shrink-0"
+                    title="Lihat Detail"
+                  >
+                    <ArrowRight size={14} />
                   </Link>
                 </div>
               </div>
@@ -153,4 +211,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-

@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   Bell,
   User,
+  Heart,
   MapPin,
   HelpCircle,
   Phone,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import { useAuthStore } from "@/store/authStore";
+import { useWishlistStore } from "@/store/wishlistStore";
 
 const kategoriNav = [
   { label: "Kemeja", href: "/kategori/kemeja" },
@@ -51,7 +53,9 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const totalWishlistItems = useWishlistStore((state) => state.items.length);
   const cartCount = mounted ? totalCartItems : 0;
+  const wishlistCount = mounted ? totalWishlistItems : 0;
   const notifCount = 0;
   const isLoggedIn = mounted ? isLoggedInState : false;
   const isAdmin = mounted && user?.role === "ADMIN";
@@ -187,6 +191,20 @@ export default function Header() {
                 Masuk
               </Link>
             )}
+
+            {/* Wishlist */}
+            <Link
+              href="/akun/wishlist"
+              className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-colors hidden sm:flex items-center"
+              title="Wishlist Saya"
+            >
+              <Heart size={20} />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Keranjang */}
             <button

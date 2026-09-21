@@ -6,9 +6,12 @@ import { Package, Heart, Award, Ruler, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+import { useWishlistStore } from "@/store/wishlistStore";
+
 export default function AkunDashboard() {
   const { user } = useAuthStore();
   const { hasProfile } = useSaveMySize();
+  const wishlistCount = useWishlistStore((state) => state.items.length);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export default function AkunDashboard() {
   const stats = [
     { label: "Poin Loyalti", value: "150", icon: Award, href: "/akun/poin", color: "text-yellow-500", bg: "bg-yellow-50" },
     { label: "Pesanan Aktif", value: "0", icon: Package, href: "/akun/pesanan", color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "Wishlist", value: "3", icon: Heart, href: "/akun/wishlist", color: "text-red-500", bg: "bg-red-50" },
+    { label: "Wishlist", value: mounted ? wishlistCount.toString() : "0", icon: Heart, href: "/akun/wishlist", color: "text-red-500", bg: "bg-red-50" },
     { label: "Profil Ukuran", value: mounted && hasProfile ? "Tersimpan" : "Belum", icon: Ruler, href: "/akun/ukuran-saya", color: "text-green-500", bg: "bg-green-50" },
   ];
 

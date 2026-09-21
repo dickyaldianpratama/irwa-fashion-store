@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Heart } from "lucide-react";
+import { useWishlistStore } from "@/store/wishlistStore";
+import toast from "react-hot-toast";
 
 export interface KoleksiItemData {
   id: string;
@@ -90,6 +93,29 @@ export default function KoleksiCard({
     !!item.hargaDiskon &&
     item.hargaAsli > item.hargaDiskon;
 
+  const isWishlisted = useWishlistStore((state) => state.isWishlisted(item.id));
+  const toggleWishlistStore = useWishlistStore((state) => state.toggleWishlist);
+
+  const handleToggleWishlist = () => {
+    const added = toggleWishlistStore({
+      id: item.id,
+      type: "koleksi",
+      nama: item.title,
+      link: `/koleksi/${item.id}`,
+      harga: item.hargaDiskon || item.hargaAsli || 0,
+      hargaAsli: item.hargaAsli,
+      gambar: activePhoto.image || item.image,
+      kategori: "Koleksi Terpopuler",
+      stok: item.stok,
+      ukuranDefault: activePhoto.ukuran?.[0] || item.ukuran || "-",
+    });
+    if (added) {
+      toast.success("Disimpan ke wishlist");
+    } else {
+      toast.success("Dihapus dari wishlist");
+    }
+  };
+
   return (
     <Link
       href={finalLink}
@@ -162,12 +188,31 @@ export default function KoleksiCard({
 
         {/* Indikator Jumlah Foto */}
         {photoItems.length > 1 && (
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-full text-white text-[10px] font-bold shadow-sm">
+          <div className="absolute top-2 right-10 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-full text-white text-[10px] font-bold shadow-sm">
             <span>
               {currentIndex + 1}/{photoItems.length}
             </span>
           </div>
         )}
+
+        {/* Floating Wishlist Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleToggleWishlist();
+          }}
+          className={`absolute top-2 right-2 z-25 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 ${
+            isWishlisted
+              ? "bg-white text-red-500 ring-2 ring-red-500/20"
+              : "bg-white/85 hover:bg-white text-gray-500 hover:text-red-500 backdrop-blur-xs"
+          }`}
+          title={isWishlisted ? "Hapus dari Wishlist" : "Simpan ke Wishlist"}
+          aria-label="Wishlist"
+        >
+          <Heart size={15} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+        </button>
 
         {/* Badge Ukuran & Stok Pakaian untuk Foto yang Aktif */}
         {activePhoto.ukuran && activePhoto.ukuran.length > 0 && (

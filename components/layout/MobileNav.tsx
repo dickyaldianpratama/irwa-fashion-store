@@ -6,6 +6,7 @@ import { Home, LayoutGrid, Heart, User, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import { useAuthStore } from "@/store/authStore";
+import { useWishlistStore } from "@/store/wishlistStore";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,8 @@ export default function MobileNav() {
 
   // Hitung total kuantitas barang
   const totalItems = items.reduce((total, item) => total + item.jumlah, 0);
+  const totalWishlistItems = useWishlistStore((state) => state.items.length);
+  const wishlistCount = isMounted ? totalWishlistItems : 0;
 
   const navItems = [
     { name: "Beranda", href: "/", icon: Home },
@@ -68,7 +71,14 @@ export default function MobileNav() {
           href="/akun/wishlist"
           className={cn("flex flex-col items-center justify-center w-full gap-1 transition-colors", pathname.startsWith("/akun/wishlist") ? "text-primary" : "text-gray-400")}
         >
-          <Heart size={22} className={cn(pathname.startsWith("/akun/wishlist") && "fill-primary/10")} />
+          <div className="relative">
+            <Heart size={22} className={cn(pathname.startsWith("/akun/wishlist") && "fill-primary/10")} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                {wishlistCount > 9 ? "9+" : wishlistCount}
+              </span>
+            )}
+          </div>
           <span className={cn("text-[10px] font-medium", pathname.startsWith("/akun/wishlist") && "font-bold")}>Wishlist</span>
         </Link>
 
