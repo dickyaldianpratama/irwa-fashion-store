@@ -145,37 +145,41 @@ export default async function AdminDashboard() {
   };
 
   const stats = [
-    { title: "Total Pendapatan", value: `Rp ${revenue.toLocaleString("id-ID")}`, icon: DollarSign, color: "bg-green-500", text: "text-green-500" },
-    { title: "Total Pesanan", value: totalOrders.toString(), icon: ShoppingBag, color: "bg-blue-500", text: "text-blue-500" },
-    { title: "Total Produk", value: totalProducts.toString(), icon: Package, color: "bg-purple-500", text: "text-purple-500" },
-    { title: "Total Pelanggan", value: totalUsers.toString(), icon: Users, color: "bg-orange-500", text: "text-orange-500" },
+    { title: "Total Pendapatan", value: `Rp ${revenue.toLocaleString("id-ID")}`, icon: DollarSign },
+    { title: "Total Pesanan", value: totalOrders.toString(), icon: ShoppingBag },
+    { title: "Total Produk", value: totalProducts.toString(), icon: Package },
+    { title: "Total Pelanggan", value: totalUsers.toString(), icon: Users },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard Overview</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Ringkasan statistik & kinerja toko online</p>
+        </div>
         <Link
           href="/admin/pesanan"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+          className="px-4 py-2.5 bg-gray-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
         >
           Kelola Pesanan <ArrowRight size={14} />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
-                </div>
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stat.color} bg-opacity-10 dark:bg-opacity-20`}>
-                  <Icon className={stat.text} size={24} />
-                </div>
+            <div
+              key={index}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-xs border border-gray-100 dark:border-gray-800/80 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 flex items-center justify-between"
+            >
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mt-1">{stat.value}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/80 flex items-center justify-center text-gray-700 dark:text-gray-200 shadow-2xs">
+                <Icon size={20} strokeWidth={1.8} />
               </div>
             </div>
           );
