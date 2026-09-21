@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ChevronRight,
   Lock,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
@@ -39,26 +40,13 @@ export default function CheckoutPage() {
   // State Alamat
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      title: "Rumah",
-      detail: "Jl. Sudirman No. 123, Jakarta Selatan",
-      phone: "081234567890",
-      isUtama: true,
-    },
-    {
-      id: 2,
-      title: "Kantor",
-      detail: "Gedung Cyber Lt. 5, Kuningan, Jakarta Selatan",
-      phone: "081987654321",
-      isUtama: false,
-    },
-  ]);
-  const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
 
   // Form Alamat Baru
   const [newTitle, setNewTitle] = useState("");
+  const [newPenerima, setNewPenerima] = useState("");
   const [newDetail, setNewDetail] = useState("");
   const [newPhone, setNewPhone] = useState("");
 
@@ -75,6 +63,18 @@ export default function CheckoutPage() {
       .then((d) => {
         if (d.success) setVouchers(d.data);
       });
+
+    // Ambil daftar alamat dari database
+    fetch("/api/akun/alamat")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.data) && d.data.length > 0) {
+          setAddresses(d.data);
+          const defaultAddr = d.data.find((a: any) => a.isUtama) || d.data[0];
+          setSelectedAddress(defaultAddr);
+        }
+      })
+      .catch((err) => console.error("Error fetching addresses:", err));
 
     // Inisialisasi snap.js jika clientKey tersedia
     fetch("/api/midtrans/config")
@@ -103,20 +103,45 @@ export default function CheckoutPage() {
     }).format(angka);
   };
 
-  const handleSaveNewAddress = (e: React.FormEvent) => {
+  const handleSaveNewAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newAddr = {
-      id: Date.now(),
-      title: newTitle,
-      detail: newDetail,
-      phone: newPhone,
-      isUtama: addresses.length === 0,
-    };
-    setAddresses([...addresses, newAddr]);
-    setSelectedAddress(newAddr);
-    setIsAddingNew(false);
-    setIsAddressModalOpen(false);
-    toast.success("Alamat baru berhasil ditambahkan!");
+    if (!newTitle.trim() || !newDetail.trim() || !newPhone.trim()) {
+      toast.error("Mohon lengkapi semua bidang alamat");
+      return;
+    }
+
+    setIsSavingAddress(true);
+    try {
+      const res = await fetch("/api/akun/alamat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle.trim(),
+          penerima: newPenerima.trim() || undefined,
+          detail: newDetail.trim(),
+          phone: newPhone.trim(),
+          isUtama: addresses.length === 0,
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal menyimpan alamat baru");
+
+      const created = result.data;
+      setAddresses((prev) => [...prev, created]);
+      setSelectedAddress(created);
+      setIsAddingNew(false);
+      setIsAddressModalOpen(false);
+      setNewTitle("");
+      setNewPenerima("");
+      setNewDetail("");
+      setNewPhone("");
+      toast.success("Alamat baru berhasil ditambahkan dan dipilih!");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan alamat");
+    } finally {
+      setIsSavingAddress(false);
+    }
   };
 
   if (!isMounted)
@@ -193,7 +218,7 @@ export default function CheckoutPage() {
   );
 
   const handleCheckout = async () => {
-    if (deliveryMode === "DELIVERY" && !selectedAddress) {
+    if (deliveryMode !== "PICKUP" && !selectedAddress) {
       toast.error("Silakan tentukan alamat pengiriman terlebih dahulu");
       setIsAddressModalOpen(true);
       return;
@@ -211,8 +236,8 @@ export default function CheckoutPage() {
           voucherId: selectedVoucher?.id,
           metodePembayaran: "Midtrans Payment Gateway",
           alamatPengiriman:
-            deliveryMode !== "PICKUP"
-              ? `${selectedAddress.title}\n${selectedAddress.detail}\n${selectedAddress.phone}`
+            deliveryMode !== "PICKUP" && selectedAddress
+              ? `${selectedAddress.penerima ? `[Penerima: ${selectedAddress.penerima}] ` : ""}${selectedAddress.title} - ${selectedAddress.detail} (${selectedAddress.phone})`
               : undefined,
           alterasiDetails:
             deliveryMode === "ALTERATION"
@@ -355,36 +380,67 @@ export default function CheckoutPage() {
             <div className="mt-6 pt-6 border-t border-gray-100">
               {deliveryMode === "DELIVERY" && (
                 <div className="space-y-4 animate-fade-in">
-                  <h3 className="font-semibold text-gray-800">
-                    Alamat Pengiriman
-                  </h3>
-                  <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-start gap-3">
-                    <MapPin className="text-primary mt-1 shrink-0" size={20} />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-900">
-                          {selectedAddress.title}
-                        </p>
-                        {selectedAddress.isUtama && (
-                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            Utama
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {selectedAddress.detail}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {selectedAddress.phone}
-                      </p>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-800">
+                      Alamat Pengiriman
+                    </h3>
+                    {selectedAddress && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingNew(false);
+                          setIsAddressModalOpen(true);
+                        }}
+                        className="text-xs text-primary font-bold hover:underline"
+                      >
+                        Ganti Alamat
+                      </button>
+                    )}
                   </div>
-                  <button
-                    onClick={() => setIsAddressModalOpen(true)}
-                    className="text-sm text-primary font-bold flex items-center gap-1 hover:underline"
-                  >
-                    Ubah Alamat
-                  </button>
+                  {selectedAddress ? (
+                    <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-start gap-3">
+                      <MapPin className="text-primary mt-1 shrink-0" size={20} />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-900">
+                            {selectedAddress.title}
+                          </p>
+                          {selectedAddress.isUtama && (
+                            <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded">
+                              Utama
+                            </span>
+                          )}
+                        </div>
+                        {selectedAddress.penerima && (
+                          <p className="text-xs font-medium text-gray-700 mt-1">
+                            Penerima: {selectedAddress.penerima}
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-600 mt-1">
+                          {selectedAddress.detail}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {selectedAddress.phone}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-5 border border-dashed border-gray-300 rounded-xl bg-gray-50 text-center space-y-2">
+                      <p className="text-sm text-gray-500">
+                        Belum ada alamat pengiriman terpilih.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingNew(false);
+                          setIsAddressModalOpen(true);
+                        }}
+                        className="text-xs px-3 py-1.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark"
+                      >
+                        + Pilih / Tambah Alamat
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               {deliveryMode === "PICKUP" && (
@@ -444,6 +500,70 @@ export default function CheckoutPage() {
                     placeholder="Contoh: Potong kelim celana 3 cm"
                     className="w-full p-3 border border-gray-200 rounded-lg outline-none focus:border-primary h-24 resize-none text-sm"
                   ></textarea>
+
+                  <div className="pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-800">
+                        Alamat Pengiriman Alterasi
+                      </h3>
+                      {selectedAddress && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingNew(false);
+                            setIsAddressModalOpen(true);
+                          }}
+                          className="text-xs text-primary font-bold hover:underline"
+                        >
+                          Ganti Alamat
+                        </button>
+                      )}
+                    </div>
+                    {selectedAddress ? (
+                      <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-start gap-3">
+                        <MapPin className="text-primary mt-1 shrink-0" size={20} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900">
+                              {selectedAddress.title}
+                            </p>
+                            {selectedAddress.isUtama && (
+                              <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded">
+                                Utama
+                              </span>
+                            )}
+                          </div>
+                          {selectedAddress.penerima && (
+                            <p className="text-xs font-medium text-gray-700 mt-1">
+                              Penerima: {selectedAddress.penerima}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-600 mt-1">
+                            {selectedAddress.detail}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {selectedAddress.phone}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-5 border border-dashed border-gray-300 rounded-xl bg-gray-50 text-center space-y-2">
+                        <p className="text-sm text-gray-500">
+                          Belum ada alamat pengiriman terpilih.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingNew(false);
+                            setIsAddressModalOpen(true);
+                          }}
+                          className="text-xs px-3 py-1.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark"
+                        >
+                          + Pilih / Tambah Alamat
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -821,7 +941,7 @@ export default function CheckoutPage() {
               >
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Simpan Sebagai (Contoh: Kosan)
+                    Label Alamat (Contoh: Rumah, Kantor, Kosan)
                   </label>
                   <input
                     type="text"
@@ -829,7 +949,19 @@ export default function CheckoutPage() {
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:border-primary text-sm"
-                    placeholder="Masukkan nama alamat"
+                    placeholder="Contoh: Rumah / Kantor"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Nama Penerima (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newPenerima}
+                    onChange={(e) => setNewPenerima(e.target.value)}
+                    className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:border-primary text-sm"
+                    placeholder="Nama penerima paket"
                   />
                 </div>
                 <div>
@@ -841,7 +973,7 @@ export default function CheckoutPage() {
                     value={newDetail}
                     onChange={(e) => setNewDetail(e.target.value)}
                     className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:border-primary h-24 resize-none text-sm"
-                    placeholder="Nama jalan, gedung, no. rumah, kecamatan, kota..."
+                    placeholder="Nama jalan, gedung, no. rumah, RT/RW, kecamatan, kota, kode pos..."
                   ></textarea>
                 </div>
                 <div>
@@ -854,57 +986,83 @@ export default function CheckoutPage() {
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     className="w-full p-3 border border-gray-200 rounded-xl outline-none focus:border-primary text-sm"
-                    placeholder="08xxxxxxxxx"
+                    placeholder="08xxxxxxxxxx"
                   />
                 </div>
-                <div className="pt-4">
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingNew(false)}
+                    className="flex-1 py-3 border border-gray-200 font-bold rounded-xl text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Batal
+                  </button>
                   <button
                     type="submit"
-                    className="w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20"
+                    disabled={isSavingAddress}
+                    className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 disabled:opacity-60 flex items-center justify-center gap-2"
                   >
-                    Simpan & Pilih Alamat
+                    {isSavingAddress ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      "Simpan & Pilih"
+                    )}
                   </button>
                 </div>
               </form>
             ) : (
               <>
                 <div className="p-4 overflow-y-auto space-y-3 bg-gray-50 flex-1">
-                  {addresses.map((addr) => (
-                    <label
-                      key={addr.id}
-                      className={`flex items-start gap-3 p-4 border rounded-xl bg-white cursor-pointer transition-all ${selectedAddress.id === addr.id ? "border-primary ring-1 ring-primary shadow-sm" : "border-gray-200 hover:border-primary/50"}`}
-                    >
-                      <input
-                        type="radio"
-                        name="addressSelect"
-                        className="mt-1 text-primary focus:ring-primary h-4 w-4"
-                        checked={selectedAddress.id === addr.id}
-                        onChange={() => {
-                          setSelectedAddress(addr);
-                          setIsAddressModalOpen(false);
-                          toast.success("Alamat pengiriman diperbarui!");
-                        }}
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-gray-900 text-sm">
-                            {addr.title}
-                          </p>
-                          {addr.isUtama && (
-                            <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                              Utama
-                            </span>
+                  {addresses.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-gray-500 bg-white rounded-xl border border-gray-200">
+                      Belum ada alamat tersimpan. Silakan tambahkan alamat baru di bawah.
+                    </div>
+                  ) : (
+                    addresses.map((addr) => (
+                      <label
+                        key={addr.id}
+                        className={`flex items-start gap-3 p-4 border rounded-xl bg-white cursor-pointer transition-all ${selectedAddress?.id === addr.id ? "border-primary ring-1 ring-primary shadow-sm" : "border-gray-200 hover:border-primary/50"}`}
+                      >
+                        <input
+                          type="radio"
+                          name="addressSelect"
+                          className="mt-1 text-primary focus:ring-primary h-4 w-4"
+                          checked={selectedAddress?.id === addr.id}
+                          onChange={() => {
+                            setSelectedAddress(addr);
+                            setIsAddressModalOpen(false);
+                            toast.success("Alamat pengiriman diperbarui!");
+                          }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-gray-900 text-sm">
+                              {addr.title}
+                            </p>
+                            {addr.isUtama && (
+                              <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded">
+                                Utama
+                              </span>
+                            )}
+                          </div>
+                          {addr.penerima && (
+                            <p className="text-xs font-medium text-gray-700 mt-1">
+                              Penerima: {addr.penerima}
+                            </p>
                           )}
+                          <p className="text-sm text-gray-600 mt-1">
+                            {addr.detail}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {addr.phone}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {addr.detail}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {addr.phone}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
+                      </label>
+                    ))
+                  )}
                 </div>
 
                 <div className="p-4 border-t border-gray-100 bg-white">
