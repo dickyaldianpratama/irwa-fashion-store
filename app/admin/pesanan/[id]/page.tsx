@@ -546,6 +546,14 @@ export default function AdminOrderDetailPage({
                   </span>
                 </div>
               )}
+              {currentStatus === "DELIVERED" && (
+                <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
+                  <span className="text-gray-500">Poin Reward</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400">
+                    +{(order.poinEarned || Math.floor(order.totalHarga / 1000)).toLocaleString("id-ID")} Pts
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between pt-2">
                 <span className="font-bold text-gray-900 dark:text-white text-sm">
                   Total Bayar

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
 import { checkTransactionStatus } from "@/lib/midtrans";
+import { awardPointsForOrder } from "@/lib/poin";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -81,6 +82,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       statusPesanan: order.statusPesanan,
       tipePengiriman: order.tipePengiriman,
       resiKurir: order.resiKurir,
+      poinEarned: order.poinEarned,
       pickupCode: order.pickupCode,
       tanggal: new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
       waktu: new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
@@ -111,6 +113,55 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   } catch (error: any) {
     console.error("Error fetching order details:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+    const body = await request.json();
+    const { action } = body;
+
+    if (action !== "CONFIRM_RECEIVED") {
+      return NextResponse.json({ error: "Aksi tidak valid" }, { status: 400 });
+    }
+
+    const order = await prisma.pesanan.findFirst({
+      where: { id, userId: user.id }
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: "Pesanan tidak ditemukan" }, { status: 404 });
+    }
+
+    if (!["SHIPPED", "READY_FOR_PICKUP"].includes(order.statusPesanan)) {
+      return NextResponse.json({ error: "Pesanan belum dalam status pengiriman atau siap ambil" }, { status: 400 });
+    }
+
+    const updated = await prisma.pesanan.update({
+      where: { id },
+      data: { statusPesanan: "DELIVERED" }
+    });
+
+    // Otomatis berikan poin reward (1 Poin per Rp 1.000)
+    const pointResult = await awardPointsForOrder(id);
+
+    return NextResponse.json({
+      success: true,
+      data: updated,
+      pointResult
+    });
+  } catch (error: any) {
+    console.error("Error confirming order delivered:", error);
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }

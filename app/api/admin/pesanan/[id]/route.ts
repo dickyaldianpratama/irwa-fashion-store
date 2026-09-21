@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import prisma from "@/lib/prisma";
+import { awardPointsForOrder } from "@/lib/poin";
 
 export async function GET(
   request: Request,
@@ -62,6 +63,7 @@ export async function GET(
       statusPesanan: order.statusPesanan,
       tipePengiriman: order.tipePengiriman,
       resiKurir: order.resiKurir,
+      poinEarned: order.poinEarned,
       pickupCode: order.pickupCode,
       metodePembayaran: order.metodePembayaran || "Transfer Bank",
       paymentReference: order.paymentReference,
@@ -157,7 +159,17 @@ export async function PATCH(
       data: updateData,
     });
 
-    return NextResponse.json({ success: true, data: updatedOrder });
+    // Otomatis berikan poin reward jika pesanan selesai (1 Poin per Rp 1.000)
+    let pointResult = null;
+    if (status === "DELIVERED") {
+      pointResult = await awardPointsForOrder(id);
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: updatedOrder,
+      pointResult,
+    });
   } catch (error: any) {
     console.error("Error updating order:", error);
     return NextResponse.json(

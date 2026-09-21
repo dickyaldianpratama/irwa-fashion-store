@@ -18,6 +18,8 @@ import {
   Copy,
   Check,
   AlertCircle,
+  Award,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -30,6 +32,7 @@ const dummyOrder = {
   tanggal: "13 September 2026",
   lokasiPickup: "IRWA PIM (Pondok Indah Mall)",
   waktuPickup: "13 September 2026, 14:00 - 18:00 (Sesi Sore)",
+  poinEarned: 548,
   items: [
     { id: 1, nama: "Kemeja Linen Premium", ukuran: "L", warna: "Navy", harga: 299000, qty: 1, image: "" },
     { id: 2, nama: "Celana Chino Slim Fit", ukuran: "32", warna: "Khaki", harga: 249000, qty: 1, image: "" },
@@ -44,32 +47,33 @@ export default function DetailPesananPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [hasCopiedResi, setHasCopiedResi] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const fetchOrder = async () => {
+    // Jika id = 1 (dari mockup success lama), pakai data dummy
+    if (params.id === "1") {
+      setOrder(dummyOrder);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/akun/pesanan/${params.id}`);
+      if (res.ok) {
+        const { data } = await res.json();
+        setOrder(data);
+      } else {
+        toast.error("Pesanan tidak ditemukan di database.");
+        router.push("/akun/pesanan");
+      }
+    } catch (error) {
+      console.error("Gagal menarik data pesanan:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      // Jika id = 1 (dari mockup success lama), pakai data dummy
-      if (params.id === "1") {
-        setOrder(dummyOrder);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/akun/pesanan/${params.id}`);
-        if (res.ok) {
-          const { data } = await res.json();
-          setOrder(data);
-        } else {
-          toast.error("Pesanan tidak ditemukan di database.");
-          router.push("/akun/pesanan");
-        }
-      } catch (error) {
-        console.error("Gagal menarik data pesanan:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchOrder();
   }, [params.id, router]);
 
@@ -78,6 +82,33 @@ export default function DetailPesananPage() {
     setHasCopiedResi(true);
     toast.success("Nomor resi berhasil disalin!");
     setTimeout(() => setHasCopiedResi(false), 2000);
+  };
+
+  const handleConfirmReceived = async () => {
+    if (!confirm("Konfirmasi bahwa Anda telah menerima pesanan ini dengan baik?")) {
+      return;
+    }
+
+    setIsConfirming(true);
+    try {
+      const res = await fetch(`/api/akun/pesanan/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CONFIRM_RECEIVED" }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Gagal mengonfirmasi pesanan");
+      }
+
+      toast.success("Pesanan selesai! Poin reward telah ditambahkan ke akun Anda.");
+      await fetchOrder();
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan");
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   if (isLoading) {
@@ -115,6 +146,9 @@ export default function DetailPesananPage() {
     },
     { label: "Selesai", done: isDone },
   ];
+
+  const earnedPoints =
+    order.poinEarned || Math.floor((order.totalHarga || 0) / 1000);
 
   return (
     <div className="animate-fade-in max-w-4xl mx-auto pb-12">
@@ -186,7 +220,7 @@ export default function DetailPesananPage() {
                 ? "bg-green-100 text-green-800"
                 : currentStatus === "CANCELLED"
                 ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
+                : "bg-yellow-100 text-yellow-800"
             }`}
           >
             {currentStatus === "DELIVERED"
@@ -256,6 +290,60 @@ export default function DetailPesananPage() {
             >
               {hasCopiedResi ? <Check size={14} /> : <Copy size={14} />}
               {hasCopiedResi ? "Tersalin!" : "Salin No. Resi"}
+            </button>
+          </div>
+        )}
+
+        {/* Banner Poin Reward Selesai */}
+        {isDone && earnedPoints > 0 && (
+          <div className="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <Award size={24} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                  Poin Belanja Berhasil Didapatkan
+                </p>
+                <p className="text-base font-black text-gray-900">
+                  +{earnedPoints.toLocaleString("id-ID")} Poin IRWA Club
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  1 Poin per Rp 1.000 pembelanjaan telah otomatis masuk ke akun Anda.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/akun/poin"
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs whitespace-nowrap transition-colors text-center shadow-xs"
+            >
+              Lihat Saldo Poin
+            </Link>
+          </div>
+        )}
+
+        {/* Tombol Konfirmasi Terima Pesanan oleh Customer (Jika status SHIPPED / READY) */}
+        {(currentStatus === "SHIPPED" || currentStatus === "READY_FOR_PICKUP") && (
+          <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="font-bold text-sm text-emerald-900">
+                Pesanan sudah Anda terima?
+              </h4>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                Konfirmasi penerimaan barang untuk menyelesaikan transaksi dan langsung mengklaim <b>+{earnedPoints.toLocaleString("id-ID")} Poin Reward</b>!
+              </p>
+            </div>
+            <button
+              onClick={handleConfirmReceived}
+              disabled={isConfirming}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50 shadow-xs"
+            >
+              {isConfirming ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <CheckCircle size={14} />
+              )}
+              Konfirmasi Terima Pesanan
             </button>
           </div>
         )}

@@ -180,6 +180,7 @@ model Pesanan {
   tipePengiriman   TipePengiriman @default(DELIVERY)
   pickupCode       String?        @unique // Fitur 8: QR Code Pick-up in Store
   resiKurir        String?
+  poinEarned       Int            @default(0)
   metodePembayaran String?
   paymentReference String?        @unique // Tripay Reference ID
   paymentUrl       String? // Tripay Checkout URL
