@@ -56,6 +56,8 @@ export default function KoleksiDetailPage({
   const [selectedSize, setSelectedSize] = useState("");
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useUIStore((state) => state.openCart);
+  const isWishlisted = useWishlistStore((state) => state.isWishlisted(id));
+  const toggleWishlistStore = useWishlistStore((state) => state.toggleWishlist);
 
   useEffect(() => {
     fetch(`/api/koleksi/${id}`)
@@ -212,9 +214,6 @@ export default function KoleksiDetailPage({
     });
     router.push("/checkout");
   };
-
-  const isWishlisted = useWishlistStore((state) => state.isWishlisted(item?.id || ""));
-  const toggleWishlistStore = useWishlistStore((state) => state.toggleWishlist);
 
   const handleToggleWishlist = () => {
     if (!item) return;
