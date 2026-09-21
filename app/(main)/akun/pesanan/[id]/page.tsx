@@ -545,30 +545,35 @@ export default function DetailPesananPage() {
                         Rp {subtotal.toLocaleString("id-ID")}
                       </span>
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Biaya Pengiriman</span>
-                      <span
-                        className={
-                          shipping === 0
-                            ? "font-semibold text-green-600"
-                            : "font-semibold text-gray-900"
-                        }
-                      >
-                        {shipping === 0 ? "Gratis (O2O)" : "Rp 25.000"}
-                      </span>
-                    </div>
-                    {alteration > 0 && (
+                    {shipping === 0 ? (
                       <div className="flex justify-between text-gray-600">
-                        <span>Biaya Alterasi</span>
-                        <span className="font-semibold text-gray-900">
-                          Rp 35.000
+                        <span>Biaya Pengiriman</span>
+                        <span className="font-semibold text-gray-500">
+                          Gratis (O2O)
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between text-blue-600 font-medium">
+                        <span className="text-blue-600">Biaya Pengiriman</span>
+                        <span className="font-semibold text-blue-600">
+                          + Rp {shipping.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                    )}
+                    {alteration > 0 && (
+                      <div className="flex justify-between text-blue-600 font-medium">
+                        <span className="text-blue-600">Biaya Alterasi</span>
+                        <span className="font-semibold text-blue-600">
+                          + Rp {alteration.toLocaleString("id-ID")}
                         </span>
                       </div>
                     )}
                     {diskon > 0 && (
-                      <div className="flex justify-between text-emerald-600 font-semibold">
-                        <span>Diskon Voucher</span>
-                        <span>-Rp {diskon.toLocaleString("id-ID")}</span>
+                      <div className="flex justify-between text-red-600 font-semibold">
+                        <span className="text-red-600">Diskon / Potongan</span>
+                        <span className="text-red-600 font-bold">
+                          - Rp {diskon.toLocaleString("id-ID")}
+                        </span>
                       </div>
                     )}
                     <hr className="border-gray-100 my-3" />

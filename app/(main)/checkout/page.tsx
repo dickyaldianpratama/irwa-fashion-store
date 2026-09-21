@@ -782,30 +782,37 @@ export default function CheckoutPage() {
                   {formatRupiah(subtotal)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Biaya Pengiriman</span>
-                <span
-                  className={
-                    shippingCost === 0
-                      ? "font-bold text-green-600"
-                      : "font-medium text-gray-900"
-                  }
-                >
-                  {shippingCost === 0 ? "GRATIS" : formatRupiah(shippingCost)}
-                </span>
-              </div>
-              {alterationCost > 0 && (
+              {shippingCost === 0 ? (
                 <div className="flex justify-between">
-                  <span>Biaya Alterasi Jahit</span>
-                  <span className="font-medium text-gray-900">
-                    {formatRupiah(alterationCost)}
+                  <span className="text-gray-600">Biaya Pengiriman</span>
+                  <span className="font-bold text-gray-500">GRATIS</span>
+                </div>
+              ) : (
+                <div className="flex justify-between text-blue-600 font-medium">
+                  <span className="text-blue-600">Biaya Pengiriman</span>
+                  <span className="font-semibold text-blue-600">
+                    + {formatRupiah(shippingCost)}
+                  </span>
+                </div>
+              )}
+              {alterationCost > 0 && (
+                <div className="flex justify-between text-blue-600 font-medium">
+                  <span className="text-blue-600">Biaya Alterasi Jahit</span>
+                  <span className="font-semibold text-blue-600">
+                    + {formatRupiah(alterationCost)}
                   </span>
                 </div>
               )}
               {selectedVoucher && discount > 0 && (
-                <div className="flex justify-between text-emerald-600 font-semibold">
-                  <span>Diskon Voucher</span>
-                  <span>-{formatRupiah(discount)}</span>
+                <div className="flex justify-between text-red-600 font-semibold">
+                  <span className="text-red-600">
+                    {selectedVoucher.tipe === "shipping"
+                      ? "Potongan Ongkir (Voucher)"
+                      : "Potongan Harga (Voucher)"}
+                  </span>
+                  <span className="text-red-600 font-bold">
+                    - {formatRupiah(discount)}
+                  </span>
                 </div>
               )}
             </div>

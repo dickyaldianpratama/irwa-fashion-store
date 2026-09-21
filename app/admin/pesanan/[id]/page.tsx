@@ -554,6 +554,50 @@ export default function AdminOrderDetailPage({
                   </span>
                 </div>
               )}
+              {(() => {
+                const subtotal = order.items?.reduce(
+                  (sum: number, it: any) => sum + (it.harga || 0) * (it.qty || 1),
+                  0
+                ) || 0;
+                const shipping = order.tipePengiriman === "PICKUP" ? 0 : 25000;
+                const alteration = order.tipePengiriman === "ALTERATION" ? 35000 : 0;
+                const totalAkhir = order.totalHarga;
+                const diskon = Math.max(0, subtotal + shipping + alteration - totalAkhir);
+
+                return (
+                  <>
+                    <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
+                      <span className="text-gray-500">Subtotal Produk</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        Rp {subtotal.toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                    {shipping > 0 ? (
+                      <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800 text-blue-600 dark:text-blue-400">
+                        <span>Ongkir ({order.tipePengiriman})</span>
+                        <span className="font-semibold">+ Rp {shipping.toLocaleString("id-ID")}</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800">
+                        <span className="text-gray-500">Ongkir ({order.tipePengiriman})</span>
+                        <span className="font-medium text-gray-400">Gratis (O2O)</span>
+                      </div>
+                    )}
+                    {alteration > 0 && (
+                      <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800 text-blue-600 dark:text-blue-400">
+                        <span>Biaya Alterasi</span>
+                        <span className="font-semibold">+ Rp {alteration.toLocaleString("id-ID")}</span>
+                      </div>
+                    )}
+                    {diskon > 0 && (
+                      <div className="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800 text-red-600 dark:text-red-400 font-semibold">
+                        <span>Diskon / Potongan</span>
+                        <span>- Rp {diskon.toLocaleString("id-ID")}</span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               <div className="flex justify-between pt-2">
                 <span className="font-bold text-gray-900 dark:text-white text-sm">
                   Total Bayar

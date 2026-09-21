@@ -155,22 +155,22 @@ export default function InvoicePage() {
           </div>
           
           {totalPengiriman > 0 && (
-            <div className="flex justify-between py-1 uppercase text-black font-medium">
+            <div className="flex justify-between py-1 uppercase text-blue-600 font-medium">
               <span>Pengiriman :</span>
-              <span>RP {totalPengiriman.toLocaleString("id-ID")}</span>
+              <span>+ RP {totalPengiriman.toLocaleString("id-ID")}</span>
             </div>
           )}
 
           {totalAlterasi > 0 && (
-            <div className="flex justify-between py-1 uppercase text-black font-medium">
+            <div className="flex justify-between py-1 uppercase text-blue-600 font-medium">
               <span>Alterasi :</span>
-              <span>RP {totalAlterasi.toLocaleString("id-ID")}</span>
+              <span>+ RP {totalAlterasi.toLocaleString("id-ID")}</span>
             </div>
           )}
 
           {diskon > 0 && (
-            <div className="flex justify-between py-1 uppercase text-red-600 font-medium">
-              <span>Diskon :</span>
+            <div className="flex justify-between py-1 uppercase text-red-600 font-semibold">
+              <span>Diskon / Potongan :</span>
               <span>- RP {diskon.toLocaleString("id-ID")}</span>
             </div>
           )}
