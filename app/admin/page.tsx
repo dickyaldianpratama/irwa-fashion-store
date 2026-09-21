@@ -63,7 +63,15 @@ export default async function AdminDashboard() {
         id: true,
         totalHarga: true,
         statusPesanan: true,
-        createdAt: true
+        createdAt: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       },
       orderBy: { createdAt: "asc" }
     })
@@ -100,12 +108,48 @@ export default async function AdminDashboard() {
     statusBreakdown[o.statusPesanan] = (statusBreakdown[o.statusPesanan] || 0) + 1;
   });
 
-  const timelineMap = new Map<string, { label: string; dateKey: string; revenue: number; orders: number; unpaidOrders: number }>();
+  // Customer Ordering Frequency Breakdown (email & name)
+  const customerMap = new Map<string, {
+    userId: string;
+    email: string;
+    name: string;
+    periodOrders: number;
+    lifetimeOrders: number;
+    totalSpent: number;
+  }>();
+
+  currentOrders.forEach((o) => {
+    if (validStatuses.includes(o.statusPesanan)) {
+      const email = o.user?.email || "Tanpa Email";
+      const name = o.user?.name || "Pelanggan";
+      const key = `${email.toLowerCase()}___${name.toLowerCase()}`;
+
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          userId: o.userId,
+          email,
+          name,
+          periodOrders: 0,
+          lifetimeOrders: 0,
+          totalSpent: 0,
+        });
+      }
+
+      const c = customerMap.get(key)!;
+      c.periodOrders += 1;
+      c.totalSpent += o.totalHarga;
+    }
+  });
+
+  const customerStats = Array.from(customerMap.values())
+    .sort((a, b) => b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent);
+
+  const timelineMap = new Map<string, { label: string; dateKey: string; revenue: number; orders: number; unpaidOrders: number; buyers: { name: string; email: string; totalHarga: number }[] }>();
   const curr = new Date(startDate);
   while (curr <= now) {
     const dateKey = curr.toISOString().split("T")[0];
     const label = curr.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-    timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0 });
+    timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0, buyers: [] });
     curr.setDate(curr.getDate() + 1);
   }
 
@@ -116,6 +160,11 @@ export default async function AdminDashboard() {
       if (validStatuses.includes(o.statusPesanan)) {
         item.revenue += o.totalHarga;
         item.orders += 1;
+        item.buyers.push({
+          name: o.user?.name || "Pelanggan",
+          email: o.user?.email || "Tanpa Email",
+          totalHarga: o.totalHarga,
+        });
       } else if (o.statusPesanan === "UNPAID") {
         item.unpaidOrders += 1;
       }
@@ -139,7 +188,8 @@ export default async function AdminDashboard() {
       prevTotalOrders,
       avgOrderValue,
       peakPeriod,
-      statusBreakdown
+      statusBreakdown,
+      customerStats
     },
     chartData
   };

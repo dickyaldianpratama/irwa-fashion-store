@@ -11,9 +11,20 @@ import {
   LineChart as LineChartIcon,
   RefreshCw,
   Award,
-  CreditCard,
-  Info
+  Info,
+  Users,
+  User,
+  Mail
 } from "lucide-react";
+
+interface CustomerStat {
+  userId: string;
+  email: string;
+  name: string;
+  periodOrders: number;
+  lifetimeOrders?: number;
+  totalSpent: number;
+}
 
 interface TimelineItem {
   label: string;
@@ -21,6 +32,7 @@ interface TimelineItem {
   revenue: number;
   orders: number;
   unpaidOrders: number;
+  buyers?: { name: string; email: string; totalHarga: number }[];
 }
 
 interface SummaryData {
@@ -32,6 +44,7 @@ interface SummaryData {
   avgOrderValue: number;
   peakPeriod: { label: string; revenue: number };
   statusBreakdown: Record<string, number>;
+  customerStats?: CustomerStat[];
 }
 
 interface SalesChartProps {
@@ -72,7 +85,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
   };
 
   useEffect(() => {
-    // Jika tidak ada initialData atau jika range berubah dari initialRange, fetch data baru
     if (!initialData || range !== initialRange) {
       fetchAnalytics(range);
     }
@@ -81,13 +93,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
   // Calculations for SVG rendering
   const values = chartData.map((item) => (metric === "revenue" ? item.revenue : item.orders));
   const maxValue = Math.max(...values, metric === "revenue" ? 100000 : 5);
-
-  const formatRupiah = (val: number) => {
-    if (val >= 1_000_000_000) return `Rp ${(val / 1_000_000_000).toFixed(1)}M`;
-    if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(1)}Jt`;
-    if (val >= 1_000) return `Rp ${(val / 1_000).toFixed(0)}Rb`;
-    return `Rp ${val.toLocaleString("id-ID")}`;
-  };
 
   const formatAxisRupiah = (val: number) => {
     if (val >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(1)}M`;
@@ -280,27 +285,43 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
       {/* Main Interactive Chart Display */}
       <div className="relative w-full overflow-hidden">
         {/* Active Point Hover Banner / Tooltip Info Box */}
-        <div className="h-10 flex items-center justify-between px-2 text-xs">
+        <div className="min-h-10 flex flex-wrap items-center justify-between px-2 text-xs py-1">
           {activeItem ? (
-            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-lg w-full transition-all">
-              <span className="font-bold flex items-center gap-1">
-                <Calendar size={13} /> {activeItem.label}
-              </span>
-              <span className="text-blue-300 dark:text-blue-700">•</span>
-              <span>
-                Pendapatan: <strong className="font-bold text-emerald-600 dark:text-emerald-400">Rp {activeItem.revenue.toLocaleString("id-ID")}</strong>
-              </span>
-              <span className="text-blue-300 dark:text-blue-700">•</span>
-              <span>
-                Pesanan Sukses: <strong className="font-bold">{activeItem.orders}</strong>
-              </span>
-              {activeItem.unpaidOrders > 0 && (
-                <>
-                  <span className="text-blue-300 dark:text-blue-700">•</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-medium">
-                    Belum Dibayar: {activeItem.unpaidOrders}
+            <div className="flex flex-col gap-1.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 px-3 py-2 rounded-lg w-full transition-all">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-bold flex items-center gap-1">
+                  <Calendar size={13} /> {activeItem.label}
+                </span>
+                <span className="text-blue-300 dark:text-blue-700">•</span>
+                <span>
+                  Pendapatan: <strong className="font-bold text-emerald-600 dark:text-emerald-400">Rp {activeItem.revenue.toLocaleString("id-ID")}</strong>
+                </span>
+                <span className="text-blue-300 dark:text-blue-700">•</span>
+                <span>
+                  Pesanan Sukses: <strong className="font-bold">{activeItem.orders}</strong>
+                </span>
+                {activeItem.unpaidOrders > 0 && (
+                  <>
+                    <span className="text-blue-300 dark:text-blue-700">•</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">
+                      Belum Dibayar: {activeItem.unpaidOrders}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Pemesan pada tanggal ini */}
+              {activeItem.buyers && activeItem.buyers.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap text-[11px] pt-1 border-t border-blue-200/50 dark:border-blue-800/50">
+                  <span className="font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                    <User size={11} /> Pemesan Tgl Ini ({activeItem.buyers.length}):
                   </span>
-                </>
+                  {activeItem.buyers.map((b, bi) => (
+                    <span key={bi} className="bg-white/80 dark:bg-blue-900/60 px-2 py-0.5 rounded-md font-medium text-gray-800 dark:text-gray-200 flex items-center gap-1">
+                      <strong>{b.name}</strong> <span className="opacity-65">({b.email})</span>
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           ) : (
@@ -311,7 +332,7 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
         </div>
 
         {/* SVG Canvas Chart */}
-        <div className="w-full h-64 relative select-none">
+        <div className="w-full h-64 relative select-none mt-2">
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             className="w-full h-full overflow-visible"
@@ -362,7 +383,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
 
             {/* X-Axis Dates Labels */}
             {points.map((pt, idx) => {
-              // Menampilkan label X-axis secukupnya agar tidak menumpuk
               const step = Math.ceil(chartData.length / 10);
               const showLabel = idx % step === 0 || idx === chartData.length - 1;
 
@@ -382,13 +402,10 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
             {/* Render Area/Line Chart */}
             {chartType === "area" && (
               <>
-                {/* Area Fill */}
                 <path
                   d={areaD}
                   fill={`url(#${gradientId}-${metric === "revenue" ? "revenue" : "orders"})`}
                 />
-
-                {/* Smooth Curve Line */}
                 <path
                   d={pathD}
                   fill="none"
@@ -440,7 +457,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
 
               return (
                 <g key={idx} className="cursor-pointer">
-                  {/* Invisible Hit Area Box for smooth hovering */}
                   <rect
                     x={pt.x - hitAreaWidth / 2}
                     y={paddingY}
@@ -450,7 +466,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
                     onMouseEnter={() => setActivePointIndex(idx)}
                   />
 
-                  {/* Vertical Hover Guide Line */}
                   {isHovered && (
                     <line
                       x1={pt.x}
@@ -464,7 +479,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
                     />
                   )}
 
-                  {/* Line Chart Data Point Circle */}
                   {chartType === "area" && (
                     <circle
                       cx={pt.x}
@@ -482,6 +496,59 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
           </svg>
         </div>
       </div>
+
+      {/* Frekuensi Pesanan Pelanggan (Email & Nama) */}
+      {summary?.customerStats && summary.customerStats.length > 0 && (
+        <div className="pt-5 border-t border-gray-100 dark:border-gray-800 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-blue-500 shrink-0" />
+              <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                Frekuensi Pesanan Pelanggan (Email & Nama)
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                {summary.customerStats.length} Pelanggan
+              </span>
+            </div>
+            <span className="text-[11px] text-gray-400">
+              Rincian frekuensi transaksi per akun pelanggan
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {summary.customerStats.map((cust, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-all shadow-2xs"
+              >
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className="flex items-center gap-1.5">
+                    <User size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                      {cust.name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Mail size={11} className="text-gray-400 shrink-0" />
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate font-mono">
+                      {cust.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">
+                    {cust.periodOrders}x Pesanan
+                  </span>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                    Rp {cust.totalSpent.toLocaleString("id-ID")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
