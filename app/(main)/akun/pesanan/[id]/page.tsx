@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package, Truck, CheckCircle, MapPin, Receipt, QrCode, ArrowLeft, Clock, Store, Image as ImageIcon } from "lucide-react";
+import { Package, Truck, CheckCircle, MapPin, Receipt, QrCode, ArrowLeft, Clock, Store, Image as ImageIcon, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
 // Data dummy untuk mock-up UI (khusus id = 1)
@@ -181,7 +181,26 @@ export default function DetailPesananPage() {
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
                     <h4 className="font-bold text-gray-900">{item.nama}</h4>
-                    <p className="text-sm text-gray-500 mt-1">Ukuran: {item.ukuran} • Warna: {item.warna}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      {item.ukuran && item.ukuran !== "-" && (
+                        <span className="text-xs text-gray-500">
+                          Ukuran: <b className="text-gray-700">{item.ukuran}</b>
+                        </span>
+                      )}
+                      {item.warna && item.warna !== "-" ? (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span className="text-xs text-gray-500">
+                            Warna: <b className="text-gray-700">{item.warna}</b>
+                          </span>
+                        </>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md backdrop-blur-xs">
+                          <ShieldCheck size={11} className="text-emerald-600 shrink-0" />
+                          Kualitas Terjamin
+                        </span>
+                      )}
+                    </div>
                     <div className="flex justify-between items-center mt-3">
                       <p className="text-sm font-semibold text-gray-900">{item.qty} x Rp {item.harga.toLocaleString('id-ID')}</p>
                       <p className="font-bold text-primary">Rp {(item.qty * item.harga).toLocaleString('id-ID')}</p>

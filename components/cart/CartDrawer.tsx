@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Trash2, ShieldCheck } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import { cn } from "@/lib/utils";
@@ -106,10 +106,22 @@ export default function CartDrawer() {
                           <Trash2 size={16} />
                         </button>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 flex gap-2">
-                        <span>Warna: {item.warna}</span>
-                        <span className="w-px h-3 bg-gray-300"></span>
-                        <span>Ukuran: <b className="text-gray-700">{item.ukuran}</b></span>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {item.ukuran && item.ukuran !== "-" && (
+                          <span className="inline-flex items-center text-[11px] font-semibold text-gray-700 bg-gray-100/90 px-2 py-0.5 rounded-md border border-gray-200/70">
+                            Size: {item.ukuran}
+                          </span>
+                        )}
+                        {item.warna && item.warna !== "-" ? (
+                          <span className="inline-flex items-center text-[11px] font-medium text-gray-600 bg-gray-100/90 px-2 py-0.5 rounded-md border border-gray-200/70">
+                            Warna: {item.warna}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md backdrop-blur-xs shadow-[0_1px_2px_rgba(16,185,129,0.06)]">
+                            <ShieldCheck size={12} className="text-emerald-600 shrink-0" />
+                            Kualitas Terjamin
+                          </span>
+                        )}
                       </div>
                     </div>
                     

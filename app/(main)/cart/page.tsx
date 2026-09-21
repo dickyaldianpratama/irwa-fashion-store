@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import {
   Minus,
   ArrowRight,
   Package,
+  ShieldCheck,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 
@@ -97,10 +98,20 @@ export default function CartPage() {
               <h3 className="font-semibold text-sm text-gray-900 truncate">
                 {item.nama}
               </h3>
-              <div className="flex items-center gap-2 mt-1">
-                {item.ukuran !== "-" && (
-                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded font-medium">
-                    {item.ukuran}
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {item.ukuran && item.ukuran !== "-" && (
+                  <span className="inline-flex items-center text-[11px] font-semibold text-gray-700 bg-gray-100/90 px-2 py-0.5 rounded-md border border-gray-200/70">
+                    Size: {item.ukuran}
+                  </span>
+                )}
+                {item.warna && item.warna !== "-" ? (
+                  <span className="inline-flex items-center text-[11px] font-medium text-gray-600 bg-gray-100/90 px-2 py-0.5 rounded-md border border-gray-200/70">
+                    Warna: {item.warna}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md backdrop-blur-xs shadow-[0_1px_2px_rgba(16,185,129,0.06)]">
+                    <ShieldCheck size={12} className="text-emerald-600 shrink-0" />
+                    Kualitas Terjamin
                   </span>
                 )}
               </div>

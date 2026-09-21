@@ -120,7 +120,9 @@ export default function InvoicePage() {
                 <tr key={item.id} className={index !== order.items.length - 1 ? "border-b border-gray-300" : ""}>
                   <td className="py-3 sm:py-4 px-2 sm:px-4 text-left">
                     <p className="font-medium text-black uppercase">{item.nama}</p>
-                    <p className="text-[10px] sm:text-xs text-gray-600 mt-1 uppercase">{item.warna} - {item.ukuran}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 mt-1 uppercase">
+                      {[item.warna && item.warna !== "-" ? item.warna : null, item.ukuran && item.ukuran !== "-" ? `Size ${item.ukuran}` : null].filter(Boolean).join(" - ")}
+                    </p>
                   </td>
                   <td className="py-3 sm:py-4 px-2 sm:px-4 text-left font-medium text-black uppercase">
                     RP {item.harga?.toLocaleString("id-ID")}

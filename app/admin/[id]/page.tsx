@@ -71,7 +71,9 @@ export default function AdminOrderDetail({ params }: { params: Promise<{ id: str
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-gray-900 dark:text-white">{item.nama}</p>
-                    <p className="text-sm text-gray-500">{item.warna} - {item.ukuran}</p>
+                    <p className="text-sm text-gray-500">
+                      {[item.warna && item.warna !== "-" ? item.warna : null, item.ukuran && item.ukuran !== "-" ? `Size ${item.ukuran}` : null].filter(Boolean).join(" - ")}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900 dark:text-white">{item.qty}x</p>
