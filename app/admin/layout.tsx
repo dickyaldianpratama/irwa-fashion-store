@@ -1,7 +1,6 @@
-﻿import { createClient } from "@/lib/supabase-server";
-import prisma from "@/lib/prisma";
 import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { checkAdminAuth } from "@/lib/admin-auth";
 
 export const metadata = {
   title: "Admin Dashboard - IRWA",
@@ -13,19 +12,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let isAdmin = false;
-
-  if (user) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    });
-    if (dbUser && dbUser.role === "ADMIN") {
-      isAdmin = true;
-    }
-  }
+  const { isAdmin } = await checkAdminAuth();
 
   if (!isAdmin) {
     return (

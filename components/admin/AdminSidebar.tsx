@@ -121,26 +121,28 @@ export default function AdminSidebar() {
         </button>
         
         {/* Admin Profile Card */}
-        {adminUser && (
-          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
-                <UserCircle size={24} />
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{adminUser.name}</p>
-                <p className="text-xs text-gray-500 truncate">{adminUser.email}</p>
-              </div>
+        <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+              <UserCircle size={24} />
             </div>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 rounded-lg transition-colors font-medium text-sm"
-            >
-              <LogOut size={16} />
-              Keluar (Logout)
-            </button>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {adminUser?.name || "Administrator"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {adminUser?.email || "admin@irwa.com"}
+              </p>
+            </div>
           </div>
-        )}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 rounded-lg transition-colors font-medium text-sm"
+          >
+            <LogOut size={16} />
+            Keluar (Logout)
+          </button>
+        </div>
       </div>
     </div>
   );
