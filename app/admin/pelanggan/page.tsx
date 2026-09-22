@@ -3,6 +3,9 @@ import AdminLoginForm from "@/components/admin/AdminLoginForm";
 import AdminPelangganClient from "@/components/admin/AdminPelangganClient";
 import { checkAdminAuth } from "@/lib/admin-auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Manajemen Pelanggan - Admin IRWA",
   description: "Kelola data pelanggan, profil ukuran, poin membership, dan riwayat transaksi",

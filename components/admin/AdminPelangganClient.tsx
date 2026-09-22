@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -83,6 +83,23 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
   
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const refreshCustomers = async () => {
+      try {
+        const res = await fetch("/api/admin/pelanggan", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.customers) {
+            setCustomers(data.customers);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refresh admin customers data:", err);
+      }
+    };
+    refreshCustomers();
+  }, []);
 
   const handleDeleteCustomer = async (customer: CustomerData) => {
     const result = await MySwal.fire({

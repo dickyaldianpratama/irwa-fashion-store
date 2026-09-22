@@ -25,11 +25,14 @@ export async function POST(request: Request) {
         existingUser.name.toLowerCase().includes("yudha") &&
         !email.toLowerCase().includes("yudha");
 
+      const metaName = user?.user_metadata?.full_name || body.name;
+      const updatedName = isMismatchName || !existingUser.name ? name : (metaName && metaName !== email.split("@")[0] ? metaName : existingUser.name);
+
       dbUser = await prisma.user.update({
         where: { id: userId },
         data: {
           email,
-          name: isMismatchName || !existingUser.name ? name : existingUser.name,
+          name: updatedName,
         },
       });
     } else {
