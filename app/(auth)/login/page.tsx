@@ -22,20 +22,17 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Autentikasi sungguhan dengan database Supabase!
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setIsLoading(false);
-
     if (error) {
       toast.error(error.message === "Invalid login credentials" ? "Email atau password salah!" : error.message);
+      setIsLoading(false);
       return;
     }
 
-    // Jika berhasil, masukkan data ke Zustand Store agar Navbar berubah
     if (data.user) {
       const fullName = data.user.user_metadata?.full_name || email.split('@')[0];
       login({
@@ -43,6 +40,23 @@ export default function LoginPage() {
         name: fullName,
         email: data.user.email || email,
       });
+
+      // Sync customer user to database to ensure admin counts user
+      try {
+        await fetch("/api/auth/sync-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email || email,
+            name: fullName,
+          }),
+        });
+      } catch (err) {
+        console.error("Sync user error on login:", err);
+      }
+
+      setIsLoading(false);
       toast.success(`Selamat datang kembali, ${fullName}!`);
       router.push("/");
     }

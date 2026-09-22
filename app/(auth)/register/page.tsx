@@ -7,6 +7,9 @@ import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase";
 
+import { useWishlistStore } from "@/store/wishlistStore";
+import { useCartStore } from "@/store/cartStore";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -24,25 +27,45 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Panggil Supabase Auth (Asli)
+    // 1. Panggil Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
         data: {
-          full_name: formData.name, // Simpan nama di metadata user
+          full_name: formData.name,
         }
       }
     });
 
-    setIsLoading(false);
-
     if (error) {
       toast.error(error.message);
+      setIsLoading(false);
       return;
     }
 
-    // Berhasil mendaftar
+    // 2. Reset local wishlist & cart agar akun baru selalu 0 item
+    useWishlistStore.getState().clearWishlist();
+    useCartStore.getState().clearCart();
+
+    // 3. Sinkronkan pembuatan user ke PostgreSQL database
+    if (data.user) {
+      try {
+        await fetch("/api/auth/sync-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: formData.email,
+            name: formData.name,
+          }),
+        });
+      } catch (err) {
+        console.error("Sync user error:", err);
+      }
+    }
+
+    setIsLoading(false);
     toast.success("Akun berhasil dibuat! Silakan masuk.");
     router.push("/login");
   };

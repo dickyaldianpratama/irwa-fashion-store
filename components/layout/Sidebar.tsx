@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase";
 
+import { useWishlistStore } from "@/store/wishlistStore";
+import { useCartStore } from "@/store/cartStore";
+
 const menuItems = [
   { name: "Dashboard", href: "/akun", icon: User },
   { name: "Ukuran Saya", href: "/akun/ukuran-saya", icon: Ruler },
@@ -22,10 +25,13 @@ export default function Sidebar() {
   const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
     logout();
+    useWishlistStore.getState().clearWishlist();
+    useCartStore.getState().clearCart();
     toast.success("Berhasil keluar dari akun");
-    // Gunakan window.location untuk full reload dan menghapus cache lokal
     window.location.href = "/login";
   };
 

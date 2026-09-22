@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -48,13 +48,11 @@ export default function AdminSidebar() {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      logout(); // clear zustand store
+      await fetch("/api/admin/auth", { method: "DELETE" });
       toast.success("Berhasil keluar dari sesi admin.");
-      // Redirect with hard reload to run server-side checks and show login form
       window.location.href = "/admin";
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Error logging out admin:", error);
       toast.error("Gagal keluar.");
     }
   };

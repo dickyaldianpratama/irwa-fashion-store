@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,20 +21,31 @@ export default function AdminLoginForm() {
     e.preventDefault();
     setIsLoading(true);
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // 1. Otorisasi ke API Admin khusus (mengatur cookie admin_session_token)
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (error) {
-      toast.error(error.message === "Invalid login credentials" ? "Email atau password salah!" : error.message);
-      setIsLoading(false);
-      return;
-    }
+      const data = await res.json();
 
-    if (data.user) {
+      if (!res.ok || !data.success) {
+        toast.error(data.error || "Email atau password admin salah!");
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Juga login ke Supabase Client
+      await supabase.auth.signInWithPassword({ email, password });
+
       toast.success("Otorisasi Admin Berhasil!");
-      router.refresh(); // Refresh halaman agar layout berubah menjadi Dashboard
+      window.location.href = "/admin";
+    } catch (err: any) {
+      toast.error(err.message || "Gagal masuk portal admin.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

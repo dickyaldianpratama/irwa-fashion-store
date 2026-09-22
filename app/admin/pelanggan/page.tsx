@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
-import { createClient } from "@/lib/supabase-server";
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
 import AdminPelangganClient from "@/components/admin/AdminPelangganClient";
+import { checkAdminAuth } from "@/lib/admin-auth";
 
 export const metadata = {
   title: "Manajemen Pelanggan - Admin IRWA",
@@ -9,19 +9,7 @@ export const metadata = {
 };
 
 export default async function AdminPelangganPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let isAdmin = false;
-
-  if (user) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    });
-    if (dbUser && dbUser.role === "ADMIN") {
-      isAdmin = true;
-    }
-  }
+  const { isAdmin } = await checkAdminAuth();
 
   if (!isAdmin) {
     return <AdminLoginForm />;

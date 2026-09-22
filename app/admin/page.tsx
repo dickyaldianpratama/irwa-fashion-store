@@ -2,23 +2,11 @@ import SalesChart from "@/components/admin/SalesChart";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowRight, Clock } from "lucide-react";
-import { createClient } from "@/lib/supabase-server";
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
+import { checkAdminAuth } from "@/lib/admin-auth";
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let isAdmin = false;
-
-  if (user) {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
-    });
-    if (dbUser && dbUser.role === "ADMIN") {
-      isAdmin = true;
-    }
-  }
+  const { isAdmin } = await checkAdminAuth();
 
   if (!isAdmin) {
     return <AdminLoginForm />;
