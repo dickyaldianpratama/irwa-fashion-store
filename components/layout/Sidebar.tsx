@@ -22,24 +22,39 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { logout, user } = useAuthStore();
+  const { logout, user, login } = useAuthStore();
   const supabase = createClient();
   const [memberLevel, setMemberLevel] = useState<string>("BRONZE");
+  const [profileName, setProfileName] = useState<string>("");
 
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
-        const res = await fetch("/api/akun/poin", { cache: "no-store" });
-        if (res.ok) {
-          const resData = await res.json();
+        const [poinRes, profRes] = await Promise.all([
+          fetch("/api/akun/poin", { cache: "no-store" }),
+          fetch("/api/akun/profil", { cache: "no-store" }),
+        ]);
+
+        if (poinRes.ok) {
+          const resData = await poinRes.json();
           if (resData?.data?.levelMember) {
             setMemberLevel(resData.data.levelMember);
+          }
+        }
+
+        if (profRes.ok) {
+          const profData = await profRes.json();
+          if (profData?.data?.name) {
+            setProfileName(profData.data.name);
+            if (user && user.name !== profData.data.name) {
+              login({ ...user, name: profData.data.name });
+            }
           }
         }
       } catch (e) {}
     };
     fetchMemberData();
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -55,15 +70,17 @@ export default function Sidebar() {
   const formattedLevel =
     memberLevel.charAt(0).toUpperCase() + memberLevel.slice(1).toLowerCase();
 
+  const displayName = profileName || user?.name || "Customer";
+
   return (
     <div className="bg-white md:rounded-2xl shadow-sm border-b md:border border-gray-100 md:overflow-hidden md:sticky md:top-24 mb-6 md:mb-0">
       <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-4">
         <div className="w-10 h-10 md:w-12 md:h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg shrink-0">
-          {user?.name?.charAt(0) || "U"}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="overflow-hidden">
           <h3 className="font-bold text-gray-900 truncate text-sm md:text-base">
-            {user?.name || "Customer"}
+            {displayName}
           </h3>
           <p className="text-xs font-semibold text-amber-600 dark:text-amber-500">
             Member {formattedLevel}

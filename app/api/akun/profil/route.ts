@@ -11,17 +11,51 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id }
+    let dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      data: dbUser || { email: user.email, name: user.user_metadata?.full_name } 
+    const defaultName =
+      user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer";
+
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email!,
+          name: defaultName,
+          role: "CUSTOMER",
+          poin: {
+            create: {
+              saldo: 0,
+              levelMember: "BRONZE",
+            },
+          },
+        },
+      });
+    } else if (
+      dbUser.name.toLowerCase().includes("yudha") &&
+      !user.email?.toLowerCase().includes("yudha")
+    ) {
+      // Perbaiki nama yang sebelumnya sempat tertimpa
+      dbUser = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: defaultName,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: dbUser,
     });
   } catch (error: any) {
     console.error("Error fetching profile:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 

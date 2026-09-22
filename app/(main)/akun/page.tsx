@@ -7,10 +7,11 @@ import { useState, useEffect } from "react";
 import { useWishlistStore } from "@/store/wishlistStore";
 
 export default function AkunDashboard() {
-  const { user } = useAuthStore();
+  const { user, login } = useAuthStore();
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const [mounted, setMounted] = useState(false);
 
+  const [profileName, setProfileName] = useState<string>("");
   const [poinSaldo, setPoinSaldo] = useState<number>(0);
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
   const [hasProfile, setHasProfile] = useState<boolean>(false);
@@ -22,11 +23,22 @@ export default function AkunDashboard() {
 
     async function loadUserStats() {
       try {
-        const [poinRes, pesananRes, ukuranRes] = await Promise.all([
+        const [profRes, poinRes, pesananRes, ukuranRes] = await Promise.all([
+          fetch("/api/akun/profil", { cache: "no-store" }),
           fetch("/api/akun/poin", { cache: "no-store" }),
           fetch("/api/akun/pesanan", { cache: "no-store" }),
           fetch("/api/akun/ukuran", { cache: "no-store" }),
         ]);
+
+        if (profRes.ok) {
+          const p = await profRes.json();
+          if (p.data?.name) {
+            setProfileName(p.data.name);
+            if (user && user.name !== p.data.name) {
+              login({ ...user, name: p.data.name });
+            }
+          }
+        }
 
         if (poinRes.ok) {
           const pt = await poinRes.json();
@@ -100,6 +112,7 @@ export default function AkunDashboard() {
   ];
 
   const formatRupiah = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
+  const displayName = profileName || user?.name || "Customer";
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -107,7 +120,7 @@ export default function AkunDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Selamat datang, {user?.name || "Customer"}!
+            Selamat datang, {displayName}!
           </h1>
           <p className="text-gray-500 mt-1 text-sm">
             Kelola pesanan, ukuran tubuh, dan preferensi akun Anda di sini.
