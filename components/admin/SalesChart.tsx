@@ -18,7 +18,8 @@ import {
   Search,
   Heart,
   PackageCheck,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronDown
 } from "lucide-react";
 
 interface CustomerProduct {
@@ -80,6 +81,14 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
   // Customer Filter & Search states
   const [customerSearch, setCustomerSearch] = useState<string>("");
   const [customerSort, setCustomerSort] = useState<"orders" | "spent" | "name">("orders");
+  const [expandedWishlist, setExpandedWishlist] = useState<Record<string, boolean>>({});
+
+  const toggleWishlistExpand = (userId: string) => {
+    setExpandedWishlist((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
 
   const gradientId = useId();
 
@@ -628,11 +637,31 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
                   {/* Wishlist Produk Disukai */}
                   {cust.wishlistProducts && cust.wishlistProducts.length > 0 && (
                     <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/60 space-y-1">
-                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1">
-                        <Heart size={10} className="text-rose-500 fill-rose-500" /> Wishlist Disukai ({cust.wishlistCount} Produk):
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1">
+                          <Heart size={10} className="text-rose-500 fill-rose-500" /> Wishlist Disukai ({cust.wishlistCount} Produk):
+                        </span>
+                        {cust.wishlistProducts.length > 2 && (
+                          <button
+                            onClick={() => toggleWishlistExpand(cust.userId)}
+                            className="text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5"
+                          >
+                            {expandedWishlist[cust.userId] ? "Sembunyikan" : `+${cust.wishlistProducts.length - 2} Lainnya`}
+                            <ChevronDown
+                              size={12}
+                              className={`transform transition-transform ${
+                                expandedWishlist[cust.userId] ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {cust.wishlistProducts.map((p, pi) => (
+                        {(expandedWishlist[cust.userId]
+                          ? cust.wishlistProducts
+                          : cust.wishlistProducts.slice(0, 2)
+                        ).map((p, pi) => (
                           <span
                             key={pi}
                             className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/40 rounded-md text-[10px] font-medium text-rose-800 dark:text-rose-200 shadow-2xs max-w-full truncate"
