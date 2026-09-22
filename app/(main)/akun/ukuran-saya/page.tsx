@@ -6,7 +6,7 @@ import { Ruler, Info, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function UkuranSayaPage() {
-  const { profile, saveProfile, hasProfile } = useSaveMySize();
+  const { profile, saveProfile, resetProfile, hasProfile } = useSaveMySize();
   const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -25,10 +25,10 @@ export default function UkuranSayaPage() {
     // Sinkronisasi data dari Database asli
     const fetchSizeFromDB = async () => {
       try {
-        const res = await fetch("/api/akun/ukuran");
+        const res = await fetch("/api/akun/ukuran", { cache: "no-store" });
         if (res.ok) {
           const { data } = await res.json();
-          if (data) {
+          if (data && (data.tinggiBadan || data.beratBadan)) {
             // Ubah null jadi string kosong agar input tidak error
             const formattedData = {
               tinggiBadan: data.tinggiBadan?.toString() || "",
@@ -39,7 +39,18 @@ export default function UkuranSayaPage() {
               panjangLengan: data.panjangLengan?.toString() || "",
             };
             setFormData(formattedData);
-            saveProfile(formattedData); // Sinkronkan DB ke LocalStorage
+            saveProfile(formattedData);
+          } else {
+            // Reset jika akun baru / belum memiliki data ukuran di database
+            resetProfile();
+            setFormData({
+              tinggiBadan: "",
+              beratBadan: "",
+              lingkarDada: "",
+              lingkarPinggang: "",
+              lebarBahu: "",
+              panjangLengan: "",
+            });
           }
         }
       } catch (error) {

@@ -9,9 +9,26 @@ export async function GET() {
 
     if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // 1. Ensure user exists in Prisma DB
+    let dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser) {
+      const email = user.email || `${user.id}@customer.com`;
+      const name = user.user_metadata?.full_name || email.split("@")[0] || "Customer";
+      dbUser = await prisma.user.upsert({
+        where: { id: user.id },
+        update: {},
+        create: {
+          id: user.id,
+          email,
+          name,
+          role: "CUSTOMER",
+        },
+      });
+    }
+
+    // 2. Inisialisasi awal poin (saldo: 0, level: BRONZE) jika belum ada
     let poin = await prisma.poin.findUnique({ where: { userId: user.id } });
     
-    // Jika belum ada data poin, inisialisasi awal
     if (!poin) {
       poin = await prisma.poin.create({
         data: { userId: user.id, saldo: 0, levelMember: "BRONZE" }

@@ -9,6 +9,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb";
 import { createClient } from "@/lib/supabase";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useCartStore } from "@/store/cartStore";
+import { useSaveMySize } from "@/hooks/useSaveMySize";
 
 export default function AkunLayout({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, login, logout, user } = useAuthStore();
@@ -27,8 +28,16 @@ export default function AkunLayout({ children }: { children: React.ReactNode }) 
           logout();
           useWishlistStore.getState().clearWishlist();
           useCartStore.getState().clearCart();
+          useSaveMySize.getState().resetProfile();
           router.push("/login");
           return;
+        }
+
+        // Reset local memory stores if user switched accounts
+        if (user && user.id !== sbUser.id) {
+          useWishlistStore.getState().clearWishlist();
+          useCartStore.getState().clearCart();
+          useSaveMySize.getState().resetProfile();
         }
 
         // Sync Zustand auth state with active Supabase session

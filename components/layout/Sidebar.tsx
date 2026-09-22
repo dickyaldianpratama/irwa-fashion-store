@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase";
 
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useCartStore } from "@/store/cartStore";
+import { useSaveMySize } from "@/hooks/useSaveMySize";
 
 const menuItems = [
   { name: "Dashboard", href: "/akun", icon: User },
@@ -63,6 +64,7 @@ export default function Sidebar() {
     logout();
     useWishlistStore.getState().clearWishlist();
     useCartStore.getState().clearCart();
+    useSaveMySize.getState().resetProfile();
     toast.success("Berhasil keluar dari akun");
     window.location.href = "/login";
   };
