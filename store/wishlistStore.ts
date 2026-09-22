@@ -37,7 +37,7 @@ export const useWishlistStore = create<WishlistState>()(
 
       addItem: (item) => {
         const currentItems = get().items;
-        if (!currentItems.some((i) => i.id === item.id)) {
+        if (!currentItems.some((i) => i.id === item.id || (item.link && i.link === item.link))) {
           set({ items: [item, ...currentItems] });
         }
         // Sync to database if logged in
@@ -49,7 +49,14 @@ export const useWishlistStore = create<WishlistState>()(
       },
 
       removeItem: (id) => {
-        set({ items: get().items.filter((i) => i.id !== id) });
+        set({
+          items: get().items.filter(
+            (i) =>
+              i.id !== id &&
+              i.link !== `/produk/${id}` &&
+              !i.link?.endsWith(`/${id}`)
+          ),
+        });
         // Sync delete to database if logged in
         fetch(`/api/akun/wishlist?produkId=${id}`, {
           method: "DELETE",
@@ -58,9 +65,21 @@ export const useWishlistStore = create<WishlistState>()(
 
       toggleWishlist: (item) => {
         const currentItems = get().items;
-        const exists = currentItems.some((i) => i.id === item.id);
+        const exists = currentItems.some(
+          (i) =>
+            i.id === item.id ||
+            i.link === `/produk/${item.id}` ||
+            (item.link && i.link === item.link)
+        );
         if (exists) {
-          set({ items: currentItems.filter((i) => i.id !== item.id) });
+          set({
+            items: currentItems.filter(
+              (i) =>
+                i.id !== item.id &&
+                i.link !== `/produk/${item.id}` &&
+                (!item.link || i.link !== item.link)
+            ),
+          });
           fetch(`/api/akun/wishlist?produkId=${item.id}`, {
             method: "DELETE",
           }).catch(() => {});
@@ -77,7 +96,13 @@ export const useWishlistStore = create<WishlistState>()(
       },
 
       isWishlisted: (id) => {
-        return get().items.some((i) => i.id === id);
+        if (!id) return false;
+        return get().items.some(
+          (i) =>
+            i.id === id ||
+            i.link === `/produk/${id}` ||
+            i.link?.endsWith(`/${id}`)
+        );
       },
 
       clearWishlist: () => {
