@@ -44,7 +44,12 @@ export const useWishlistStore = create<WishlistState>()(
         fetch("/api/akun/wishlist", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ produkId: item.id }),
+          body: JSON.stringify({
+            produkId: item.id,
+            nama: item.nama,
+            harga: item.harga,
+            gambar: item.gambar,
+          }),
         }).catch(() => {});
       },
 
@@ -89,7 +94,12 @@ export const useWishlistStore = create<WishlistState>()(
           fetch("/api/akun/wishlist", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ produkId: item.id }),
+            body: JSON.stringify({
+              produkId: item.id,
+              nama: item.nama,
+              harga: item.harga,
+              gambar: item.gambar,
+            }),
           }).catch(() => {});
           return true;
         }
