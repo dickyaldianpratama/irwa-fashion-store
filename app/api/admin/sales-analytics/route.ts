@@ -52,7 +52,6 @@ export async function GET(request: Request) {
       prevStartDate.setDate(1);
       prevStartDate.setHours(0, 0, 0, 0);
     } else {
-      // Default fallback 30d
       startDate.setDate(now.getDate() - 29);
       startDate.setHours(0, 0, 0, 0);
       prevStartDate.setDate(now.getDate() - 59);
@@ -61,7 +60,6 @@ export async function GET(request: Request) {
 
     const validStatuses: StatusPesanan[] = ["DELIVERED", "SHIPPED", "READY_FOR_PICKUP", "PROCESSING", "PAID"];
 
-    // Ambil pesanan dari prevStartDate sampai sekarang beserta info user (email & name)
     const [allOrders, userLifetimeOrders] = await Promise.all([
       prisma.pesanan.findMany({
         where: {
@@ -83,6 +81,22 @@ export async function GET(request: Request) {
               email: true,
             },
           },
+          items: {
+            select: {
+              jumlah: true,
+              gambar: true,
+              varian: {
+                select: {
+                  produk: {
+                    select: {
+                      nama: true,
+                      images: { where: { isUtama: true }, take: 1, select: { url: true } }
+                    }
+                  }
+                }
+              }
+            }
+          }
         },
         orderBy: {
           createdAt: "asc",
@@ -113,7 +127,6 @@ export async function GET(request: Request) {
       (o) => new Date(o.createdAt) >= prevStartDate && new Date(o.createdAt) < startDate
     );
 
-    // Hitung total revenue current & previous
     const totalRevenue = currentOrders
       .filter((o) => validStatuses.includes(o.statusPesanan))
       .reduce((sum, o) => sum + o.totalHarga, 0);
@@ -122,11 +135,9 @@ export async function GET(request: Request) {
       .filter((o) => validStatuses.includes(o.statusPesanan))
       .reduce((sum, o) => sum + o.totalHarga, 0);
 
-    // Hitung total orders
     const totalOrders = currentOrders.filter((o) => validStatuses.includes(o.statusPesanan)).length;
     const prevTotalOrders = previousOrders.filter((o) => validStatuses.includes(o.statusPesanan)).length;
 
-    // Growth percentage
     let growthRate = 0;
     if (prevTotalRevenue > 0) {
       growthRate = Math.round(((totalRevenue - prevTotalRevenue) / prevTotalRevenue) * 100);
@@ -134,16 +145,20 @@ export async function GET(request: Request) {
       growthRate = 100;
     }
 
-    // Average Order Value
     const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
-    // Status breakdown
     const statusBreakdown: Record<string, number> = {};
     currentOrders.forEach((o) => {
       statusBreakdown[o.statusPesanan] = (statusBreakdown[o.statusPesanan] || 0) + 1;
     });
 
-    // Customer Ordering Frequency Breakdown (email & name)
+    // Customer Ordering Frequency & Favorite Products Breakdown
+    interface CustomerProduct {
+      nama: string;
+      jumlah: number;
+      image: string;
+    }
+
     const customerMap = new Map<string, {
       userId: string;
       email: string;
@@ -151,6 +166,7 @@ export async function GET(request: Request) {
       periodOrders: number;
       lifetimeOrders: number;
       totalSpent: number;
+      productsMap: Map<string, CustomerProduct>;
     }>();
 
     currentOrders.forEach((o) => {
@@ -168,16 +184,39 @@ export async function GET(request: Request) {
             periodOrders: 0,
             lifetimeOrders: lifetime,
             totalSpent: 0,
+            productsMap: new Map(),
           });
         }
 
         const c = customerMap.get(key)!;
         c.periodOrders += 1;
         c.totalSpent += o.totalHarga;
+
+        if (o.items && o.items.length > 0) {
+          o.items.forEach((it) => {
+            const pName = it.varian?.produk?.nama || "Produk";
+            const img = it.gambar || it.varian?.produk?.images?.[0]?.url || "";
+            if (!c.productsMap.has(pName)) {
+              c.productsMap.set(pName, { nama: pName, jumlah: 0, image: img });
+            }
+            c.productsMap.get(pName)!.jumlah += it.jumlah;
+          });
+        }
       }
     });
 
     const customerStats = Array.from(customerMap.values())
+      .map((c) => ({
+        userId: c.userId,
+        email: c.email,
+        name: c.name,
+        periodOrders: c.periodOrders,
+        lifetimeOrders: c.lifetimeOrders,
+        totalSpent: c.totalSpent,
+        topProducts: Array.from(c.productsMap.values())
+          .sort((a, b) => b.jumlah - a.jumlah)
+          .slice(0, 3)
+      }))
       .sort((a, b) => b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent);
 
     // Generate buckets timeline
@@ -187,18 +226,16 @@ export async function GET(request: Request) {
       revenue: number;
       orders: number;
       unpaidOrders: number;
-      buyers: { name: string; email: string; totalHarga: number }[];
     }
 
     const timelineMap: Map<string, TimelineBucket> = new Map();
 
     if (!isMonthly) {
-      // Daily timeline
       const curr = new Date(startDate);
       while (curr <= now) {
-        const dateKey = curr.toISOString().split("T")[0]; // YYYY-MM-DD
+        const dateKey = curr.toISOString().split("T")[0];
         const label = curr.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-        timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0, buyers: [] });
+        timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0 });
         curr.setDate(curr.getDate() + 1);
       }
 
@@ -209,24 +246,18 @@ export async function GET(request: Request) {
           if (validStatuses.includes(o.statusPesanan)) {
             item.revenue += o.totalHarga;
             item.orders += 1;
-            item.buyers.push({
-              name: o.user?.name || "Pelanggan",
-              email: o.user?.email || "Tanpa Email",
-              totalHarga: o.totalHarga,
-            });
           } else if (o.statusPesanan === "UNPAID") {
             item.unpaidOrders += 1;
           }
         }
       });
     } else {
-      // Monthly timeline
       const curr = new Date(startDate);
       while (curr <= now) {
-        const dateKey = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, "0")}`; // YYYY-MM
+        const dateKey = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, "0")}`;
         const label = curr.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
         if (!timelineMap.has(dateKey)) {
-          timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0, buyers: [] });
+          timelineMap.set(dateKey, { label, dateKey, revenue: 0, orders: 0, unpaidOrders: 0 });
         }
         curr.setMonth(curr.getMonth() + 1);
       }
@@ -239,11 +270,6 @@ export async function GET(request: Request) {
           if (validStatuses.includes(o.statusPesanan)) {
             item.revenue += o.totalHarga;
             item.orders += 1;
-            item.buyers.push({
-              name: o.user?.name || "Pelanggan",
-              email: o.user?.email || "Tanpa Email",
-              totalHarga: o.totalHarga,
-            });
           } else if (o.statusPesanan === "UNPAID") {
             item.unpaidOrders += 1;
           }
@@ -253,7 +279,6 @@ export async function GET(request: Request) {
 
     const chartData = Array.from(timelineMap.values());
 
-    // Cari peak sales period
     let peakPeriod = { label: "-", revenue: 0 };
     chartData.forEach((d) => {
       if (d.revenue > peakPeriod.revenue) {

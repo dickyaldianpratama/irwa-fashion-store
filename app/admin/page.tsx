@@ -71,6 +71,22 @@ export default async function AdminDashboard() {
             name: true,
             email: true
           }
+        },
+        items: {
+          select: {
+            jumlah: true,
+            gambar: true,
+            varian: {
+              select: {
+                produk: {
+                  select: {
+                    nama: true,
+                    images: { where: { isUtama: true }, take: 1, select: { url: true } }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: "asc" }
@@ -108,7 +124,13 @@ export default async function AdminDashboard() {
     statusBreakdown[o.statusPesanan] = (statusBreakdown[o.statusPesanan] || 0) + 1;
   });
 
-  // Customer Ordering Frequency Breakdown (email & name)
+  // Customer Ordering Frequency Breakdown & Favorite Products
+  interface CustomerProduct {
+    nama: string;
+    jumlah: number;
+    image: string;
+  }
+
   const customerMap = new Map<string, {
     userId: string;
     email: string;
@@ -116,6 +138,7 @@ export default async function AdminDashboard() {
     periodOrders: number;
     lifetimeOrders: number;
     totalSpent: number;
+    productsMap: Map<string, CustomerProduct>;
   }>();
 
   currentOrders.forEach((o) => {
@@ -132,16 +155,39 @@ export default async function AdminDashboard() {
           periodOrders: 0,
           lifetimeOrders: 0,
           totalSpent: 0,
+          productsMap: new Map(),
         });
       }
 
       const c = customerMap.get(key)!;
       c.periodOrders += 1;
       c.totalSpent += o.totalHarga;
+
+      if (o.items && o.items.length > 0) {
+        o.items.forEach((it) => {
+          const pName = it.varian?.produk?.nama || "Produk";
+          const img = it.gambar || it.varian?.produk?.images?.[0]?.url || "";
+          if (!c.productsMap.has(pName)) {
+            c.productsMap.set(pName, { nama: pName, jumlah: 0, image: img });
+          }
+          c.productsMap.get(pName)!.jumlah += it.jumlah;
+        });
+      }
     }
   });
 
   const customerStats = Array.from(customerMap.values())
+    .map((c) => ({
+      userId: c.userId,
+      email: c.email,
+      name: c.name,
+      periodOrders: c.periodOrders,
+      lifetimeOrders: c.lifetimeOrders,
+      totalSpent: c.totalSpent,
+      topProducts: Array.from(c.productsMap.values())
+        .sort((a, b) => b.jumlah - a.jumlah)
+        .slice(0, 3)
+    }))
     .sort((a, b) => b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent);
 
   const timelineMap = new Map<string, { label: string; dateKey: string; revenue: number; orders: number; unpaidOrders: number; buyers: { name: string; email: string; totalHarga: number }[] }>();

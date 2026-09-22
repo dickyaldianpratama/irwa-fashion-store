@@ -14,8 +14,18 @@ import {
   Info,
   Users,
   User,
-  Mail
+  Mail,
+  Search,
+  Heart,
+  PackageCheck,
+  ArrowUpDown
 } from "lucide-react";
+
+interface CustomerProduct {
+  nama: string;
+  jumlah: number;
+  image?: string;
+}
 
 interface CustomerStat {
   userId: string;
@@ -24,6 +34,7 @@ interface CustomerStat {
   periodOrders: number;
   lifetimeOrders?: number;
   totalSpent: number;
+  topProducts?: CustomerProduct[];
 }
 
 interface TimelineItem {
@@ -32,7 +43,6 @@ interface TimelineItem {
   revenue: number;
   orders: number;
   unpaidOrders: number;
-  buyers?: { name: string; email: string; totalHarga: number }[];
 }
 
 interface SummaryData {
@@ -65,6 +75,10 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
   const [loading, setLoading] = useState<boolean>(!initialData);
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
 
+  // Customer Filter & Search states
+  const [customerSearch, setCustomerSearch] = useState<string>("");
+  const [customerSort, setCustomerSort] = useState<"orders" | "spent" | "name">("orders");
+
   const gradientId = useId();
 
   const fetchAnalytics = async (selectedRange: string) => {
@@ -90,6 +104,23 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
     }
   }, [range]);
 
+  // Filter & Sort Customer Stats
+  const filteredCustomerStats = (summary?.customerStats || [])
+    .filter((c) => {
+      const q = customerSearch.toLowerCase().trim();
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      if (customerSort === "spent") {
+        return b.totalSpent - a.totalSpent;
+      }
+      if (customerSort === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      return b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent;
+    });
+
   // Calculations for SVG rendering
   const values = chartData.map((item) => (metric === "revenue" ? item.revenue : item.orders));
   const maxValue = Math.max(...values, metric === "revenue" ? 100000 : 5);
@@ -101,10 +132,8 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
     return `${val}`;
   };
 
-  // Generate Y-axis grid ticks (4 steps)
   const yTicks = [0, 0.33, 0.66, 1].map((factor) => Math.round(maxValue * factor));
 
-  // Canvas / SVG Dimensions
   const svgWidth = 800;
   const svgHeight = 260;
   const paddingX = 45;
@@ -112,7 +141,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
   const chartWidth = svgWidth - paddingX * 2;
   const chartHeight = svgHeight - paddingY * 2;
 
-  // Calculate coordinates for line/area points
   const points = chartData.map((item, index) => {
     const val = metric === "revenue" ? item.revenue : item.orders;
     const x = chartData.length > 1
@@ -122,7 +150,6 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
     return { x, y, val, item };
   });
 
-  // Construct Smooth Path (Cubic Bezier curve) for Area Chart
   const pathD = points.reduce((acc, point, i, a) => {
     if (i === 0) return `M ${point.x},${point.y}`;
     const prev = a[i - 1];
@@ -287,28 +314,26 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
         {/* Active Point Hover Banner / Tooltip Info Box */}
         <div className="min-h-10 flex flex-wrap items-center justify-between px-2 text-xs py-1">
           {activeItem ? (
-            <div className="flex flex-col gap-1.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 px-3 py-2 rounded-lg w-full transition-all">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="font-bold flex items-center gap-1">
-                  <Calendar size={13} /> {activeItem.label}
-                </span>
-                <span className="text-blue-300 dark:text-blue-700">•</span>
-                <span>
-                  Pendapatan: <strong className="font-bold text-emerald-600 dark:text-emerald-400">Rp {activeItem.revenue.toLocaleString("id-ID")}</strong>
-                </span>
-                <span className="text-blue-300 dark:text-blue-700">•</span>
-                <span>
-                  Pesanan Sukses: <strong className="font-bold">{activeItem.orders}</strong>
-                </span>
-                {activeItem.unpaidOrders > 0 && (
-                  <>
-                    <span className="text-blue-300 dark:text-blue-700">•</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-medium">
-                      Belum Dibayar: {activeItem.unpaidOrders}
-                    </span>
-                  </>
-                )}
-              </div>
+            <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 px-3 py-1.5 rounded-lg w-full transition-all flex-wrap">
+              <span className="font-bold flex items-center gap-1">
+                <Calendar size={13} /> {activeItem.label}
+              </span>
+              <span className="text-blue-300 dark:text-blue-700">•</span>
+              <span>
+                Pendapatan: <strong className="font-bold text-emerald-600 dark:text-emerald-400">Rp {activeItem.revenue.toLocaleString("id-ID")}</strong>
+              </span>
+              <span className="text-blue-300 dark:text-blue-700">•</span>
+              <span>
+                Pesanan Sukses: <strong className="font-bold">{activeItem.orders}</strong>
+              </span>
+              {activeItem.unpaidOrders > 0 && (
+                <>
+                  <span className="text-blue-300 dark:text-blue-700">•</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
+                    Belum Dibayar: {activeItem.unpaidOrders}
+                  </span>
+                </>
+              )}
             </div>
           ) : (
             <div className="text-gray-400 dark:text-gray-500 text-[11px] flex items-center gap-1">
@@ -318,7 +343,7 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
         </div>
 
         {/* SVG Canvas Chart */}
-        <div className="w-full h-64 relative select-none mt-2">
+        <div className="w-full h-64 relative select-none mt-1">
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
             className="w-full h-full overflow-visible"
@@ -483,56 +508,142 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
         </div>
       </div>
 
-      {/* Frekuensi Pesanan Pelanggan (Email & Nama) */}
+      {/* Frekuensi Pesanan & Analisis Minat Produk Pelanggan */}
       {summary?.customerStats && summary.customerStats.length > 0 && (
-        <div className="pt-5 border-t border-gray-100 dark:border-gray-800 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-blue-500 shrink-0" />
-              <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                Frekuensi Pesanan Pelanggan (Email & Nama)
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-                {summary.customerStats.length} Pelanggan
-              </span>
-            </div>
-            <span className="text-[11px] text-gray-400">
-              Rincian frekuensi transaksi per akun pelanggan
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-            {summary.customerStats.map((cust, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-all shadow-2xs"
-              >
-                <div className="min-w-0 flex-1 pr-2">
-                  <div className="flex items-center gap-1.5">
-                    <User size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                      {cust.name}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Mail size={11} className="text-gray-400 shrink-0" />
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate font-mono">
-                      {cust.email}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">
-                    {cust.periodOrders}x Pesanan
-                  </span>
-                  <p className="text-[10px] text-gray-400 font-semibold mt-1">
-                    Rp {cust.totalSpent.toLocaleString("id-ID")}
-                  </p>
-                </div>
+        <div className="pt-5 border-t border-gray-100 dark:border-gray-800 space-y-4">
+          {/* Header section & Controls Filter/Search */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-blue-500 shrink-0" />
+                <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                  Frekuensi Pesanan & Minat Produk Pelanggan
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                  {summary.customerStats.length} Pelanggan
+                </span>
               </div>
-            ))}
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                Cari pelanggan & temukan produk pakaian favorit yang paling sering mereka beli
+              </p>
+            </div>
+
+            {/* Filter Tools: Search bar & Sort dropdown */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Search input */}
+              <div className="relative">
+                <Search size={13} className="absolute left-2.5 top-2.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama atau email..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-blue-500 w-44 sm:w-52"
+                />
+              </div>
+
+              {/* Sort selector */}
+              <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex items-center text-xs">
+                <span className="text-gray-400 px-1.5 text-[11px] flex items-center gap-1">
+                  <ArrowUpDown size={12} /> Urut:
+                </span>
+                <button
+                  onClick={() => setCustomerSort("orders")}
+                  className={`px-2 py-1 rounded-lg font-medium transition-all text-[11px] ${
+                    customerSort === "orders"
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold"
+                      : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+                  }`}
+                >
+                  Pesanan
+                </button>
+                <button
+                  onClick={() => setCustomerSort("spent")}
+                  className={`px-2 py-1 rounded-lg font-medium transition-all text-[11px] ${
+                    customerSort === "spent"
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold"
+                      : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+                  }`}
+                >
+                  Omset
+                </button>
+                <button
+                  onClick={() => setCustomerSort("name")}
+                  className={`px-2 py-1 rounded-lg font-medium transition-all text-[11px] ${
+                    customerSort === "name"
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold"
+                      : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+                  }`}
+                >
+                  Nama
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Customer Cards List */}
+          {filteredCustomerStats.length === 0 ? (
+            <div className="py-8 text-center text-gray-400 text-xs bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+              Tidak ada pelanggan ditemukan dengan kata kunci &quot;{customerSearch}&quot;.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-80 overflow-y-auto pr-1">
+              {filteredCustomerStats.map((cust, idx) => (
+                <div
+                  key={idx}
+                  className="bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800/80 flex flex-col justify-between hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-all shadow-2xs space-y-2.5"
+                >
+                  {/* Top Row: User Info & Order Count Badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <User size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                          {cust.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Mail size={11} className="text-gray-400 shrink-0" />
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate font-mono">
+                          {cust.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">
+                        {cust.periodOrders}x Pesanan
+                      </span>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+                        Rp {cust.totalSpent.toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Favorite / Most Purchased Products Insights */}
+                  {cust.topProducts && cust.topProducts.length > 0 && (
+                    <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/60 space-y-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                        <Heart size={10} className="text-rose-500 fill-rose-500" /> Produk Paling Disukai:
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {cust.topProducts.map((p, pi) => (
+                          <span
+                            key={pi}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-700/80 rounded-md text-[10px] font-medium text-gray-800 dark:text-gray-200 shadow-2xs max-w-full truncate"
+                          >
+                            <PackageCheck size={10} className="text-blue-500 shrink-0" />
+                            <span className="truncate max-w-[120px]">{p.nama}</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">({p.jumlah}x)</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
