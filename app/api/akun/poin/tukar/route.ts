@@ -11,7 +11,26 @@ export async function POST(request: Request) {
     const { cost, reward } = await request.json();
     if (!cost || cost <= 0 || !reward) return NextResponse.json({ error: "Invalid cost/reward" }, { status: 400 });
 
-    const poin = await prisma.poin.findUnique({ where: { userId: user.id } });
+    const dbUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: user.id },
+          ...(user.email ? [{ email: user.email }] : [])
+        ]
+      }
+    });
+
+    const targetUserId = dbUser ? dbUser.id : user.id;
+
+    const poin = await prisma.poin.findFirst({
+      where: {
+        OR: [
+          { userId: user.id },
+          { userId: targetUserId }
+        ]
+      }
+    });
+
     if (!poin || poin.saldo < cost) {
       return NextResponse.json({ error: "Poin tidak mencukupi" }, { status: 400 });
     }
@@ -20,11 +39,11 @@ export async function POST(request: Request) {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Kurangi poin
       const updatedPoin = await tx.poin.update({
-        where: { userId: user.id },
+        where: { id: poin.id },
         data: { saldo: poin.saldo - cost }
       });
 
-      // 2. Tentukan nilai berdasarkan title reward (Hardcoded for demo)
+      // 2. Tentukan nilai berdasarkan title reward
       let nilai = 0;
       if (reward.type === "discount" && reward.title.includes("20.000")) nilai = 20000;
       else if (reward.type === "discount" && reward.title.includes("50.000")) nilai = 50000;
@@ -36,7 +55,7 @@ export async function POST(request: Request) {
       // 4. Masukkan ke VoucherUser
       const newVoucher = await tx.voucherUser.create({
         data: {
-          userId: user.id,
+          userId: targetUserId,
           kode: kodeUnik,
           judul: reward.title,
           tipe: reward.type,
@@ -54,4 +73,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Gagal menukar poin" }, { status: 500 });
   }
 }
-

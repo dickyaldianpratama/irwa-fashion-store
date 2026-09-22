@@ -9,15 +9,21 @@ export async function GET() {
 
     if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // 1. Ensure user exists in Prisma DB
-    let dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    // 1. Ensure user exists in Prisma DB by ID or Email
+    let dbUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: user.id },
+          ...(user.email ? [{ email: user.email }] : [])
+        ]
+      }
+    });
+
     if (!dbUser) {
       const email = user.email || `${user.id}@customer.com`;
       const name = user.user_metadata?.full_name || email.split("@")[0] || "Customer";
-      dbUser = await prisma.user.upsert({
-        where: { id: user.id },
-        update: {},
-        create: {
+      dbUser = await prisma.user.create({
+        data: {
           id: user.id,
           email,
           name,
@@ -26,13 +32,26 @@ export async function GET() {
       });
     }
 
-    // 2. Inisialisasi awal poin (saldo: 0, level: BRONZE) jika belum ada
-    let poin = await prisma.poin.findUnique({ where: { userId: user.id } });
-    
+    // 2. Cari Poin berdasarkan user.id ATAU dbUser.id
+    let poin = await prisma.poin.findFirst({
+      where: {
+        OR: [
+          { userId: user.id },
+          { userId: dbUser.id }
+        ]
+      }
+    });
+
     if (!poin) {
       poin = await prisma.poin.create({
-        data: { userId: user.id, saldo: 0, levelMember: "BRONZE" }
+        data: { userId: dbUser.id, saldo: 0, levelMember: "BRONZE" }
       });
+    } else if (poin.userId !== user.id) {
+      // Pastikan userId pada tabel Poin selalu tersinkron dengan user.id Supabase
+      poin = await prisma.poin.update({
+        where: { id: poin.id },
+        data: { userId: user.id }
+      }).catch(() => poin);
     }
 
     return NextResponse.json({ success: true, data: poin });
@@ -41,4 +60,3 @@ export async function GET() {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
