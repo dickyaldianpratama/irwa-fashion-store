@@ -6,19 +6,49 @@ import { useAuthStore } from "@/store/authStore";
 import Sidebar from "@/components/layout/Sidebar";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 
+import { createClient } from "@/lib/supabase";
+import { useWishlistStore } from "@/store/wishlistStore";
+import { useCartStore } from "@/store/cartStore";
+
 export default function AkunLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, login, logout, user } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
-    // Proteksi Rute: Jika belum login, tendang ke halaman login
-    if (!isLoggedIn) {
-      router.push("/login");
-    }
-  }, [isLoggedIn, router]);
+    const verifySession = async () => {
+      try {
+        const { data: { user: sbUser }, error } = await supabase.auth.getUser();
+
+        if (error || !sbUser) {
+          logout();
+          useWishlistStore.getState().clearWishlist();
+          useCartStore.getState().clearCart();
+          router.push("/login");
+          return;
+        }
+
+        // Sync Zustand auth state with active Supabase session
+        if (!user || user.id !== sbUser.id || user.email !== sbUser.email) {
+          const fullName = sbUser.user_metadata?.full_name || sbUser.email?.split("@")[0] || "Customer";
+          login({
+            id: sbUser.id,
+            name: fullName,
+            email: sbUser.email || "",
+          });
+        }
+      } catch (e) {
+        if (!isLoggedIn) {
+          router.push("/login");
+        }
+      }
+    };
+
+    verifySession();
+  }, [isLoggedIn, router, user]);
 
   if (!mounted || !isLoggedIn) {
     return (

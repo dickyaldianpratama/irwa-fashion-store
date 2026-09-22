@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
@@ -23,6 +24,22 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { logout, user } = useAuthStore();
   const supabase = createClient();
+  const [memberLevel, setMemberLevel] = useState<string>("BRONZE");
+
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      try {
+        const res = await fetch("/api/akun/poin", { cache: "no-store" });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData?.data?.levelMember) {
+            setMemberLevel(resData.data.levelMember);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchMemberData();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -35,6 +52,9 @@ export default function Sidebar() {
     window.location.href = "/login";
   };
 
+  const formattedLevel =
+    memberLevel.charAt(0).toUpperCase() + memberLevel.slice(1).toLowerCase();
+
   return (
     <div className="bg-white md:rounded-2xl shadow-sm border-b md:border border-gray-100 md:overflow-hidden md:sticky md:top-24 mb-6 md:mb-0">
       <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-4">
@@ -42,8 +62,12 @@ export default function Sidebar() {
           {user?.name?.charAt(0) || "U"}
         </div>
         <div className="overflow-hidden">
-          <h3 className="font-bold text-gray-900 truncate text-sm md:text-base">{user?.name || "Customer"}</h3>
-          <p className="text-xs text-gray-500">Member Bronze</p>
+          <h3 className="font-bold text-gray-900 truncate text-sm md:text-base">
+            {user?.name || "Customer"}
+          </h3>
+          <p className="text-xs font-semibold text-amber-600 dark:text-amber-500">
+            Member {formattedLevel}
+          </p>
         </div>
       </div>
       
