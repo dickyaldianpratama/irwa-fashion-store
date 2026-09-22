@@ -60,15 +60,17 @@ export default function ProfilPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Gagal menyimpan profil.");
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Gagal menyimpan profil.");
 
+      const updatedName = resData.data?.name || formData.name;
       if (user) {
-        login({ ...user, name: formData.name });
+        login({ ...user, name: updatedName });
       }
 
       toast.success("Profil berhasil diperbarui!");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || "Terjadi kesalahan saat menyimpan profil.");
     } finally {
       setIsSaving(false);
     }

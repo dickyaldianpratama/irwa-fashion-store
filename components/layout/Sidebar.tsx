@@ -70,7 +70,7 @@ export default function Sidebar() {
   const formattedLevel =
     memberLevel.charAt(0).toUpperCase() + memberLevel.slice(1).toLowerCase();
 
-  const displayName = profileName || user?.name || "Customer";
+  const displayName = user?.name || profileName || "Customer";
 
   return (
     <div className="bg-white md:rounded-2xl shadow-sm border-b md:border border-gray-100 md:overflow-hidden md:sticky md:top-24 mb-6 md:mb-0">
