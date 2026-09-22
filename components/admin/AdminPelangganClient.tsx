@@ -23,9 +23,15 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 export interface CustomerData {
   id: string;
@@ -76,6 +82,49 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
   const [sortBy, setSortBy] = useState<"newest" | "spent" | "orders" | "name">("newest");
   
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteCustomer = async (customer: CustomerData) => {
+    const result = await MySwal.fire({
+      title: "Hapus / Blokir Pelanggan?",
+      html: `Apakah Anda yakin ingin menghapus pelanggan <b>${customer.name}</b> (${customer.email}) secara permanen dari database?<br/><br/><span class="text-xs text-red-500 font-semibold">Seluruh data akun, riwayat pesanan, alamat, wishlist, dan poin pelanggan ini akan terhapus otomatis dari database.</span>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Hapus Permanen!",
+      cancelButtonText: "Batal",
+      customClass: {
+        popup: "rounded-2xl dark:bg-gray-900 dark:text-white",
+        title: "dark:text-white",
+        htmlContainer: "dark:text-gray-300",
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    setDeletingId(customer.id);
+    try {
+      const res = await fetch(`/api/admin/pelanggan?id=${customer.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal menghapus pelanggan");
+      }
+
+      toast.success("Pelanggan berhasil dihapus permanen dari database");
+      setCustomers((prev) => prev.filter((c) => c.id !== customer.id));
+      if (selectedCustomer?.id === customer.id) {
+        setSelectedCustomer(null);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Gagal menghapus pelanggan");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Filter & Sort Logic
   const filteredCustomers = customers
@@ -394,12 +443,26 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => setSelectedCustomer(c)}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-300 rounded-xl font-bold transition-all inline-flex items-center gap-1.5"
-                        >
-                          <Eye size={13} /> Detail
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => setSelectedCustomer(c)}
+                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-300 rounded-xl font-bold transition-all inline-flex items-center gap-1.5"
+                          >
+                            <Eye size={13} /> Detail
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCustomer(c)}
+                            disabled={deletingId === c.id}
+                            className="p-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/60 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 rounded-xl font-bold transition-all inline-flex items-center justify-center disabled:opacity-50"
+                            title="Hapus Pelanggan"
+                          >
+                            {deletingId === c.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -462,6 +525,18 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
                   className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
                 >
                   <Mail size={14} /> Salin Email
+                </button>
+                <button
+                  onClick={() => handleDeleteCustomer(selectedCustomer)}
+                  disabled={deletingId === selectedCustomer.id}
+                  className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                >
+                  {deletingId === selectedCustomer.id ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                  Hapus Pelanggan
                 </button>
               </div>
 

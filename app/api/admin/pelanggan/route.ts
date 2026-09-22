@@ -97,3 +97,60 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser || dbUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get("id");
+
+    if (!customerId) {
+      return NextResponse.json({ error: "Customer ID required" }, { status: 400 });
+    }
+
+    if (customerId === user.id) {
+      return NextResponse.json({ error: "Tidak dapat menghapus akun admin diri sendiri!" }, { status: 400 });
+    }
+
+    // Hapus data pelanggan dan seluruh relasi terkait secara aman dalam transaksi database
+    await prisma.$transaction([
+      prisma.wishlist.deleteMany({ where: { userId: customerId } }),
+      prisma.voucherUser.deleteMany({ where: { userId: customerId } }),
+      prisma.ulasan.deleteMany({ where: { userId: customerId } }),
+      prisma.ukuranUser.deleteMany({ where: { userId: customerId } }),
+      prisma.alamat.deleteMany({ where: { userId: customerId } }),
+      prisma.poin.deleteMany({ where: { userId: customerId } }),
+      prisma.itemPesanan.deleteMany({
+        where: { pesanan: { userId: customerId } },
+      }),
+      prisma.alterasiRequest.deleteMany({
+        where: { pesanan: { userId: customerId } },
+      }),
+      prisma.pesanan.deleteMany({ where: { userId: customerId } }),
+      prisma.user.delete({ where: { id: customerId } }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      message: "Pelanggan berhasil dihapus permanen dari database",
+    });
+  } catch (error: any) {
+    console.error("Error deleting customer:", error);
+    return NextResponse.json(
+      { error: error.message || "Gagal menghapus pelanggan" },
+      { status: 500 }
+    );
+  }
+}
+
