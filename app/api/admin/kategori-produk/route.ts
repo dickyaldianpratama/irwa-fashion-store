@@ -1,16 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase-server";
+import { checkAdminAuth } from "@/lib/admin-auth";
 import prisma from "@/lib/prisma";
-
-async function checkAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!dbUser || dbUser.role !== "ADMIN") return null;
-  return dbUser;
-}
 
 // GET — ambil semua kategori
 export async function GET() {
@@ -28,8 +19,8 @@ export async function GET() {
 // POST — buat kategori baru
 export async function POST(request: Request) {
   try {
-    const admin = await checkAdmin();
-    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { isAdmin } = await checkAdminAuth();
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
     const { nama, image } = await request.json();
     if (!nama || !nama.trim()) {
@@ -64,8 +55,8 @@ export async function POST(request: Request) {
 // PATCH — update nama dan/atau gambar kategori
 export async function PATCH(request: Request) {
   try {
-    const admin = await checkAdmin();
-    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { isAdmin } = await checkAdminAuth();
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
     const { id, nama, image, slug } = await request.json();
     if (!id) return NextResponse.json({ error: "ID kategori diperlukan" }, { status: 400 });
@@ -90,8 +81,8 @@ export async function PATCH(request: Request) {
 // DELETE — hapus kategori
 export async function DELETE(request: Request) {
   try {
-    const admin = await checkAdmin();
-    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { isAdmin } = await checkAdminAuth();
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
     const { id } = await request.json();
     if (!id) return NextResponse.json({ error: "ID kategori diperlukan" }, { status: 400 });

@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { checkAdminAuth } from "@/lib/admin-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
@@ -15,10 +16,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cek auth user
+    // Cek auth (bisa via Admin Session token atau Supabase User)
+    const { isAdmin } = await checkAdminAuth();
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!isAdmin && !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Admin client untuk bypass RLS di storage
     const adminClient = createAdminClient(supabaseUrl, serviceRoleKey);

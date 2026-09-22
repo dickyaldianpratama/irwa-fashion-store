@@ -1,17 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase-server";
+import { checkAdminAuth } from "@/lib/admin-auth";
 import prisma from "@/lib/prisma";
-
-// Helper: cek admin
-async function checkAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!dbUser || dbUser.role !== "ADMIN") return null;
-  return dbUser;
-}
 
 // GET — ambil semua look
 export async function GET() {
@@ -39,8 +29,8 @@ export async function GET() {
 // POST — buat look baru
 export async function POST(request: Request) {
   try {
-    const admin = await checkAdmin();
-    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { isAdmin } = await checkAdminAuth();
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
     const { title, deskripsi, image, totalHarga, produkIds } = await request.json();
 
