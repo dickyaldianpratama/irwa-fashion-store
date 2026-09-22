@@ -17,39 +17,12 @@ export default function WishlistPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Sync with server if logged in
-    fetch("/api/akun/wishlist")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((resData) => {
-        if (resData?.data && Array.isArray(resData.data)) {
-          const addStoreItem = useWishlistStore.getState().addItem;
-          resData.data.forEach((w: any) => {
-            if (w.produk) {
-              const p = w.produk;
-              const imgUrl = p.images?.[0]?.url || "https://images.unsplash.com/photo-1593998066526-65fcab3021a2?q=80&w=600";
-              addStoreItem({
-                id: p.id,
-                type: "produk",
-                nama: p.nama,
-                link: `/produk/${p.slug}`,
-                harga: p.hargaDiskon || p.hargaAsli || 0,
-                hargaAsli: p.hargaAsli,
-                gambar: imgUrl,
-                kategori: p.kategori?.nama || "Pakaian",
-                stok: 10,
-              });
-            }
-          });
-        }
-      })
-      .catch(() => {});
+    useWishlistStore.getState().fetchWishlist();
   }, []);
 
   const handleRemove = (id: string) => {
     removeItem(id);
     toast.success("Dihapus dari Wishlist");
-    // Sync delete to server if logged in
-    fetch(`/api/akun/wishlist?produkId=${id}`, { method: "DELETE" }).catch(() => {});
   };
 
   const handleAddToCart = (item: WishlistItem) => {

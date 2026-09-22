@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { createClient } from "@/lib/supabase";
 
+import { useWishlistStore } from "@/store/wishlistStore";
+
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +57,9 @@ export default function LoginPage() {
       } catch (err) {
         console.error("Sync user error on login:", err);
       }
+
+      // Fetch user's persistent wishlist from PostgreSQL database
+      useWishlistStore.getState().fetchWishlist();
 
       setIsLoading(false);
       toast.success(`Selamat datang kembali, ${fullName}!`);

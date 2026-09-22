@@ -50,8 +50,16 @@ export default function Header() {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
+    
+    // Sync wishlist from database if logged in
+    if (isLoggedInState) {
+      useWishlistStore.getState().fetchWishlist();
+    } else {
+      useWishlistStore.getState().clearWishlist();
+    }
+
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isLoggedInState]);
 
   const totalWishlistItems = useWishlistStore((state) => state.items.length);
   const cartCount = mounted ? totalCartItems : 0;
