@@ -60,7 +60,7 @@ export async function GET(request: Request) {
 
     const validStatuses: StatusPesanan[] = ["DELIVERED", "SHIPPED", "READY_FOR_PICKUP", "PROCESSING", "PAID"];
 
-    const [allOrders, userLifetimeOrders] = await Promise.all([
+    const [allOrders, userLifetimeOrders, allCustomerUsers] = await Promise.all([
       prisma.pesanan.findMany({
         where: {
           createdAt: {
@@ -111,6 +111,26 @@ export async function GET(request: Request) {
           statusPesanan: { in: validStatuses },
         },
       }),
+      prisma.user.findMany({
+        where: { role: "CUSTOMER" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          wishlist: {
+            orderBy: { createdAt: "desc" },
+            select: {
+              produk: {
+                select: {
+                  id: true,
+                  nama: true,
+                  images: { where: { isUtama: true }, take: 1, select: { url: true } }
+                }
+              }
+            }
+          }
+        }
+      })
     ]);
 
     const lifetimeMap = new Map<string, number>();
@@ -152,72 +172,49 @@ export async function GET(request: Request) {
       statusBreakdown[o.statusPesanan] = (statusBreakdown[o.statusPesanan] || 0) + 1;
     });
 
-    // Customer Ordering Frequency & Favorite Products Breakdown
+    // Customer Ordering Frequency & Favorite Products / Wishlist Breakdown
     interface CustomerProduct {
       nama: string;
       jumlah: number;
       image: string;
     }
 
-    const customerMap = new Map<string, {
-      userId: string;
-      email: string;
-      name: string;
-      periodOrders: number;
-      lifetimeOrders: number;
-      totalSpent: number;
-      productsMap: Map<string, CustomerProduct>;
-    }>();
+    const customerStats = allCustomerUsers.map((user) => {
+      const uOrders = currentOrders.filter((o) => o.userId === user.id && validStatuses.includes(o.statusPesanan));
+      const periodOrders = uOrders.length;
+      const totalSpent = uOrders.reduce((sum, o) => sum + o.totalHarga, 0);
+      const lifetimeOrders = lifetimeMap.get(user.id) || periodOrders;
+      const wishItems = user.wishlist.map((w) => ({
+        nama: w.produk.nama,
+        image: w.produk.images?.[0]?.url || "",
+      }));
 
-    currentOrders.forEach((o) => {
-      if (validStatuses.includes(o.statusPesanan)) {
-        const email = o.user?.email || "Tanpa Email";
-        const name = o.user?.name || "Pelanggan";
-        const key = `${email.toLowerCase()}___${name.toLowerCase()}`;
-        const lifetime = lifetimeMap.get(o.userId) || 1;
+      const pMap = new Map<string, CustomerProduct>();
+      uOrders.forEach((o) => {
+        o.items?.forEach((it) => {
+          const pName = it.varian?.produk?.nama || "Produk";
+          const img = it.gambar || it.varian?.produk?.images?.[0]?.url || "";
+          if (!pMap.has(pName)) {
+            pMap.set(pName, { nama: pName, jumlah: 0, image: img });
+          }
+          pMap.get(pName)!.jumlah += it.jumlah;
+        });
+      });
 
-        if (!customerMap.has(key)) {
-          customerMap.set(key, {
-            userId: o.userId,
-            email,
-            name,
-            periodOrders: 0,
-            lifetimeOrders: lifetime,
-            totalSpent: 0,
-            productsMap: new Map(),
-          });
-        }
-
-        const c = customerMap.get(key)!;
-        c.periodOrders += 1;
-        c.totalSpent += o.totalHarga;
-
-        if (o.items && o.items.length > 0) {
-          o.items.forEach((it) => {
-            const pName = it.varian?.produk?.nama || "Produk";
-            const img = it.gambar || it.varian?.produk?.images?.[0]?.url || "";
-            if (!c.productsMap.has(pName)) {
-              c.productsMap.set(pName, { nama: pName, jumlah: 0, image: img });
-            }
-            c.productsMap.get(pName)!.jumlah += it.jumlah;
-          });
-        }
-      }
-    });
-
-    const customerStats = Array.from(customerMap.values())
-      .map((c) => ({
-        userId: c.userId,
-        email: c.email,
-        name: c.name,
-        periodOrders: c.periodOrders,
-        lifetimeOrders: c.lifetimeOrders,
-        totalSpent: c.totalSpent,
-        topProducts: Array.from(c.productsMap.values())
+      return {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        periodOrders,
+        lifetimeOrders,
+        totalSpent,
+        wishlistCount: wishItems.length,
+        wishlistProducts: wishItems,
+        topProducts: Array.from(pMap.values())
           .sort((a, b) => b.jumlah - a.jumlah)
           .slice(0, 3)
-      }))
-      .sort((a, b) => b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent);
+      };
+    }).sort((a, b) => b.wishlistCount - a.wishlistCount || b.periodOrders - a.periodOrders || b.totalSpent - a.totalSpent);
 
     // Generate buckets timeline
     interface TimelineBucket {

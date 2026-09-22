@@ -17,6 +17,7 @@ import {
   Calendar,
   Eye,
   X,
+  Heart,
   ExternalLink,
   MessageCircle,
   Clock,
@@ -43,6 +44,14 @@ export interface CustomerData {
   createdAt: string;
   poin: number;
   levelMember: string;
+  wishlistCount?: number;
+  wishlistItems?: {
+    id: string;
+    nama: string;
+    harga: number;
+    gambar: string;
+    addedAt: string;
+  }[];
   ukuran?: {
     tinggiBadan?: number | null;
     beratBadan?: number | null;
@@ -390,14 +399,19 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
                             <p className="font-bold text-gray-900 dark:text-white text-xs">
                               {c.name}
                             </p>
-                            <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                              <Calendar size={10} /> Joined{" "}
-                              {new Date(c.createdAt).toLocaleDateString("id-ID", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </p>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <p className="text-[11px] text-gray-400 flex items-center gap-1">
+                                <Calendar size={10} /> Joined{" "}
+                                {new Date(c.createdAt).toLocaleDateString("id-ID", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-1.5 py-0.5 rounded-md border border-rose-100 dark:border-rose-900/40">
+                                <Heart size={10} className="fill-rose-500 text-rose-500" /> {c.wishlistCount || 0} Favorit
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -643,6 +657,45 @@ export default function AdminPelangganClient({ initialCustomers }: AdminPelangga
                   <p className="text-xs text-gray-400 italic">
                     Belum mengisi profil ukuran tubuh.
                   </p>
+                )}
+              </div>
+
+              {/* Produk Favorit / Wishlist Pelanggan */}
+              <div>
+                <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                  <Heart size={14} className="text-rose-500 fill-rose-500" /> Produk Favorit / Wishlist ({(selectedCustomer.wishlistCount || 0)} Produk)
+                </h3>
+                {!selectedCustomer.wishlistItems || selectedCustomer.wishlistItems.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Belum menyukai / menambahkan produk ke wishlist.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {selectedCustomer.wishlistItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2.5 p-2 bg-rose-50/40 dark:bg-rose-950/20 rounded-xl border border-rose-100 dark:border-rose-900/30"
+                      >
+                        {item.gambar ? (
+                          <img
+                            src={item.gambar}
+                            alt={item.nama}
+                            className="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-200/60 dark:border-gray-700/60"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0 text-gray-400">
+                            <Heart size={16} />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-gray-900 dark:text-white truncate text-xs">
+                            {item.nama}
+                          </p>
+                          <p className="text-rose-600 dark:text-rose-400 font-bold text-[11px] mt-0.5">
+                            Rp {item.harga.toLocaleString("id-ID")}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 

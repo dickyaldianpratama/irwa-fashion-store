@@ -34,6 +34,8 @@ interface CustomerStat {
   periodOrders: number;
   lifetimeOrders?: number;
   totalSpent: number;
+  wishlistCount?: number;
+  wishlistProducts?: { nama: string; image?: string }[];
   topProducts?: CustomerProduct[];
 }
 
@@ -610,21 +612,44 @@ export default function SalesChart({ initialRange = "30d", initialData }: SalesC
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-2xs">
                         {cust.periodOrders}x Pesanan
                       </span>
-                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40">
+                        <Heart size={10} className="fill-rose-500 text-rose-500" /> {cust.wishlistCount || 0} Wishlist
+                      </span>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
                         Rp {cust.totalSpent.toLocaleString("id-ID")}
                       </p>
                     </div>
                   </div>
 
-                  {/* Favorite / Most Purchased Products Insights */}
-                  {cust.topProducts && cust.topProducts.length > 0 && (
+                  {/* Wishlist Produk Disukai */}
+                  {cust.wishlistProducts && cust.wishlistProducts.length > 0 && (
                     <div className="pt-2 border-t border-gray-200/60 dark:border-gray-700/60 space-y-1">
+                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1">
+                        <Heart size={10} className="text-rose-500 fill-rose-500" /> Wishlist Disukai ({cust.wishlistCount} Produk):
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {cust.wishlistProducts.map((p, pi) => (
+                          <span
+                            key={pi}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/40 rounded-md text-[10px] font-medium text-rose-800 dark:text-rose-200 shadow-2xs max-w-full truncate"
+                          >
+                            <Heart size={9} className="fill-rose-500 text-rose-500 shrink-0" />
+                            <span className="truncate max-w-[130px]">{p.nama}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Most Purchased Products */}
+                  {cust.topProducts && cust.topProducts.length > 0 && (
+                    <div className="pt-1.5 border-t border-gray-200/60 dark:border-gray-700/60 space-y-1">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                        <Heart size={10} className="text-rose-500 fill-rose-500" /> Produk Paling Disukai:
+                        <PackageCheck size={10} className="text-blue-500" /> Produk Sering Dibeli:
                       </span>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {cust.topProducts.map((p, pi) => (

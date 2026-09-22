@@ -16,6 +16,20 @@ export async function GET(request: Request) {
       include: {
         poin: true,
         ukuran: true,
+        wishlist: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            produk: {
+              select: {
+                id: true,
+                nama: true,
+                hargaAsli: true,
+                hargaDiskon: true,
+                images: { where: { isUtama: true }, take: 1, select: { url: true } },
+              },
+            },
+          },
+        },
         alamat: {
           orderBy: { isUtama: "desc" },
           take: 3,
@@ -50,6 +64,14 @@ export async function GET(request: Request) {
         createdAt: c.createdAt.toISOString(),
         poin: c.poin ? c.poin.saldo : 0,
         levelMember: c.poin ? c.poin.levelMember : "BRONZE",
+        wishlistCount: c.wishlist.length,
+        wishlistItems: c.wishlist.map((w) => ({
+          id: w.produk.id,
+          nama: w.produk.nama,
+          harga: w.produk.hargaDiskon || w.produk.hargaAsli,
+          gambar: w.produk.images?.[0]?.url || "",
+          addedAt: w.createdAt.toISOString(),
+        })),
         ukuran: c.ukuran ? {
           tinggiBadan: c.ukuran.tinggiBadan,
           beratBadan: c.ukuran.beratBadan,
