@@ -168,7 +168,7 @@ export default function ShopTheLookDetailClient({ look }: Props) {
           {/* Left Column: Compact Main Image Preview & 5 Thumbnail Grid */}
           <div className="md:col-span-5 p-3 sm:p-4 bg-gray-50/70 dark:bg-gray-800/40 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800">
             {/* Main Image Box */}
-            <div className="relative w-full aspect-[4/5] rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shadow-xs">
+            <div className="relative w-full h-48 sm:h-60 md:h-auto md:aspect-[4/5] rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shadow-xs">
               {activeImage ? (
                 <Image
                   src={activeImage}
