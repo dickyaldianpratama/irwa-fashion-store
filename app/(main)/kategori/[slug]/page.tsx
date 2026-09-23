@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ChevronRight, ArrowLeft, Layers, ShoppingBag } from "lucide-react";
 import ProductCard, { ProductType } from "@/components/produk/ProductCard";
 import KoleksiCard from "@/components/beranda/KoleksiCard";
@@ -12,11 +11,29 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-  const cat =
-    (await prisma.kategori.findFirst({ where: { slug: decodedSlug } })) ||
-    (await prisma.kategoriPilihan.findFirst({ where: { slug: decodedSlug } }));
+  const cleanName = decodedSlug.replace(/-/g, " ");
 
-  const name = cat ? cat.nama : decodedSlug.replace(/-/g, " ");
+  const cat =
+    (await prisma.kategori.findFirst({
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: decodedSlug.toLowerCase() },
+          { nama: { equals: cleanName, mode: "insensitive" } },
+        ],
+      },
+    })) ||
+    (await prisma.kategoriPilihan.findFirst({
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: decodedSlug.toLowerCase() },
+          { nama: { equals: cleanName, mode: "insensitive" } },
+        ],
+      },
+    }));
+
+  const name = cat ? cat.nama : cleanName;
   return {
     title: `Kategori ${name} | Irwa Fashion`,
     description: `Jelajahi berbagai pilihan ${name} terbaik dan tren terbaru di Irwa Fashion.`,
@@ -26,11 +43,19 @@ export async function generateMetadata({ params }: Props) {
 export default async function KategoriDetailPage({ params }: Props) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
+  const cleanName = decodedSlug.replace(/-/g, " ");
 
-  // Cari di Kategori atau KategoriPilihan
+  // Cari di Kategori atau KategoriPilihan dengan berbagai opsi pencarian
   const [kategoriDb, kategoriPilihanDb] = await Promise.all([
     prisma.kategori.findFirst({
-      where: { slug: decodedSlug },
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: decodedSlug.toLowerCase() },
+          { nama: { equals: cleanName, mode: "insensitive" } },
+          { nama: { contains: cleanName, mode: "insensitive" } },
+        ],
+      },
       include: {
         produk: {
           include: {
@@ -42,18 +67,25 @@ export default async function KategoriDetailPage({ params }: Props) {
       },
     }),
     prisma.kategoriPilihan.findFirst({
-      where: { slug: decodedSlug },
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: decodedSlug.toLowerCase() },
+          { nama: { equals: cleanName, mode: "insensitive" } },
+          { nama: { contains: cleanName, mode: "insensitive" } },
+        ],
+      },
     }),
   ]);
 
   const categoryName =
     kategoriDb?.nama ||
     kategoriPilihanDb?.nama ||
-    decodedSlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    cleanName.replace(/\b\w/g, (l) => l.toUpperCase());
 
-  // Ambil produk terkait jika ada
+  // Ambil produk dari kategori relation
   let products: ProductType[] = [];
-  if (kategoriDb?.produk) {
+  if (kategoriDb?.produk && kategoriDb.produk.length > 0) {
     products = kategoriDb.produk.map((p: any) => {
       const mainImg =
         p.images[0]?.url ||
@@ -70,6 +102,43 @@ export default async function KategoriDetailPage({ params }: Props) {
         badges: p.hargaDiskon ? ["SALE"] : undefined,
       };
     });
+  } else {
+    // Fallback: Cari produk langsung yang mengandung nama kategori atau slug
+    const directProducts = await prisma.produk.findMany({
+      where: {
+        OR: [
+          { kategori: { nama: { contains: categoryName, mode: "insensitive" } } },
+          { kategori: { slug: { contains: decodedSlug, mode: "insensitive" } } },
+          { nama: { contains: categoryName, mode: "insensitive" } },
+          { nama: { contains: cleanName, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        images: { where: { isUtama: true }, take: 1 },
+        kategori: true,
+      },
+      orderBy: { id: "desc" },
+      take: 20,
+    });
+
+    if (directProducts.length > 0) {
+      products = directProducts.map((p: any) => {
+        const mainImg =
+          p.images[0]?.url ||
+          "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600";
+        return {
+          id: p.id,
+          slug: p.slug,
+          name: p.nama,
+          image: mainImg,
+          price: p.hargaDiskon || p.hargaAsli,
+          originalPrice: p.hargaDiskon ? p.hargaAsli : undefined,
+          rating: p.rating || 4.8,
+          soldCount: p.terjual || 0,
+          badges: p.hargaDiskon ? ["SALE"] : undefined,
+        };
+      });
+    }
   }
 
   // Cari Koleksi Terpopuler yang relevan dengan nama kategori
@@ -77,6 +146,7 @@ export default async function KategoriDetailPage({ params }: Props) {
     where: {
       OR: [
         { title: { contains: categoryName, mode: "insensitive" } },
+        { title: { contains: cleanName, mode: "insensitive" } },
         { title: { contains: decodedSlug, mode: "insensitive" } },
       ],
     },
@@ -119,7 +189,7 @@ export default async function KategoriDetailPage({ params }: Props) {
                 {categoryName}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Koleksi dan pakaian pria pilihan kategori {categoryName}
+                Koleksi dan pakaian pilihan kategori {categoryName}
               </p>
             </div>
             <Link

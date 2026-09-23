@@ -47,7 +47,7 @@ export default async function KategoriPage() {
             {categories.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/produk?kategori=${cat.slug}`}
+                href={`/kategori/${cat.slug}`}
                 className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
               >
                 <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
