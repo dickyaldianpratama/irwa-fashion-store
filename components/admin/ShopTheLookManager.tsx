@@ -2,26 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, X, Loader2, ImageIcon, ShoppingBag, Sparkles, Shirt, Footprints, Glasses, CircleCheck } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Loader2, ImageIcon, ShoppingBag, Shirt, Footprints, Glasses, Sparkles, Link as LinkIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
-
-interface ProdukOption {
-  id: string;
-  nama: string;
-  hargaAsli: number;
-  hargaDiskon: number | null;
-  images: { url: string }[];
-}
-
-interface LookItem {
-  id: string;
-  produkId: string;
-  produk: ProdukOption;
-}
 
 interface Look {
   id: string;
@@ -29,12 +15,11 @@ interface Look {
   deskripsi: string | null;
   image: string;
   totalHarga: number;
-  items: LookItem[];
 }
 
 interface Props {
   looks: Look[];
-  allProducts: ProdukOption[];
+  allProducts?: any[];
 }
 
 const emptyForm = { 
@@ -42,14 +27,14 @@ const emptyForm = {
   deskripsi: "", 
   image: "", 
   totalHarga: "", 
-  bajuId: "",
-  celanaId: "",
-  aksesorisId: "",
-  sepatuId: "",
-  topiId: ""
+  bajuUrl: "",
+  celanaUrl: "",
+  aksesorisUrl: "",
+  sepatuUrl: "",
+  topiUrl: ""
 };
 
-export default function ShopTheLookManager({ looks: initialLooks, allProducts }: Props) {
+export default function ShopTheLookManager({ looks: initialLooks }: Props) {
   const [looks, setLooks] = useState<Look[]>(initialLooks);
   const [showModal, setShowModal] = useState(false);
   const [editingLook, setEditingLook] = useState<Look | null>(null);
@@ -63,65 +48,74 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
     setShowModal(true);
   };
 
+  const parseExternalItems = (desc: string | null) => {
+    if (!desc) return { mainDesc: "", baju: "", celana: "", aksesoris: "", sepatu: "", topi: "" };
+    
+    let mainDesc = desc;
+    let baju = "";
+    let celana = "";
+    let aksesoris = "";
+    let sepatu = "";
+    let topi = "";
+
+    const match = desc.match(/\[Items: (.*?)\]/);
+    if (match && match[1]) {
+      mainDesc = desc.replace(/\[Items: .*?\]/, "").trim();
+      const parts = match[1].split(" | ");
+      parts.forEach((p) => {
+        if (p.startsWith("Baju: ")) baju = p.replace("Baju: ", "");
+        if (p.startsWith("Celana: ")) celana = p.replace("Celana: ", "");
+        if (p.startsWith("Aksesori: ")) aksesoris = p.replace("Aksesori: ", "");
+        if (p.startsWith("Sepatu: ")) sepatu = p.replace("Sepatu: ", "");
+        if (p.startsWith("Topi: ")) topi = p.replace("Topi: ", "");
+      });
+    }
+
+    return { mainDesc, baju, celana, aksesoris, sepatu, topi };
+  };
+
   const openEdit = (look: Look) => {
     setEditingLook(look);
-    const itemIds = look.items ? look.items.map((i) => i.produkId) : [];
+    const parsed = parseExternalItems(look.deskripsi);
     setForm({
       title: look.title,
-      deskripsi: look.deskripsi || "",
+      deskripsi: parsed.mainDesc,
       image: look.image,
-      totalHarga: look.totalHarga.toString(),
-      bajuId: itemIds[0] || "",
-      celanaId: itemIds[1] || "",
-      aksesorisId: itemIds[2] || "",
-      sepatuId: itemIds[3] || "",
-      topiId: itemIds[4] || "",
+      totalHarga: look.totalHarga ? look.totalHarga.toString() : "",
+      bajuUrl: parsed.baju,
+      celanaUrl: parsed.celana,
+      aksesorisUrl: parsed.aksesoris,
+      sepatuUrl: parsed.sepatu,
+      topiUrl: parsed.topi,
     });
     setShowModal(true);
   };
 
-  const calculateAutoTotal = () => {
-    const selectedIds = [
-      form.bajuId,
-      form.celanaId,
-      form.aksesorisId,
-      form.sepatuId,
-      form.topiId,
-    ].filter(Boolean);
-
-    let sum = 0;
-    selectedIds.forEach((id) => {
-      const prod = allProducts.find((p) => p.id === id);
-      if (prod) {
-        sum += prod.hargaDiskon || prod.hargaAsli;
-      }
-    });
-
-    setForm((prev) => ({ ...prev, totalHarga: sum > 0 ? sum.toString() : prev.totalHarga }));
-    toast.success(`Total harga dihitung otomatis: Rp ${sum.toLocaleString("id-ID")}`);
-  };
-
   const handleSave = async () => {
     if (!form.title || !form.image) {
-      toast.error("Judul Look dan URL Gambar wajib diisi");
+      toast.error("Judul Look dan URL Gambar Utama wajib diisi");
       return;
     }
     setSaving(true);
     try {
-      const produkIds = [
-        form.bajuId,
-        form.celanaId,
-        form.aksesorisId,
-        form.sepatuId,
-        form.topiId,
-      ].filter(Boolean);
+      const itemsList = [
+        form.bajuUrl.trim() && `Baju: ${form.bajuUrl.trim()}`,
+        form.celanaUrl.trim() && `Celana: ${form.celanaUrl.trim()}`,
+        form.aksesorisUrl.trim() && `Aksesori: ${form.aksesorisUrl.trim()}`,
+        form.sepatuUrl.trim() && `Sepatu: ${form.sepatuUrl.trim()}`,
+        form.topiUrl.trim() && `Topi: ${form.topiUrl.trim()}`,
+      ].filter(Boolean).join(" | ");
+
+      const fullDeskripsi = form.deskripsi.trim()
+        ? `${form.deskripsi.trim()}${itemsList ? ` [Items: ${itemsList}]` : ''}`
+        : (itemsList ? `[Items: ${itemsList}]` : "");
 
       const payload = {
         title: form.title,
-        deskripsi: form.deskripsi,
+        deskripsi: fullDeskripsi,
         image: form.image,
         totalHarga: parseInt(form.totalHarga) || 0,
-        produkIds,
+        produkIds: [],
       };
 
       let res;
@@ -235,25 +229,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
               </div>
 
               {/* Card Footer / Actions */}
-              <div className="p-2.5 flex-1 flex flex-col justify-between gap-2">
-                {look.items && look.items.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                      {look.items.length} Item dalam Set:
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {look.items.map((item) => (
-                        <span
-                          key={item.id}
-                          className="text-[10px] bg-gray-50 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded truncate max-w-full"
-                        >
-                          {item.produk.nama}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+              <div className="p-2.5 flex-1 flex flex-col justify-end gap-2">
                 <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                   <button
                     onClick={() => openEdit(look)}
@@ -286,7 +262,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
                   {editingLook ? "Edit Paket Look Set" : "Buat Paket Look Set Baru"}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Gabungkan item Baju, Celana, Aksesori, Sepatu, dan Topi menjadi 1 paket set outfit utuh
+                  Input 5 URL/link gambar eksternal untuk Baju, Celana, Aksesori, Sepatu, dan Topi
                 </p>
               </div>
               <button
@@ -328,7 +304,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
               {/* URL Gambar Look Utuh */}
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  URL Gambar Utama Look (Foto Model / Peragaan 1 Set Utuh) *
+                  URL Gambar Utama Look (Foto Peragaan 1 Set Utuh dari Luar) *
                 </label>
                 <input
                   value={form.image}
@@ -344,141 +320,105 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
                 )}
               </div>
 
-              {/* SECTION: 5 Slot Item Penyusun Set Outfit */}
+              {/* SECTION: 5 Slot Input URL Eksternal Item Penyusun */}
               <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles size={14} className="text-amber-500" />
-                      5 Item Penyusun Paket Set Outfit
-                    </h4>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                      Pilih produk yang akan dipaketkan sebagai 1 set lengkap
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <LinkIcon size={14} className="text-blue-500" />
+                    Import 5 Link / URL Gambar Eksternal Item Set
+                  </h4>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Masukkan URL link gambar atau nama item dari luar (tidak mengambil dari database toko)
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {/* 1. Slot Baju / Atasan */}
+                  {/* 1. Baju */}
                   <div className="space-y-1 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
                     <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                      <Shirt size={14} className="text-blue-500" /> 1. Baju / Atasan
+                      <Shirt size={14} className="text-blue-500" /> 1. Baju / Atasan (URL / Link Luar)
                     </label>
-                    <select
-                      value={form.bajuId}
-                      onChange={(e) => setForm((p) => ({ ...p, bajuId: e.target.value }))}
+                    <input
+                      type="text"
+                      value={form.bajuUrl}
+                      onChange={(e) => setForm((p) => ({ ...p, bajuUrl: e.target.value }))}
+                      placeholder="https://... atau Nama Baju"
                       className="w-full p-2 bg-white dark:bg-gray-900 border rounded-lg dark:border-gray-700 text-xs"
-                    >
-                      <option value="">-- Pilih Produk Baju --</option>
-                      {allProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Rp {(p.hargaDiskon || p.hargaAsli).toLocaleString("id-ID")})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
-                  {/* 2. Slot Celana / Bawahan */}
+                  {/* 2. Celana */}
                   <div className="space-y-1 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
                     <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                      <Shirt size={14} className="text-indigo-500" /> 2. Celana / Bawahan
+                      <Shirt size={14} className="text-indigo-500" /> 2. Celana / Bawahan (URL / Link Luar)
                     </label>
-                    <select
-                      value={form.celanaId}
-                      onChange={(e) => setForm((p) => ({ ...p, celanaId: e.target.value }))}
+                    <input
+                      type="text"
+                      value={form.celanaUrl}
+                      onChange={(e) => setForm((p) => ({ ...p, celanaUrl: e.target.value }))}
+                      placeholder="https://... atau Nama Celana"
                       className="w-full p-2 bg-white dark:bg-gray-900 border rounded-lg dark:border-gray-700 text-xs"
-                    >
-                      <option value="">-- Pilih Produk Celana --</option>
-                      {allProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Rp {(p.hargaDiskon || p.hargaAsli).toLocaleString("id-ID")})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
-                  {/* 3. Slot Aksesori */}
+                  {/* 3. Aksesori */}
                   <div className="space-y-1 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
                     <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                      <Glasses size={14} className="text-emerald-500" /> 3. Aksesori (Jam/Kacamata/dll)
+                      <Glasses size={14} className="text-emerald-500" /> 3. Aksesori (URL / Link Luar)
                     </label>
-                    <select
-                      value={form.aksesorisId}
-                      onChange={(e) => setForm((p) => ({ ...p, aksesorisId: e.target.value }))}
+                    <input
+                      type="text"
+                      value={form.aksesorisUrl}
+                      onChange={(e) => setForm((p) => ({ ...p, aksesorisUrl: e.target.value }))}
+                      placeholder="https://... atau Nama Aksesori"
                       className="w-full p-2 bg-white dark:bg-gray-900 border rounded-lg dark:border-gray-700 text-xs"
-                    >
-                      <option value="">-- Pilih Produk Aksesori --</option>
-                      {allProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Rp {(p.hargaDiskon || p.hargaAsli).toLocaleString("id-ID")})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
-                  {/* 4. Slot Sepatu */}
+                  {/* 4. Sepatu */}
                   <div className="space-y-1 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
                     <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                      <Footprints size={14} className="text-purple-500" /> 4. Sepatu / Alas Kaki
+                      <Footprints size={14} className="text-purple-500" /> 4. Sepatu / Alas Kaki (URL / Link Luar)
                     </label>
-                    <select
-                      value={form.sepatuId}
-                      onChange={(e) => setForm((p) => ({ ...p, sepatuId: e.target.value }))}
+                    <input
+                      type="text"
+                      value={form.sepatuUrl}
+                      onChange={(e) => setForm((p) => ({ ...p, sepatuUrl: e.target.value }))}
+                      placeholder="https://... atau Nama Sepatu"
                       className="w-full p-2 bg-white dark:bg-gray-900 border rounded-lg dark:border-gray-700 text-xs"
-                    >
-                      <option value="">-- Pilih Produk Sepatu --</option>
-                      {allProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Rp {(p.hargaDiskon || p.hargaAsli).toLocaleString("id-ID")})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
-                  {/* 5. Slot Topi */}
+                  {/* 5. Topi */}
                   <div className="space-y-1 sm:col-span-2 bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/80">
                     <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                      <Sparkles size={14} className="text-rose-500" /> 5. Topi / Headwear
+                      <Sparkles size={14} className="text-rose-500" /> 5. Topi / Headwear (URL / Link Luar)
                     </label>
-                    <select
-                      value={form.topiId}
-                      onChange={(e) => setForm((p) => ({ ...p, topiId: e.target.value }))}
+                    <input
+                      type="text"
+                      value={form.topiUrl}
+                      onChange={(e) => setForm((p) => ({ ...p, topiUrl: e.target.value }))}
+                      placeholder="https://... atau Nama Topi"
                       className="w-full p-2 bg-white dark:bg-gray-900 border rounded-lg dark:border-gray-700 text-xs"
-                    >
-                      <option value="">-- Pilih Produk Topi --</option>
-                      {allProducts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama} (Rp {(p.hargaDiskon || p.hargaAsli).toLocaleString("id-ID")})
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Total Harga Set Paket */}
+              {/* Total Harga Set Paket (Input Manual Langsung) */}
               <div className="space-y-1.5 pt-3 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-gray-900 dark:text-white">
-                    Total Harga 1 Paket Set Lengkap (Rp) *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={calculateAutoTotal}
-                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                  >
-                    <Sparkles size={12} /> Hitung Otomatis Total Harga Item
-                  </button>
-                </div>
+                <label className="text-sm font-bold text-gray-900 dark:text-white">
+                  Total Harga 1 Paket Set Lengkap (Rp) - Input Manual *
+                </label>
                 <input
                   type="number"
                   value={form.totalHarga}
                   onChange={(e) => setForm((p) => ({ ...p, totalHarga: e.target.value }))}
                   className="w-full p-2.5 border rounded-lg text-sm dark:bg-gray-800 dark:border-gray-700 font-mono font-bold text-emerald-600 dark:text-emerald-400"
-                  placeholder="849997"
+                  placeholder="Contoh: 849997"
                 />
                 <p className="text-[11px] text-gray-400">
-                  Harga ini yang akan langsung tampil utuh ke customer sebagai 1 harga paket set tanpa memecah harga per produk.
+                  Tentukan langsung total harga paket set. Tidak ada hitungan otomatis atau rincian harga per barang.
                 </p>
               </div>
             </div>
