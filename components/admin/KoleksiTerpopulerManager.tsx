@@ -415,27 +415,27 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 </div>
               );
             })()}
-            <div className="p-3 flex-1 flex flex-col justify-between gap-2.5">
+            <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between gap-3">
               <div>
-                <h3 className="font-bold text-xs text-gray-900 dark:text-white leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-white leading-snug group-hover:text-primary transition-colors line-clamp-2">
                   {item.title}
                 </h3>
                 <div className="mt-1.5 flex flex-col font-mono">
                   {item.hargaDiskon ? (
                     <>
-                      <span className="text-[10px] text-gray-400 line-through">
+                      <span className="text-xs text-gray-400 line-through">
                         Rp {item.hargaAsli?.toLocaleString("id-ID")}
                       </span>
-                      <span className="font-black text-xs text-red-600 tracking-tight">
+                      <span className="font-black text-sm text-red-600 tracking-tight">
                         Rp {item.hargaDiskon.toLocaleString("id-ID")}
                       </span>
                     </>
                   ) : item.hargaAsli ? (
-                    <span className="font-black text-xs text-gray-900 dark:text-white tracking-tight">
+                    <span className="font-black text-sm text-gray-900 dark:text-white tracking-tight">
                       Rp {item.hargaAsli.toLocaleString("id-ID")}
                     </span>
                   ) : (
-                    <span className="text-[10px] text-gray-400 italic font-sans">
+                    <span className="text-xs text-gray-400 italic font-sans">
                       Harga belum diatur
                     </span>
                   )}
@@ -445,22 +445,22 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 {(() => {
                   const parsedItems = parseKoleksiItems(item);
                   return (
-                    <div className="mt-2 space-y-1 bg-gray-50/70 dark:bg-gray-800/40 p-2 rounded-xl border border-gray-200/60 dark:border-gray-800/80 text-[11px]">
-                      <p className="font-bold text-gray-400 text-[9px] uppercase tracking-wider">
+                    <div className="mt-2.5 space-y-1.5 bg-gray-50/80 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-200/70 dark:border-gray-800/80 text-xs">
+                      <p className="font-bold text-gray-500 dark:text-gray-400 text-[10px] sm:text-[11px] uppercase tracking-wider">
                         Stok per Foto & Ukuran:
                       </p>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {parsedItems.map((pi, pidx) => {
                           const pStok = pi.stok ?? 0;
                           return (
                             <span
                               key={pi.id || pidx}
-                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold border font-mono ${
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border font-mono ${
                                 pStok === 0
                                   ? "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-bold"
                                   : pStok <= 5
                                     ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-600 dark:text-amber-400"
-                                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
+                                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
                               }`}
                             >
                               <span>Size {pi.ukuran[0] || "-"}:</span>
@@ -474,10 +474,10 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                 })()}
 
                 {item.stok !== null && item.stok !== undefined && (
-                  <div className="mt-2 text-[11px] font-medium text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                  <div className="mt-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center justify-between">
                     <span>Total Stok:</span>
                     <span
-                      className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                      className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${
                         item.stok === 0
                           ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:border-red-900 dark:text-red-400 font-black"
                           : item.stok <= 5
@@ -490,23 +490,23 @@ export default function KoleksiTerpopulerManager({ koleksi }: Props) {
                   </div>
                 )}
               </div>
-              <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800/80 mt-auto">
+              <div className="flex gap-1.5 pt-2.5 border-t border-gray-100 dark:border-gray-800/80 mt-auto">
                 <button
                   onClick={() => openEdit(item)}
-                  className="flex-1 py-1.5 px-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  className="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Edit2 size={11} /> Edit
+                  <Edit2 size={12} /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(item)}
                   disabled={deletingId === item.id}
-                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                   title="Hapus Koleksi"
                 >
                   {deletingId === item.id ? (
-                    <Loader2 size={13} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    <Trash2 size={13} />
+                    <Trash2 size={14} />
                   )}
                 </button>
               </div>
