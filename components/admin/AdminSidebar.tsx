@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { 
   LayoutDashboard, 
@@ -11,11 +10,8 @@ import {
   ShoppingCart, 
   Users, 
   LogOut, 
-  Sun, 
-  Moon,
   Menu,
   X,
-  UserCircle,
   ExternalLink,
   ShieldCheck,
   ChevronRight
@@ -25,14 +21,11 @@ import toast from "react-hot-toast";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<{ name: string; email: string } | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    setMounted(true);
     // Fetch logged in user details
     const fetchUser = async () => {
       try {
@@ -197,26 +190,8 @@ export default function AdminSidebar() {
         </div>
       </nav>
 
-      {/* Footer / Theme Switcher & Admin Account Card */}
-      <div className="p-3.5 border-t border-gray-100 dark:border-gray-800/80 space-y-2.5 bg-gray-50/50 dark:bg-gray-900/50">
-        {/* Theme Toggle Button */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-        >
-          <div className="flex items-center gap-2.5">
-            {mounted && theme === "dark" ? (
-              <Sun size={16} className="text-amber-400" />
-            ) : (
-              <Moon size={16} className="text-indigo-500" />
-            )}
-            <span>{mounted && theme === "dark" ? "Mode Terang" : "Mode Gelap"}</span>
-          </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-200/80 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-            {mounted ? (theme === "dark" ? "Dark" : "Light") : "..."}
-          </span>
-        </button>
-
+      {/* Footer / Admin Account Card */}
+      <div className="p-3.5 border-t border-gray-100 dark:border-gray-800/80 bg-gray-50/50 dark:bg-gray-900/50">
         {/* Administrator Profile Card */}
         <div className="p-3 bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/60 shadow-2xs space-y-2.5">
           <div className="flex items-center gap-2.5">
@@ -271,15 +246,6 @@ export default function AdminSidebar() {
             </span>
           </div>
         </div>
-
-        {/* Quick Theme Switcher on Mobile Top Bar */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Ganti Tema"
-        >
-          {mounted && theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
-        </button>
       </div>
 
       {/* Backdrop Overlay for Mobile Drawer */}
