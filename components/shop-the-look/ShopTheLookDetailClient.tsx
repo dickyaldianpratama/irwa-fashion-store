@@ -3,7 +3,20 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ShoppingBag, ShieldCheck, Sparkles, ExternalLink, MessageCircle, Share2, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  ShoppingBag,
+  ShieldCheck,
+  Sparkles,
+  ExternalLink,
+  MessageCircle,
+  Share2,
+  Check,
+  Shirt,
+  Glasses,
+  Footprints,
+  RotateCcw,
+} from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useUIStore } from "@/store/uiStore";
 import toast from "react-hot-toast";
@@ -37,6 +50,7 @@ export default function ShopTheLookDetailClient({ look }: Props) {
   const { openCart } = useUIStore();
   const [copied, setCopied] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [activeImage, setActiveImage] = useState<string>(look.image);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -48,9 +62,10 @@ export default function ShopTheLookDetailClient({ look }: Props) {
 
   // Parse external items from deskripsi if available
   const parseExternalItems = (desc: string | null) => {
-    if (!desc) return { mainDesc: "", items: [] as { label: string; url: string }[] };
+    if (!desc) return { mainDesc: "", items: [] as { label: string; url: string }[], itemsMap: {} as Record<string, string> };
 
     let mainDesc = desc;
+    const itemsMap: Record<string, string> = {};
     const items: { label: string; url: string }[] = [];
 
     const match = desc.match(/\[Items: (.*?)\]/);
@@ -60,15 +75,44 @@ export default function ShopTheLookDetailClient({ look }: Props) {
       parts.forEach((p) => {
         const [label, ...urlParts] = p.split(": ");
         if (label && urlParts.length > 0) {
-          items.push({ label: label.trim(), url: urlParts.join(": ").trim() });
+          const url = urlParts.join(": ").trim();
+          const cleanLabel = label.trim();
+          itemsMap[cleanLabel] = url;
+          items.push({ label: cleanLabel, url });
         }
       });
     }
 
-    return { mainDesc, items };
+    return { mainDesc, items, itemsMap };
   };
 
-  const { mainDesc, items: externalItems } = parseExternalItems(look.deskripsi);
+  const { mainDesc, items: externalItems, itemsMap } = parseExternalItems(look.deskripsi);
+
+  // 5 standard categories with icon definitions
+  const slots = [
+    { key: "Baju", label: "Baju", icon: Shirt, url: itemsMap["Baju"] || "" },
+    { key: "Celana", label: "Celana", icon: Shirt, url: itemsMap["Celana"] || "" },
+    { key: "Aksesori", label: "Aksesori", icon: Glasses, url: itemsMap["Aksesori"] || "" },
+    { key: "Sepatu", label: "Sepatu", icon: Footprints, url: itemsMap["Sepatu"] || "" },
+    { key: "Topi", label: "Topi", icon: Sparkles, url: itemsMap["Topi"] || "" },
+  ];
+
+  // Build grid thumbnail items (5 slots)
+  const itemThumbnails = externalItems.length > 0
+    ? slots.map((slot) => ({
+        id: slot.key,
+        label: slot.label,
+        icon: slot.icon,
+        url: slot.url && slot.url.startsWith("http") ? slot.url : null,
+        rawText: slot.url,
+      }))
+    : (look.items || []).map((it, idx) => ({
+        id: it.id || `db-${idx}`,
+        label: it.produk.nama,
+        icon: Shirt,
+        url: it.produk.images[0]?.url || null,
+        rawText: "",
+      }));
 
   const handleAddToCart = () => {
     setIsAdding(true);
@@ -121,25 +165,100 @@ export default function ShopTheLookDetailClient({ look }: Props) {
 
         {/* Compact & Clean Outfit Card */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800/80 shadow-md overflow-hidden grid grid-cols-1 md:grid-cols-12 gap-0">
-          {/* Left Column: Compact Image Preview */}
-          <div className="md:col-span-5 relative bg-gray-100 dark:bg-gray-800 h-64 sm:h-72 md:h-full md:min-h-[340px] md:max-h-[420px] overflow-hidden">
-            {look.image ? (
-              <Image
-                src={look.image}
-                alt={look.title}
-                fill
-                className="object-cover"
-                priority
-                unoptimized
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-                <ShoppingBag size={36} className="mb-1 opacity-30" />
-                <p className="text-xs font-semibold">Tidak ada gambar look</p>
+          {/* Left Column: Compact Main Image Preview & 5 Thumbnail Grid */}
+          <div className="md:col-span-5 p-3 sm:p-4 bg-gray-50/70 dark:bg-gray-800/40 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800">
+            {/* Main Image Box */}
+            <div className="relative w-full aspect-[4/5] rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shadow-xs">
+              {activeImage ? (
+                <Image
+                  src={activeImage}
+                  alt={look.title}
+                  fill
+                  className="object-cover transition-all duration-300"
+                  priority
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                  <ShoppingBag size={36} className="mb-1 opacity-30" />
+                  <p className="text-xs font-semibold">Tidak ada gambar look</p>
+                </div>
+              )}
+
+              {/* Badge Overlay */}
+              <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs z-10">
+                1 Set Outfit Utuh
               </div>
-            )}
-            <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-              1 Set Outfit Utuh
+
+              {/* Reset to Main Look Image Button */}
+              {activeImage !== look.image && (
+                <button
+                  onClick={() => setActiveImage(look.image)}
+                  className="absolute top-3 right-3 bg-black/75 hover:bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 backdrop-blur-xs transition-all shadow-md z-10 cursor-pointer"
+                >
+                  <RotateCcw size={12} /> Gambar Utama
+                </button>
+              )}
+            </div>
+
+            {/* Grid Kotak-Kotak Kecil (5 Item Set) */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <span className="text-[11px] font-extrabold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Item Set Outfit (5 Item)
+                </span>
+                <span className="text-[9px] text-gray-400 dark:text-gray-500">
+                  Klik untuk preview
+                </span>
+              </div>
+
+              <div className="grid grid-cols-5 gap-1.5">
+                {itemThumbnails.map((item, idx) => {
+                  const IconComponent = item.icon;
+                  const isSelected = activeImage === item.url && item.url !== null;
+                  const hasImage = !!item.url;
+
+                  return (
+                    <button
+                      key={item.id || idx}
+                      type="button"
+                      onClick={() => {
+                        if (item.url) setActiveImage(item.url);
+                      }}
+                      disabled={!hasImage}
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all flex flex-col items-center justify-center p-1 text-center group cursor-pointer ${
+                        isSelected
+                          ? "border-primary ring-2 ring-primary/30 scale-[1.03] shadow-sm bg-white dark:bg-gray-900"
+                          : hasImage
+                          ? "border-gray-200 dark:border-gray-700/80 hover:border-primary/60 bg-white dark:bg-gray-900"
+                          : "border-gray-200/60 dark:border-gray-800 bg-gray-100/70 dark:bg-gray-800/50 opacity-60 cursor-not-allowed"
+                      }`}
+                      title={hasImage ? `Preview ${item.label}` : `${item.label} (Tidak ada gambar)`}
+                    >
+                      {hasImage ? (
+                        <Image
+                          src={item.url!}
+                          alt={item.label}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-1 text-gray-400 dark:text-gray-500">
+                          <IconComponent size={14} className="mb-0.5 opacity-60" />
+                        </div>
+                      )}
+
+                      {/* Sub-label overlay at bottom */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/60 to-transparent py-0.5 px-0.5 z-10">
+                        <p className="text-[9px] font-bold text-white truncate text-center leading-tight">
+                          {item.label}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -181,7 +300,7 @@ export default function ShopTheLookDetailClient({ look }: Props) {
               {(externalItems.length > 0 || (look.items && look.items.length > 0)) && (
                 <div className="space-y-1.5 pt-1">
                   <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Item dalam Set Ini ({externalItems.length || look.items?.length || 0}):
+                    Rincian Item Set ({externalItems.length || look.items?.length || 0}):
                   </p>
                   <div className="flex flex-wrap gap-1.5 text-xs">
                     {externalItems.map((item, idx) => (
