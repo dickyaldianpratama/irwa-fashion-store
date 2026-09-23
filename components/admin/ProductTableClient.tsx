@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -19,7 +19,7 @@ interface Product {
   images: { url: string }[];
   hargaAsli: number;
   hargaDiskon: number | null;
-  varian: { stok: number }[];
+  varian?: { stok: number }[];
 }
 
 interface Props {
@@ -122,20 +122,19 @@ export default function ProductTableClient({ products }: Props) {
               <th className="p-4 font-semibold text-sm text-gray-600 dark:text-gray-300">Produk</th>
               <th className="p-4 font-semibold text-sm text-gray-600 dark:text-gray-300">Kategori</th>
               <th className="p-4 font-semibold text-sm text-gray-600 dark:text-gray-300">Harga</th>
-              <th className="p-4 font-semibold text-sm text-gray-600 dark:text-gray-300">Varian</th>
               <th className="p-4 font-semibold text-sm text-gray-600 dark:text-gray-300">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500">
-                  Belum ada produk. Silakan tambahkan produk baru.
+                <td colSpan={5} className="p-8 text-center text-gray-500">
+                  Belum ada produk.
                 </td>
               </tr>
             ) : (
               products.map((p) => {
-                const totalStok = p.varian.reduce((sum, v) => sum + v.stok, 0);
+                const totalStok = p.varian ? p.varian.reduce((sum, v) => sum + v.stok, 0) : 0;
                 const isSelected = selectedIds.includes(p.id);
 
                 return (
@@ -151,7 +150,7 @@ export default function ProductTableClient({ products }: Props) {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
-                          {p.images[0]?.url ? (
+                          {p.images && p.images[0]?.url ? (
                             <Image src={p.images[0].url} alt={p.nama} fill className="object-cover" unoptimized />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
@@ -164,13 +163,10 @@ export default function ProductTableClient({ products }: Props) {
                       </div>
                     </td>
                     <td className="p-4 text-sm text-gray-600 dark:text-gray-400">
-                      {p.kategori.nama}
+                      {p.kategori?.nama || "Umum"}
                     </td>
                     <td className="p-4 text-sm text-gray-900 dark:text-white font-medium">
                       Rp {p.hargaDiskon ? p.hargaDiskon.toLocaleString("id-ID") : p.hargaAsli.toLocaleString("id-ID")}
-                    </td>
-                    <td className="p-4 text-sm text-gray-600 dark:text-gray-400">
-                      {p.varian.length} varian
                     </td>
                     <td className="p-4">
                       <ProductTableActions 
