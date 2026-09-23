@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, X, Loader2, ImageIcon, ShoppingBag, Check } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Loader2, ImageIcon, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -60,18 +60,9 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
       deskripsi: look.deskripsi || "",
       image: look.image,
       totalHarga: look.totalHarga.toString(),
-      produkIds: look.items.map((i) => i.produkId),
+      produkIds: look.items ? look.items.map((i) => i.produkId) : [],
     });
     setShowModal(true);
-  };
-
-  const toggleProduct = (id: string) => {
-    setForm((prev) => ({
-      ...prev,
-      produkIds: prev.produkIds.includes(id)
-        ? prev.produkIds.filter((p) => p !== id)
-        : [...prev.produkIds, id],
-    }));
   };
 
   const handleSave = async () => {
@@ -86,7 +77,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
         deskripsi: form.deskripsi,
         image: form.image,
         totalHarga: parseInt(form.totalHarga) || 0,
-        produkIds: form.produkIds,
+        produkIds: form.produkIds || [],
       };
 
       let res;
@@ -162,7 +153,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
         <p className="text-sm text-gray-500 dark:text-gray-400">{looks.length} look terdaftar</p>
         <button
           onClick={openCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors cursor-pointer"
         >
           <Plus size={16} /> Tambah Look
         </button>
@@ -199,39 +190,34 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
                 </div>
               </div>
 
-              {/* Produk dalam look */}
-              <div className="p-2.5 flex-1 flex flex-col justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
-                    {look.items.length} Produk:
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {look.items.map((item) => (
-                      <span
-                        key={item.id}
-                        className="text-[10px] bg-gray-50 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded truncate max-w-full"
-                      >
-                        {item.produk.nama}
-                      </span>
-                    ))}
-                    {look.items.length === 0 && (
-                      <span className="text-[10px] text-gray-400 italic">Kosong</span>
-                    )}
+              {/* Card Footer / Actions */}
+              <div className="p-2.5 flex-1 flex flex-col justify-end gap-2">
+                {look.items && look.items.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap gap-1">
+                      {look.items.map((item) => (
+                        <span
+                          key={item.id}
+                          className="text-[10px] bg-gray-50 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded truncate max-w-full"
+                        >
+                          {item.produk.nama}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Actions */}
                 <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                   <button
                     onClick={() => openEdit(look)}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white dark:bg-blue-900/20 dark:hover:bg-blue-600 border border-blue-100 dark:border-blue-900/50 text-[11px] font-semibold py-1.5 rounded-lg transition-all"
+                    className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white dark:bg-blue-900/20 dark:hover:bg-blue-600 border border-blue-100 dark:border-blue-900/50 text-[11px] font-semibold py-1.5 rounded-lg transition-all cursor-pointer"
                   >
                     <Edit2 size={12} /> Edit
                   </button>
                   <button
                     onClick={() => handleDelete(look.id, look.title)}
                     disabled={deletingId === look.id}
-                    className="flex-none flex items-center justify-center gap-1 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-500 border border-red-100 dark:border-red-900/50 w-8 h-8 rounded-lg transition-all disabled:opacity-60"
+                    className="flex-none flex items-center justify-center gap-1 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white dark:bg-red-900/20 dark:hover:bg-red-500 border border-red-100 dark:border-red-900/50 w-8 h-8 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
                   >
                     {deletingId === look.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                   </button>
@@ -311,45 +297,6 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
                   placeholder="450000"
                 />
               </div>
-
-              {/* Pilih Produk */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Produk dalam Look ({form.produkIds.length} dipilih)
-                </label>
-                <div className="max-h-52 overflow-y-auto border rounded-lg dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
-                  {allProducts.map((prod) => {
-                    const selected = form.produkIds.includes(prod.id);
-                    return (
-                      <button
-                        key={prod.id}
-                        type="button"
-                        onClick={() => toggleProduct(prod.id)}
-                        className={`w-full flex items-center gap-3 p-2.5 text-left transition-colors ${
-                          selected
-                            ? "bg-blue-50 dark:bg-blue-900/20"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                        }`}
-                      >
-                        <div className="relative w-9 h-9 rounded bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0">
-                          {prod.images[0]?.url && (
-                            <Image src={prod.images[0].url} alt={prod.nama} fill className="object-cover" unoptimized />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${selected ? "text-blue-600 dark:text-blue-400" : "text-gray-900 dark:text-white"}`}>
-                            {prod.nama}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Rp {(prod.hargaDiskon || prod.hargaAsli).toLocaleString("id-ID")}
-                          </p>
-                        </div>
-                        {selected && <Check size={16} className="text-blue-600 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
 
             {/* Modal Footer */}
@@ -363,7 +310,7 @@ export default function ShopTheLookManager({ looks: initialLooks, allProducts }:
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : null}
                 {editingLook ? "Simpan Perubahan" : "Buat Look"}
