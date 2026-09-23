@@ -76,7 +76,7 @@ export default function AdminSidebar() {
     {
       group: "KATALOG & STOK",
       items: [
-        { name: "Produk & Varian", href: "/admin/produk", icon: PackageSearch },
+        { name: "Manajemen Produk", href: "/admin/produk/kategori", icon: PackageSearch },
       ]
     },
     {

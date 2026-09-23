@@ -3,10 +3,9 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, Grid3X3, Star, Eye } from "lucide-react";
+import { Grid3X3, Star, Eye } from "lucide-react";
 
 const tabs = [
-  { name: "Semua Produk", href: "/admin/produk", icon: Package },
   { name: "Kategori Pilihan (Home)", href: "/admin/produk/kategori", icon: Grid3X3 },
   { name: "Koleksi Terpopuler (Home)", href: "/admin/produk/featured", icon: Star },
   { name: "Shop The Look (Home)", href: "/admin/produk/shop-the-look", icon: Eye },
@@ -22,10 +21,8 @@ export default function AdminTabNav() {
       const container = containerRef.current;
       const activeTab = activeTabRef.current;
       
-      // Hitung posisi tengah agar tab yang aktif berada di tengah layar HP
       const scrollLeft = activeTab.offsetLeft - (container.offsetWidth / 2) + (activeTab.offsetWidth / 2);
       
-      // Gunakan setTimeout kecil untuk memastikan DOM sudah render sepenuhnya
       setTimeout(() => {
         container.scrollTo({ left: scrollLeft, behavior: "smooth" });
       }, 50);
@@ -39,10 +36,7 @@ export default function AdminTabNav() {
         className="flex gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         {tabs.map((tab) => {
-          const isActive =
-            tab.href === "/admin/produk"
-              ? pathname === "/admin/produk" || pathname === "/admin/produk/tambah" || pathname.match(/^\/admin\/produk\/[^\/]+\/edit$/)
-              : pathname === tab.href;
+          const isActive = pathname === tab.href;
           const Icon = tab.icon;
           return (
             <Link
