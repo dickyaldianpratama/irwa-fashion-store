@@ -8,27 +8,8 @@ export const metadata = {
 };
 
 export default async function KategoriPage() {
-  const [pilihan, regular] = await Promise.all([
-    prisma.kategoriPilihan.findMany(),
-    prisma.kategori.findMany(),
-  ]);
-
-  // Merge categories from both KategoriPilihan & Kategori without duplicates
-  const map = new Map<string, { id: string; nama: string; slug: string; image: string | null }>();
-
-  pilihan.forEach((cat) => {
-    const slug = cat.slug || cat.nama.toLowerCase().trim().replace(/[^a-z0-9]/g, "-");
-    map.set(slug, { id: cat.id, nama: cat.nama, slug, image: cat.image });
-  });
-
-  regular.forEach((cat) => {
-    const slug = cat.slug || cat.nama.toLowerCase().trim().replace(/[^a-z0-9]/g, "-");
-    if (!map.has(slug)) {
-      map.set(slug, { id: cat.id, nama: cat.nama, slug, image: cat.image });
-    }
-  });
-
-  const categories = Array.from(map.values());
+  // Hanya ambil kategori dari Kategori Pilihan (Admin: /admin/produk/kategori)
+  const categories = await prisma.kategoriPilihan.findMany();
 
   return (
     <div className="bg-gray-50 min-h-screen pb-16 select-none">
