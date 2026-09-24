@@ -129,7 +129,7 @@ export default function KategoriPilihanProdukDetailPage({
   const handleToggleWishlist = () => {
     const added = toggleWishlistStore({
       id: item.id,
-      type: "kategori-produk",
+      type: "koleksi",
       nama: item.nama,
       link: `/kategori/${slug}/produk/${item.id}`,
       harga: displayPrice,
