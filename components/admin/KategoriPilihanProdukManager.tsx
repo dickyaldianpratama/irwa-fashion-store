@@ -11,9 +11,9 @@ import {
   Package,
   ChevronDown,
   Tag,
-  Ruler,
   FileText,
   Camera,
+  Layers,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -22,6 +22,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
+// ── Types ──────────────────────────────────────────────────────────
 interface KategoriPilihan {
   id: string;
   nama: string;
@@ -45,9 +46,19 @@ interface Produk {
   images: ProdukImage[];
 }
 
+// Per-foto item (foto + 1 ukuran, seperti pola KoleksiTerpopuler)
+interface FotoItem {
+  id: string;
+  url: string;
+  ukuran: string; // 1 ukuran per foto
+}
+
 interface Props {
   kategoriList: KategoriPilihan[];
 }
+
+// ── Helpers ────────────────────────────────────────────────────────
+const UKURAN_OPTIONS = ["S", "M", "L", "XL", "XXL"];
 
 const formatRupiah = (n: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -56,14 +67,49 @@ const formatRupiah = (n: number) =>
     minimumFractionDigits: 0,
   }).format(n);
 
+// Encode foto items + ukuran ke format ukuran string: "S,M,L" dan images array
+// Kita simpan ukuran sebagai metadata di image url — kita simpan di state form saja,
+// lalu saat save kita kirim images (url array) dan ukuran (gabungan ukuran per foto, distinct)
+function buildUkuranString(fotos: FotoItem[]): string {
+  const seen = new Set<string>();
+  fotos.forEach((f) => { if (f.ukuran) seen.add(f.ukuran); });
+  return Array.from(seen).join(",");
+}
+
+// Decode: buat FotoItem dari Produk.images + ukuran string
+// Karena kita tidak menyimpan ukuran per-foto di DB (hanya images + ukuran gabungan),
+// kita distribusikan ukuran ke foto sesuai urutan (UKURAN_OPTIONS priority)
+function decodeFotos(produk: Produk): FotoItem[] {
+  const sorted = [...produk.images].sort((a, b) =>
+    b.isUtama ? 1 : a.isUtama ? -1 : 0
+  );
+  const sizes = produk.ukuran
+    ? produk.ukuran.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  return sorted.map((img, idx) => ({
+    id: img.id || `foto-${idx}`,
+    url: img.url,
+    ukuran: sizes[idx] || sizes[0] || "",
+  }));
+}
+
+// ── Empty form ─────────────────────────────────────────────────────
 const emptyForm = {
   nama: "",
   harga: "",
+  persenDiskon: "",
   hargaDiskon: "",
-  ukuran: "",
   deskripsi: "",
 };
 
+const newFoto = (): FotoItem => ({
+  id: `foto-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+  url: "",
+  ukuran: "",
+});
+
+// ── Component ──────────────────────────────────────────────────────
 export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
   const [selectedKategoriId, setSelectedKategoriId] = useState<string>(
     kategoriList[0]?.id || ""
@@ -77,8 +123,9 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
   const [editingProduk, setEditingProduk] = useState<Produk | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [images, setImages] = useState<string[]>([]);
+  const [fotos, setFotos] = useState<FotoItem[]>([newFoto()]);
 
+  // ── Fetch produk ──────────────────────────────────────────────────
   const fetchProduk = async (kategoriId: string) => {
     if (!kategoriId) return;
     setLoading(true);
@@ -99,53 +146,88 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
     fetchProduk(selectedKategoriId);
   }, [selectedKategoriId]);
 
-  // ── IMAGE SLOT HELPERS ──────────────────────────────────────────
-  const addImageSlot = () => setImages((prev) => [...prev, ""]);
-  const removeImageSlot = (idx: number) =>
-    setImages((prev) => prev.filter((_, i) => i !== idx));
-  const updateImageSlot = (idx: number, url: string) =>
-    setImages((prev) => prev.map((u, i) => (i === idx ? url : u)));
+  // ── Harga / diskon logic (pintar seperti KoleksiTerpopuler) ───────
+  const handleHargaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let updated = { ...form, [name]: value };
+    if (name === "harga" || name === "persenDiskon") {
+      const asli = parseInt(name === "harga" ? value : form.harga) || 0;
+      const persen =
+        parseInt(name === "persenDiskon" ? value : form.persenDiskon) || 0;
+      if (asli > 0 && persen > 0 && persen <= 100) {
+        updated.hargaDiskon = (asli - Math.floor((asli * persen) / 100)).toString();
+      } else {
+        updated.hargaDiskon = "";
+      }
+    }
+    setForm(updated);
+  };
 
-  // ── OPEN MODAL ──────────────────────────────────────────────────
+  // ── Foto item helpers ─────────────────────────────────────────────
+  const handleAddFoto = () => setFotos((prev) => [...prev, newFoto()]);
+  const handleRemoveFoto = (id: string) => {
+    if (fotos.length <= 1) { toast.error("Minimal harus ada 1 foto"); return; }
+    setFotos((prev) => prev.filter((f) => f.id !== id));
+  };
+  const handleFotoUrl = (id: string, url: string) =>
+    setFotos((prev) => prev.map((f) => (f.id === id ? { ...f, url } : f)));
+  const handleFotoUkuran = (id: string, ukuran: string) =>
+    setFotos((prev) => prev.map((f) => (f.id === id ? { ...f, ukuran } : f)));
+
+  // ── Open modal ────────────────────────────────────────────────────
   const openCreate = () => {
     setEditingProduk(null);
     setForm(emptyForm);
-    setImages([]);
+    setFotos([newFoto()]);
     setShowModal(true);
   };
 
   const openEdit = (p: Produk) => {
     setEditingProduk(p);
+    const persen =
+      p.hargaDiskon && p.harga > p.hargaDiskon
+        ? Math.round(((p.harga - p.hargaDiskon) / p.harga) * 100).toString()
+        : "";
     setForm({
       nama: p.nama,
       harga: String(p.harga),
+      persenDiskon: persen,
       hargaDiskon: p.hargaDiskon ? String(p.hargaDiskon) : "",
-      ukuran: p.ukuran || "",
       deskripsi: p.deskripsi || "",
     });
-    const sorted = [...p.images].sort((a, b) =>
-      b.isUtama ? 1 : a.isUtama ? -1 : 0
-    );
-    setImages(sorted.map((img) => img.url));
+    setFotos(decodeFotos(p).length > 0 ? decodeFotos(p) : [newFoto()]);
     setShowModal(true);
   };
 
-  // ── SAVE (CREATE or UPDATE) ─────────────────────────────────────
+  // ── Save ──────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!form.nama.trim() || !form.harga) {
       toast.error("Nama produk dan harga wajib diisi");
       return;
     }
+    for (let i = 0; i < fotos.length; i++) {
+      if (!fotos[i].url) {
+        toast.error(`Foto #${i + 1} belum diupload`);
+        return;
+      }
+      if (!fotos[i].ukuran) {
+        toast.error(`Pilih 1 ukuran untuk Foto #${i + 1}`);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const payload = {
-        ...(editingProduk ? { id: editingProduk.id } : { kategoriPilihanId: selectedKategoriId }),
+        ...(editingProduk
+          ? { id: editingProduk.id }
+          : { kategoriPilihanId: selectedKategoriId }),
         nama: form.nama.trim(),
         harga: Number(form.harga),
         hargaDiskon: form.hargaDiskon ? Number(form.hargaDiskon) : null,
-        ukuran: form.ukuran.trim() || null,
+        ukuran: buildUkuranString(fotos) || null,
         deskripsi: form.deskripsi.trim() || null,
-        images: images.filter(Boolean),
+        images: fotos.map((f) => f.url).filter(Boolean),
       };
 
       const res = await fetch("/api/admin/kategori-pilihan-produk", {
@@ -173,7 +255,7 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
     }
   };
 
-  // ── DELETE ───────────────────────────────────────────────────────
+  // ── Delete ────────────────────────────────────────────────────────
   const handleDelete = async (p: Produk) => {
     const result = await MySwal.fire({
       title: "Hapus Produk?",
@@ -211,13 +293,12 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
 
   const selectedKategori = kategoriList.find((k) => k.id === selectedKategoriId);
 
-  // ── RENDER ───────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="space-y-5 select-none font-sans">
       {kategoriList.length === 0 ? (
-        /* Empty State — no kategori */
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 text-center py-16 text-gray-400">
-          <Package size={44} className="mx-auto mb-3 opacity-30" />
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 text-center py-16">
+          <Package size={44} className="mx-auto mb-3 opacity-30 text-gray-400" />
           <p className="font-semibold text-sm text-gray-700 dark:text-gray-300">
             Belum ada Kategori Pilihan
           </p>
@@ -229,7 +310,6 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
         <>
           {/* ── Header Action Bar ── */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xs">
-            {/* Kategori Selector */}
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">
                 Kategori Aktif
@@ -238,7 +318,7 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                 <select
                   value={selectedKategoriId}
                   onChange={(e) => setSelectedKategoriId(e.target.value)}
-                  className="w-full pl-3 pr-8 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-900/20 focus:outline-none appearance-none cursor-pointer transition-all"
+                  className="w-full pl-3 pr-8 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-900/20 focus:outline-none appearance-none cursor-pointer"
                 >
                   {kategoriList.map((k) => (
                     <option key={k.id} value={k.id}>
@@ -252,8 +332,6 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                 />
               </div>
             </div>
-
-            {/* CTA Button */}
             <button
               onClick={openCreate}
               className="bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold tracking-wide transition-all shadow-sm cursor-pointer shrink-0 self-end sm:self-auto"
@@ -263,7 +341,7 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
             </button>
           </div>
 
-          {/* ── Product Count Info ── */}
+          {/* ── Count Info ── */}
           <div className="flex items-center gap-2 px-1">
             <div className="w-1 h-4 bg-gray-900 dark:bg-white rounded-full" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -287,13 +365,13 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
           {loading ? (
             <div className="flex justify-center items-center py-20 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
               <div className="flex flex-col items-center gap-3">
-                <Loader2 size={32} className="animate-spin text-gray-400" />
-                <p className="text-sm text-gray-400">Memuat produk...</p>
+                <Loader2 size={28} className="animate-spin text-gray-400" />
+                <p className="text-sm text-gray-400">Memuat...</p>
               </div>
             </div>
           ) : produkList.length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 text-center py-16 text-gray-400">
-              <Package size={44} className="mx-auto mb-3 opacity-30" />
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 text-center py-16">
+              <Package size={44} className="mx-auto mb-3 opacity-30 text-gray-400" />
               <p className="font-semibold text-sm text-gray-700 dark:text-gray-300">
                 Belum ada produk di kategori {selectedKategori?.nama}
               </p>
@@ -302,20 +380,22 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4">
               {produkList.map((p) => {
                 const sorted = [...p.images].sort((a, b) =>
                   b.isUtama ? 1 : a.isUtama ? -1 : 0
                 );
                 const mainImg = sorted[0]?.url;
                 const isDiskon = !!(p.hargaDiskon && p.hargaDiskon < p.harga);
+                const persen = isDiskon
+                  ? Math.round(((p.harga - p.hargaDiskon!) / p.harga) * 100)
+                  : 0;
 
                 return (
                   <div
                     key={p.id}
                     className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/70 dark:border-gray-800/80 overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    {/* Image */}
                     <div className="relative w-full aspect-[3/4] bg-gray-100 dark:bg-gray-800/80 overflow-hidden">
                       {mainImg ? (
                         <img
@@ -331,30 +411,28 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                       )}
                       {isDiskon && (
                         <div className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md">
-                          DISKON
+                          -{persen}%
                         </div>
                       )}
                       {p.images.length > 1 && (
-                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                          +{p.images.length - 1} foto
+                        <div className="absolute bottom-2.5 left-2.5 bg-black/75 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <Layers size={10} /> {p.images.length} Foto
                         </div>
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className="p-3 flex-1 flex flex-col justify-between space-y-2.5">
                       <div className="space-y-1">
-                        <h3 className="font-bold text-xs text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                        <h3 className="font-bold text-xs text-gray-900 dark:text-white line-clamp-2 leading-snug">
                           {p.nama}
                         </h3>
                         {p.ukuran && (
-                          <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+                          <p className="text-[10px] text-gray-400 font-medium">
                             {p.ukuran}
                           </p>
                         )}
                       </div>
 
-                      {/* Price + Actions */}
                       <div className="pt-2 border-t border-gray-100 dark:border-gray-800/80 space-y-2">
                         <div>
                           <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
@@ -376,20 +454,18 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                           )}
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => openEdit(p)}
                             className="flex-1 py-1.5 px-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
                           >
-                            <Edit2 size={11} />
-                            Edit
+                            <Edit2 size={11} /> Edit
                           </button>
                           <button
                             onClick={() => handleDelete(p)}
                             disabled={deletingId === p.id}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                            title="Hapus Produk"
+                            title="Hapus"
                           >
                             {deletingId === p.id ? (
                               <Loader2 size={13} className="animate-spin" />
@@ -408,7 +484,7 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
         </>
       )}
 
-      {/* ── MODAL CREATE / EDIT ─────────────────────────────────────── */}
+      {/* ── MODAL ─────────────────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-800">
@@ -435,80 +511,70 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
 
             {/* Modal Body */}
             <div className="p-4 sm:p-5 space-y-4 text-xs">
-              {/* Nama Produk */}
+              {/* Nama */}
               <div className="space-y-1.5">
-                <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                  <FileText size={13} className="text-gray-500" />
+                <label className="font-bold text-gray-800 dark:text-gray-200">
                   Nama Produk *
                 </label>
                 <input
-                  value={form.nama}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, nama: e.target.value }))
-                  }
-                  placeholder="Contoh: Celana Jeans Slim Fit Pria"
                   autoFocus
+                  value={form.nama}
+                  onChange={(e) => setForm((p) => ({ ...p, nama: e.target.value }))}
+                  placeholder="Contoh: Celana Jeans Slim Fit Pria"
                   className="w-full p-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-gray-900/20 outline-none transition-all"
                 />
               </div>
 
-              {/* Harga */}
+              {/* Harga + Diskon % */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                    <Tag size={13} className="text-gray-500" />
-                    Harga (Rp) *
+                  <label className="font-bold text-gray-800 dark:text-gray-200">
+                    Harga Asli (Rp) *
                   </label>
                   <input
                     type="number"
+                    name="harga"
                     value={form.harga}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, harga: e.target.value }))
-                    }
+                    onChange={handleHargaChange}
                     placeholder="150000"
-                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 outline-none transition-all"
+                    className="w-full p-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                    <Tag size={13} className="text-red-400" />
-                    Harga Diskon (Rp)
+                  <label className="font-bold text-gray-800 dark:text-gray-200">
+                    Diskon (%) - Harga Coret
                   </label>
-                  <input
-                    type="number"
-                    value={form.hargaDiskon}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, hargaDiskon: e.target.value }))
-                    }
-                    placeholder="120000"
-                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 outline-none transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="persenDiskon"
+                      min="0"
+                      max="100"
+                      value={form.persenDiskon}
+                      onChange={handleHargaChange}
+                      placeholder="20"
+                      className="w-full p-2.5 pr-7 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 outline-none transition-all"
+                    />
+                    <span className="absolute right-3 top-2.5 font-bold text-gray-400">%</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Ukuran */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                  <Ruler size={13} className="text-gray-500" />
-                  Ukuran
-                </label>
-                <input
-                  value={form.ukuran}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, ukuran: e.target.value }))
-                  }
-                  placeholder="S, M, L, XL"
-                  className="w-full p-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-gray-900/20 outline-none transition-all"
-                />
-                <p className="text-[11px] text-gray-400">
-                  Pisahkan dengan koma. Contoh: S, M, L, XL, XXL
-                </p>
-              </div>
+              {/* Sistem Pintar: tampilkan harga akhir */}
+              {form.hargaDiskon && (
+                <div className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 p-2.5 rounded-xl text-xs font-semibold border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+                  <span>Sistem Pintar Otomatis:</span>
+                  <span className="font-mono font-bold">
+                    Harga Akhir = Rp{" "}
+                    {parseInt(form.hargaDiskon).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              )}
 
               {/* Deskripsi */}
               <div className="space-y-1.5">
                 <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                  <FileText size={13} className="text-gray-500" />
+                  <FileText size={12} className="text-gray-400" />
                   Deskripsi Produk (Opsional)
                 </label>
                 <textarea
@@ -516,75 +582,112 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, deskripsi: e.target.value }))
                   }
-                  placeholder="Bahan, detail produk, keunggulan, cara perawatan, dll..."
+                  placeholder="Bahan, detail produk, keunggulan, cara perawatan..."
                   rows={3}
                   className="w-full p-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-gray-900/20 outline-none transition-all resize-none"
                 />
               </div>
 
-              {/* Foto Produk */}
+              {/* Foto & Ukuran per foto */}
               <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                      <Camera size={13} className="text-gray-500" />
-                      Foto Produk
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                      <Layers size={14} className="text-gray-500" />
+                      Foto &amp; Ukuran Pakaian ({fotos.length})
                     </h4>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Foto pertama akan jadi foto utama. Bisa tambah lebih dari 1.
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      Setiap foto wajib memiliki 1 pilihan ukuran masing-masing.
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={addImageSlot}
-                    className="flex items-center gap-1 text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                    onClick={handleAddFoto}
+                    className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
                   >
-                    <Plus size={12} />
-                    Tambah Foto
+                    <Plus size={13} /> Tambah Foto
                   </button>
                 </div>
 
-                {images.length === 0 && (
-                  <div className="text-center py-6 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                    <Camera size={24} className="mx-auto mb-2 text-gray-300" />
-                    <p className="text-[11px] text-gray-400">
-                      Klik &quot;Tambah Foto&quot; untuk menambahkan gambar produk
-                    </p>
-                  </div>
-                )}
-
-                {images.map((url, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gray-50/70 dark:bg-gray-800/40 p-3 rounded-xl border border-gray-200/80 dark:border-gray-700/70 space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                        <Camera size={11} className="text-gray-400" />
-                        Foto {idx + 1}
-                        {idx === 0 && (
-                          <span className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                            Utama
+                <div className="space-y-3">
+                  {fotos.map((foto, idx) => (
+                    <div
+                      key={foto.id}
+                      className="p-3 bg-gray-50/70 dark:bg-gray-800/40 rounded-xl border border-gray-200/80 dark:border-gray-700/70 space-y-3"
+                    >
+                      {/* Foto header */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-black flex items-center justify-center">
+                            {idx + 1}
                           </span>
+                          <Camera size={12} className="text-gray-400" />
+                          {idx === 0 ? "Foto #1 — Cover Utama" : `Foto Pakaian #${idx + 1}`}
+                        </span>
+                        {fotos.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFoto(foto.id)}
+                            className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs px-2 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 size={12} /> Hapus
+                          </button>
                         )}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeImageSlot(idx)}
-                        className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                      >
-                        <X size={13} />
-                      </button>
+                      </div>
+
+                      {/* Image Uploader — compact, kotak kecil */}
+                      <ImageUploader
+                        value={foto.url}
+                        onChange={(url) => handleFotoUrl(foto.id, url)}
+                        folder="kategori-produk"
+                        label={`Upload Foto ${idx === 0 ? "Utama" : `#${idx + 1}`} *`}
+                        aspectRatio="aspect-[4/5]"
+                        compact
+                        previewHeight="h-28"
+                      />
+
+                      {/* Ukuran checkbox — 1 pilih per foto */}
+                      <div className="pt-1">
+                        <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
+                          Pilih Ukuran Foto Ini (Wajib 1 Ukuran per Foto):
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {UKURAN_OPTIONS.map((size) => {
+                            const checked = foto.ukuran === size;
+                            return (
+                              <button
+                                key={size}
+                                type="button"
+                                onClick={() => handleFotoUkuran(foto.id, size)}
+                                className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                  checked
+                                    ? "bg-gray-900 text-white border-gray-900 shadow-xs ring-2 ring-gray-900/20 dark:bg-white dark:text-gray-900 dark:border-white"
+                                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                                }`}
+                              >
+                                {size}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {!foto.ukuran && (
+                          <p className="text-[10px] text-red-500 mt-1 italic">
+                            * Wajib memilih 1 ukuran untuk foto ini
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <ImageUploader
-                      value={url}
-                      onChange={(newUrl) => updateImageSlot(idx, newUrl)}
-                      folder="kategori-produk"
-                      label={`Foto ${idx + 1}`}
-                      aspectRatio="aspect-[3/4]"
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* Tambah foto — dashed button */}
+                <button
+                  type="button"
+                  onClick={handleAddFoto}
+                  className="w-full py-2.5 border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-900 dark:hover:border-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Plus size={15} /> Tambah Foto / Ukuran Lainnya
+                </button>
               </div>
             </div>
 
