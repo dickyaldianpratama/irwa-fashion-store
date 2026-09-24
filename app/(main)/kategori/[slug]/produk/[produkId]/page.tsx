@@ -209,7 +209,7 @@ export default function KategoriPilihanProdukDetailPage({
         <div className="max-w-[740px] lg:max-w-[780px] mx-auto bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-xs p-4 sm:p-6">
           <div className="flex flex-col md:flex-row gap-5 lg:gap-7 items-start">
             {/* Left: Image Gallery */}
-            <div className="w-full max-w-[260px] sm:max-w-[280px] md:max-w-none md:w-[40%] lg:w-[260px] xl:w-[280px] shrink-0 mx-auto md:mx-0">
+            <div className="w-full max-w-[280px] sm:max-w-[300px] md:max-w-none md:w-[42%] lg:w-[280px] xl:w-[300px] shrink-0 mx-auto md:mx-0">
               <div className="relative w-full aspect-square sm:aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 shadow-xs">
                 {activePhoto ? (
                   <img
@@ -235,21 +235,21 @@ export default function KategoriPilihanProdukDetailPage({
 
               {/* Thumbnails */}
               {photos.length > 1 && (
-                <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 p-0.5">
                   {photos.map((photo, idx) => (
                     <button
                       key={photo.id || idx}
                       type="button"
                       onClick={() => handleSelectPhoto(idx)}
-                      className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
+                      className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
                         activePhotoIndex === idx
-                          ? "border-primary ring-2 ring-primary/30 scale-105"
+                          ? "border-primary ring-2 ring-primary/30"
                           : "border-gray-200 opacity-75 hover:opacity-100 hover:border-gray-300"
                       }`}
                     >
                       <img src={photo.url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
                       {photo.ukuran && (
-                        <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-white font-bold text-center py-0.5 truncate">
+                        <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-white font-black text-center py-0.5 leading-tight truncate">
                           {photo.ukuran}
                         </div>
                       )}
