@@ -162,12 +162,12 @@ export default function KategoriPilihanProdukDetailPage({
         </div>
       </div>
 
-      <div className="container-app py-4 sm:py-8">
-        <div className="max-w-full lg:max-w-[880px] xl:max-w-[980px] mx-auto lg:bg-white lg:rounded-3xl lg:border lg:border-gray-100 lg:shadow-sm lg:p-8">
-          <div className="flex flex-col md:flex-row gap-6 lg:gap-8 xl:gap-10 items-start">
+      <div className="container-app py-4 sm:py-6">
+        <div className="max-w-[740px] lg:max-w-[780px] mx-auto bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-xs p-4 sm:p-6">
+          <div className="flex flex-col md:flex-row gap-5 lg:gap-7 items-start">
             {/* Left: Image Gallery */}
-            <div className="w-full md:w-[45%] lg:w-[320px] xl:w-[350px] shrink-0 mx-auto md:mx-0">
-              <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+            <div className="w-full max-w-[260px] sm:max-w-[280px] md:max-w-none md:w-[40%] lg:w-[260px] xl:w-[280px] shrink-0 mx-auto md:mx-0">
+              <div className="relative w-full aspect-square sm:aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 shadow-xs">
                 {activePhoto ? (
                   <img
                     src={activePhoto.url}
@@ -176,23 +176,23 @@ export default function KategoriPilihanProdukDetailPage({
                   />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full text-gray-400">
-                    <ShoppingBag size={40} />
+                    <ShoppingBag size={36} />
                   </div>
                 )}
                 {isDiscounted && (
-                  <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">DISKON</div>
+                  <div className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">DISKON</div>
                 )}
               </div>
 
               {/* Thumbnails */}
               {photos.length > 1 && (
-                <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {photos.map((photo, idx) => (
                     <button
                       key={photo.id}
                       type="button"
                       onClick={() => setActivePhotoIndex(idx)}
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                      className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
                         activePhotoIndex === idx
                           ? "border-primary ring-2 ring-primary/30 scale-105"
                           : "border-gray-200 opacity-75 hover:opacity-100 hover:border-gray-300"
@@ -206,41 +206,41 @@ export default function KategoriPilihanProdukDetailPage({
             </div>
 
             {/* Right: Details */}
-            <div className="w-full md:flex-1">
-              <Link href={`/kategori/${slug}`} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary mb-3 transition-colors">
+            <div className="w-full md:flex-1 min-w-0">
+              <Link href={`/kategori/${slug}`} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary mb-2 transition-colors">
                 <ArrowLeft size={12} /> Kembali ke {item.kategoriPilihan?.nama || "Kategori"}
               </Link>
 
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">{item.nama}</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 leading-snug">{item.nama}</h1>
 
               {/* Price */}
-              <div className="mt-4 flex items-end gap-3">
-                <span className="text-2xl sm:text-3xl font-black text-gray-900">{formatRupiah(displayPrice)}</span>
+              <div className="mt-2.5 flex items-end gap-2.5">
+                <span className="text-xl sm:text-2xl font-black text-gray-900">{formatRupiah(displayPrice)}</span>
                 {isDiscounted && (
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm text-gray-400 line-through">{formatRupiah(item.harga)}</span>
-                    <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">-{diskonPersen}%</span>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-xs text-gray-400 line-through">{formatRupiah(item.harga)}</span>
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">-{diskonPersen}%</span>
                   </div>
                 )}
               </div>
 
-              <hr className="border-gray-100 my-4" />
+              <hr className="border-gray-100 my-3.5" />
 
               {/* Sizes */}
               {allSizes.length > 0 && (
-                <div className="mb-4">
+                <div className="mb-3.5">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900">Pilih Ukuran</h3>
-                    {selectedSize && <span className="text-sm text-primary font-bold">Dipilih: {selectedSize}</span>}
+                    <h3 className="text-xs font-semibold text-gray-900">Pilih Ukuran</h3>
+                    {selectedSize && <span className="text-xs text-primary font-bold">Dipilih: {selectedSize}</span>}
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {allSizes.map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`min-w-[56px] h-10 px-3 rounded-xl border-2 font-bold text-sm transition-all cursor-pointer ${
+                        className={`min-w-[46px] h-9 px-2.5 rounded-lg border-2 font-bold text-xs transition-all cursor-pointer ${
                           selectedSize === size
-                            ? "bg-primary border-primary text-white shadow-md shadow-primary/20"
+                            ? "bg-primary border-primary text-white shadow-xs"
                             : "bg-white border-gray-200 text-gray-700 hover:border-primary/50"
                         }`}
                       >
@@ -253,58 +253,58 @@ export default function KategoriPilihanProdukDetailPage({
 
               {/* Deskripsi */}
               {item.deskripsi && (
-                <div className="mb-4 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Deskripsi Produk</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{item.deskripsi}</p>
+                <div className="mb-3.5 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <h3 className="text-xs font-semibold text-gray-700 mb-1">Deskripsi Produk</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{item.deskripsi}</p>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-2 sm:gap-3 mt-4">
+              <div className="flex gap-2 sm:gap-2.5 mt-3.5">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 h-13 py-3.5 font-bold rounded-xl flex items-center justify-center gap-2 transition-all bg-white border-2 border-primary text-primary hover:bg-primary/5 active:scale-[0.98] cursor-pointer"
+                  className="flex-1 h-11 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-1.5 transition-all bg-white border-2 border-primary text-primary hover:bg-primary/5 active:scale-[0.98] cursor-pointer"
                 >
-                  <ShoppingBag size={20} />
+                  <ShoppingBag size={17} />
                   + Keranjang
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex-1 h-13 py-3.5 font-bold rounded-xl flex items-center justify-center gap-2 transition-all bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary-dark active:scale-[0.98] cursor-pointer"
+                  className="flex-1 h-11 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-1.5 transition-all bg-primary text-white shadow-md shadow-primary/20 hover:bg-primary-dark active:scale-[0.98] cursor-pointer"
                 >
-                  <BuyNowBagIcon size={20} />
+                  <BuyNowBagIcon size={17} />
                   Beli Sekarang
                 </button>
                 <button
                   onClick={handleToggleWishlist}
-                  className={`w-13 h-13 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 ${
+                  className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 ${
                     isWishlisted
-                      ? "bg-red-50 border-red-200 text-red-500 shadow-sm"
+                      ? "bg-red-50 border-red-200 text-red-500 shadow-xs"
                       : "bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200"
                   }`}
                   title={isWishlisted ? "Hapus dari Wishlist" : "Simpan ke Wishlist"}
                   aria-label="Wishlist"
                 >
                   <Heart
-                    size={22}
+                    size={19}
                     className={`transition-transform duration-200 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : ""}`}
                   />
                 </button>
               </div>
 
               {/* Trust Badges */}
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <div className="flex flex-col items-center text-center gap-1 p-2 bg-white lg:bg-gray-50/80 rounded-xl border border-gray-100">
-                  <Shield size={18} className="text-primary" />
-                  <span className="text-[10px] text-gray-600 leading-tight">Garansi Tukar Ukuran</span>
+              <div className="mt-3.5 grid grid-cols-3 gap-1.5 sm:gap-2">
+                <div className="flex flex-col items-center text-center gap-1 p-2 bg-gray-50/80 rounded-xl border border-gray-100">
+                  <Shield size={16} className="text-primary" />
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 leading-tight">Garansi Tukar Ukuran</span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-1 p-2 bg-white lg:bg-gray-50/80 rounded-xl border border-gray-100">
-                  <ShoppingBag size={18} className="text-primary" />
-                  <span className="text-[10px] text-gray-600 leading-tight">Bisa Pick-up di Toko</span>
+                <div className="flex flex-col items-center text-center gap-1 p-2 bg-gray-50/80 rounded-xl border border-gray-100">
+                  <ShoppingBag size={16} className="text-primary" />
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 leading-tight">Bisa Pick-up di Toko</span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-1 p-2 bg-white lg:bg-gray-50/80 rounded-xl border border-gray-100">
-                  <Star size={18} className="text-primary" />
-                  <span className="text-[10px] text-gray-600 leading-tight">Produk Pilihan</span>
+                <div className="flex flex-col items-center text-center gap-1 p-2 bg-gray-50/80 rounded-xl border border-gray-100">
+                  <Star size={16} className="text-primary" />
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 leading-tight">Produk Pilihan</span>
                 </div>
               </div>
             </div>
