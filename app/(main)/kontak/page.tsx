@@ -36,7 +36,7 @@ export default function KontakPage() {
 
           <div className="space-y-3 pt-2 text-xs sm:text-sm">
             <a
-              href="https://wa.me/6281234567890"
+              href="https://wa.me/6283199116298"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
@@ -44,7 +44,7 @@ export default function KontakPage() {
               <MessageCircle size={20} className="text-emerald-600 shrink-0" />
               <div>
                 <span className="font-bold block">WhatsApp Respon Cepat</span>
-                <span className="text-xs">0812-3456-7890 (24 Jam Chat Active)</span>
+                <span className="text-xs">0831-9911-6298 (24 Jam Chat Active)</span>
               </div>
             </a>
 
@@ -52,7 +52,7 @@ export default function KontakPage() {
               <Mail size={20} className="text-primary shrink-0" />
               <div>
                 <span className="font-bold block text-gray-900">Email Customer Support</span>
-                <span className="text-xs text-gray-500">support@irwafashion.com</span>
+                <span className="text-xs text-gray-500">bgdicky123@gmail.com</span>
               </div>
             </div>
 
@@ -60,7 +60,7 @@ export default function KontakPage() {
               <Phone size={20} className="text-primary shrink-0" />
               <div>
                 <span className="font-bold block text-gray-900">Hotline Telepon</span>
-                <span className="text-xs text-gray-500">021-12345678</span>
+                <span className="text-xs text-gray-500">083199116298</span>
               </div>
             </div>
 
@@ -80,8 +80,8 @@ export default function KontakPage() {
             <div className="flex items-start gap-2">
               <MapPin size={18} className="text-primary mt-0.5 shrink-0" />
               <div>
-                <strong className="block text-gray-900">Irwa Fashion House Store</strong>
-                <span>Jl. Utama Fashion No. 88, Pusat Pertokoan Modern, Kota Jakarta / Indonesia</span>
+                <strong className="block text-gray-900">Irwa Fashion Store</strong>
+                <span>Jalan Harapan Jaya No 17 B, Labu Baru Barat, Kecamatan Payung sekaki, Pekanbaru, Riau</span>
               </div>
             </div>
           </div>

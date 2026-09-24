@@ -84,18 +84,18 @@ export default function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-start gap-2">
                 <MapPin size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                <span>Jl. Contoh No. 123, Kota Anda</span>
+                <span>Jalan Harapan Jaya No 17 B, Labu Baru Barat, Kecamatan Payung sekaki, Pekanbaru, Riau</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-primary flex-shrink-0" />
-                <a href="tel:+6281234567890" className="hover:text-white transition-colors">
-                  0812-3456-7890
+                <a href="tel:083199116298" className="hover:text-white transition-colors">
+                  083199116298
                 </a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={14} className="text-primary flex-shrink-0" />
-                <a href="mailto:info@tokoonline.com" className="hover:text-white transition-colors">
-                  info@tokoonline.com
+                <a href="mailto:bgdicky123@gmail.com" className="hover:text-white transition-colors">
+                  bgdicky123@gmail.com
                 </a>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function Footer() {
                   { icon: InstagramIcon, href: "#", label: "Instagram" },
                   { icon: FacebookIcon, href: "#", label: "Facebook" },
                   { icon: YoutubeIcon, href: "#", label: "YouTube" },
-                  { icon: MessageCircle, href: "#", label: "WhatsApp" },
+                  { icon: MessageCircle, href: "https://wa.me/6283199116298", label: "WhatsApp" },
                 ].map(({ icon: Icon, href, label }) => (
                   <a
                     key={label}
@@ -184,7 +184,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-gray-800">
         <div className="container-app py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
-          <span>© {new Date().getFullYear()} Toko Online. Semua hak dilindungi.</span>
+          <span>© {new Date().getFullYear()} Irwa Fashion Store. Semua hak dilindungi.</span>
           <div className="flex items-center gap-4">
             <Link href="/privasi" className="hover:text-gray-300 transition-colors">
               Kebijakan Privasi

@@ -37,7 +37,7 @@ export default function LokasiPage() {
             <div>
               <h2 className="text-xl font-bold text-gray-900">Irwa Fashion House</h2>
               <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-                Jl. Utama Fashion No. 88, Pusat Pertokoan Modern, Kota Jakarta / Indonesia
+                Jalan Harapan Jaya No 17 B, Labu Baru Barat, Kecamatan Payung sekaki, Pekanbaru, Riau
               </p>
             </div>
 
@@ -48,7 +48,7 @@ export default function LokasiPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={16} className="text-primary shrink-0" />
-                <span>Customer Service: <strong>0812-3456-7890</strong></span>
+                <span>Customer Service: <strong>0831-9911-6298</strong></span>
               </div>
             </div>
 
@@ -62,7 +62,7 @@ export default function LokasiPage() {
                 <Navigation size={14} /> Buka di Google Maps
               </a>
               <a
-                href="https://wa.me/6281234567890?text=Halo%20Admin%20IRWA,%20saya%20ingin%20tanya%20lokasi%20toko"
+                href="https://wa.me/6283199116298?text=Halo%20Admin%20IRWA,%20saya%20ingin%20tanya%20lokasi%20toko"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary text-xs px-4 py-2.5 flex items-center gap-2 rounded-xl"
