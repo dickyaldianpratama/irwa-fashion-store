@@ -354,8 +354,39 @@ export default function CheckoutPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+    <div className="bg-gray-50/50 min-h-screen">
+      {/* Breadcrumb Header */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4 max-w-6xl py-3">
+          <nav className="flex items-center text-xs text-gray-500 gap-1.5 flex-wrap">
+            <Link href="/" className="hover:text-primary transition-colors font-medium">
+              Beranda
+            </Link>
+            <ChevronRight size={14} className="text-gray-400 shrink-0" />
+            {items.length === 1 && items[0]?.nama ? (
+              <>
+                <Link href="/kategori" className="hover:text-primary transition-colors font-medium">
+                  Kategori
+                </Link>
+                <ChevronRight size={14} className="text-gray-400 shrink-0" />
+                <span className="text-gray-600 truncate max-w-[180px] sm:max-w-xs">{items[0].nama}</span>
+                <ChevronRight size={14} className="text-gray-400 shrink-0" />
+              </>
+            ) : items.length > 1 ? (
+              <>
+                <Link href="/cart" className="hover:text-primary transition-colors font-medium">
+                  Keranjang
+                </Link>
+                <ChevronRight size={14} className="text-gray-400 shrink-0" />
+              </>
+            ) : null}
+            <span className="text-gray-900 font-medium">Checkout</span>
+          </nav>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
         {/* Kolom Kiri */}
@@ -1141,5 +1172,6 @@ export default function CheckoutPage() {
         </div>
       )}
     </main>
+    </div>
   );
 }
