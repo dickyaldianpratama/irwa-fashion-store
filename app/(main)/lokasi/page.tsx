@@ -54,7 +54,7 @@ export default function LokasiPage() {
 
             <div className="pt-2 flex flex-wrap gap-3">
               <a
-                href="https://maps.google.com"
+                href="https://www.google.com/maps/place/Jl.+Harapan+Jaya,+Labuh+Baru+Bar.,+Kec.+Payung+Sekaki,+Kota+Pekanbaru,+Riau/@0.5239513,101.402091,17z"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary text-xs px-4 py-2.5 flex items-center gap-2 rounded-xl"
@@ -72,12 +72,17 @@ export default function LokasiPage() {
             </div>
           </div>
 
-          <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center text-center p-6">
-            <div className="space-y-2 text-gray-500">
-              <MapPin size={40} className="mx-auto text-primary opacity-80" />
-              <p className="text-xs font-bold text-gray-800">Petunjuk Arah & Google Maps Integration</p>
-              <p className="text-[11px]">Area parkir luas, full AC, & konsultasi ukuran baju gratis di tempat.</p>
-            </div>
+          <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm min-h-[260px]">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3610.4268105066803!2d101.4020909744743!3d0.5239512636748074!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5abbf5a2012b5%3A0xa8a2582416448a1e!2sJl.%20Harapan%20Jaya%2C%20Labuh%20Baru%20Bar.%2C%20Payung%20Sekaki%2C%20Kota%20Pekanbaru%2C%20Riau!5e1!3m2!1sid!2sid!4v1790218889544!5m2!1sid!2sid"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="w-full h-full"
+            />
           </div>
         </div>
       </div>
