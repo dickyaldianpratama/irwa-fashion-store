@@ -78,21 +78,10 @@ model Kategori {
 
 // Fitur Homepage Standalone
 model KategoriPilihan {
-  id          String   @id @default(uuid())
-  nama        String
-  slug        String   @unique
-  image       String?
-  deskripsi   String?  @db.Text
-  hargaAsli   Int?
-  hargaDiskon Int?
-  labelPromo  String?
-  rating      Float?   @default(5.0)
-  itemsData   String?  @db.Text // JSON string: [{ id, nama, image, harga, dll }]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt @default(now())
-
-  ulasan      Ulasan[]
-  ratings     Rating[]
+  id    String  @id @default(uuid())
+  nama  String
+  slug  String  @unique
+  image String?
 }
 
 model KoleksiTerpopuler {
@@ -246,28 +235,15 @@ model AlterasiRequest {
 // -----------------------------------------------------
 
 model Ulasan {
-  id                String           @id @default(uuid())
-  userId            String?
-  user              User?            @relation(fields: [userId], references: [id])
-  produkId          String?
-  produk            Produk?          @relation(fields: [produkId], references: [id], onDelete: Cascade)
-  kategoriPilihanId String?
-  kategoriPilihan   KategoriPilihan? @relation(fields: [kategoriPilihanId], references: [id], onDelete: Cascade)
-  rating            Int
-  komentar          String?          @db.Text
-  fotoUrl           String?
-  createdAt         DateTime         @default(now())
-}
-
-model Rating {
-  id                String           @id @default(uuid())
-  skor              Float            @default(5.0)
-  ulasan            String?          @db.Text
-  userNama          String?
-  produkId          String?
-  kategoriPilihanId String?
-  kategoriPilihan   KategoriPilihan? @relation(fields: [kategoriPilihanId], references: [id], onDelete: Cascade)
-  createdAt         DateTime         @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  produkId  String
+  produk    Produk   @relation(fields: [produkId], references: [id], onDelete: Cascade)
+  rating    Int
+  komentar  String?  @db.Text
+  fotoUrl   String?
+  createdAt DateTime @default(now())
 }
 
 model Wishlist {

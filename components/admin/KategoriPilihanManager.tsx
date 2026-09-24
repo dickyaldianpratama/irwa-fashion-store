@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import {
   Edit2, Check, X, Loader2, ImageIcon,
-  Trash2, Plus, FolderOpen, Star
+  Trash2, Plus, FolderOpen
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -18,12 +18,6 @@ interface KategoriItem {
   nama: string;
   slug: string;
   image: string | null;
-  deskripsi?: string | null;
-  hargaAsli?: number | null;
-  hargaDiskon?: number | null;
-  labelPromo?: string | null;
-  rating?: number | null;
-  itemsData?: string | null;
 }
 
 interface Props {
@@ -36,43 +30,19 @@ export default function KategoriPilihanManager({ kategori }: Props) {
   // State Modal Edit
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<KategoriItem | null>(null);
-  const [editData, setEditData] = useState({
-    nama: "",
-    image: "",
-    deskripsi: "",
-    hargaAsli: "",
-    hargaDiskon: "",
-    labelPromo: "",
-    rating: "5.0",
-  });
+  const [editData, setEditData] = useState({ nama: "", image: "" });
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // State Modal Tambah
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newData, setNewData] = useState({
-    nama: "",
-    image: "",
-    deskripsi: "",
-    hargaAsli: "",
-    hargaDiskon: "",
-    labelPromo: "",
-    rating: "5.0",
-  });
+  const [newData, setNewData] = useState({ nama: "", image: "" });
   const [adding, setAdding] = useState(false);
 
-  // ── EDIT MODAL LAUNCHER ─────────────────────────────────
+  // ── EDIT MODAL ──────────────────────────────────────────
   const startEdit = (item: KategoriItem) => {
     setEditingItem(item);
-    setEditData({
-      nama: item.nama || "",
-      image: item.image || "",
-      deskripsi: item.deskripsi || "",
-      hargaAsli: item.hargaAsli ? String(item.hargaAsli) : "",
-      hargaDiskon: item.hargaDiskon ? String(item.hargaDiskon) : "",
-      labelPromo: item.labelPromo || "",
-      rating: item.rating ? String(item.rating) : "5.0",
-    });
+    setEditData({ nama: item.nama || "", image: item.image || "" });
     setShowEditModal(true);
   };
 
@@ -89,21 +59,14 @@ export default function KategoriPilihanManager({ kategori }: Props) {
     }
     setSaving(true);
     try {
-      const payload = {
-        id: editingItem.id,
-        nama: editData.nama.trim(),
-        image: editData.image || null,
-        deskripsi: editData.deskripsi || null,
-        hargaAsli: editData.hargaAsli ? parseInt(editData.hargaAsli) : null,
-        hargaDiskon: editData.hargaDiskon ? parseInt(editData.hargaDiskon) : null,
-        labelPromo: editData.labelPromo || null,
-        rating: editData.rating ? parseFloat(editData.rating) : 5.0,
-      };
-
       const res = await fetch("/api/admin/kategori", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          id: editingItem.id,
+          nama: editData.nama.trim(),
+          image: editData.image || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan");
@@ -130,35 +93,20 @@ export default function KategoriPilihanManager({ kategori }: Props) {
     }
     setAdding(true);
     try {
-      const payload = {
-        nama: newData.nama.trim(),
-        image: newData.image || null,
-        deskripsi: newData.deskripsi || null,
-        hargaAsli: newData.hargaAsli ? parseInt(newData.hargaAsli) : null,
-        hargaDiskon: newData.hargaDiskon ? parseInt(newData.hargaDiskon) : null,
-        labelPromo: newData.labelPromo || null,
-        rating: newData.rating ? parseFloat(newData.rating) : 5.0,
-      };
-
       const res = await fetch("/api/admin/kategori", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          nama: newData.nama.trim(),
+          image: newData.image || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menambahkan");
 
       setItems((prev) => [...prev, data.data].sort((a, b) => a.nama.localeCompare(b.nama)));
       toast.success(`Kategori "${newData.nama}" berhasil ditambahkan!`);
-      setNewData({
-        nama: "",
-        image: "",
-        deskripsi: "",
-        hargaAsli: "",
-        hargaDiskon: "",
-        labelPromo: "",
-        rating: "5.0",
-      });
+      setNewData({ nama: "", image: "" });
       setShowAddModal(false);
     } catch (err: any) {
       toast.error(err.message);
@@ -213,15 +161,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         </p>
         <button
           onClick={() => {
-            setNewData({
-              nama: "",
-              image: "",
-              deskripsi: "",
-              hargaAsli: "",
-              hargaDiskon: "",
-              labelPromo: "",
-              rating: "5.0",
-            });
+            setNewData({ nama: "", image: "" });
             setShowAddModal(true);
           }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm cursor-pointer"
@@ -239,15 +179,15 @@ export default function KategoriPilihanManager({ kategori }: Props) {
           <p className="text-sm mt-1">Klik &quot;Tambah Kategori Pilihan&quot; untuk menginput data baru</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {items.map((item) => (
             <div
               key={item.id}
               className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div>
-                {/* Header Image & Badges */}
-                <div className="relative w-full aspect-[16/9] bg-gray-100 dark:bg-gray-800">
+                {/* Image Preview */}
+                <div className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-gray-800">
                   {item.image ? (
                     <Image
                       src={item.image}
@@ -258,76 +198,36 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center w-full h-full text-gray-400 gap-1">
-                      <ImageIcon size={28} />
-                      <span className="text-xs">Belum ada gambar</span>
+                      <ImageIcon size={24} />
+                      <span className="text-[10px]">Tanpa Gambar</span>
                     </div>
-                  )}
-                  {item.labelPromo && (
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
-                      {item.labelPromo}
-                    </span>
-                  )}
-                  {item.rating && (
-                    <span className="absolute top-2 right-2 bg-amber-400 text-gray-900 text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
-                      <Star size={12} className="fill-gray-900 text-gray-900" />
-                      {item.rating}
-                    </span>
                   )}
                 </div>
 
-                {/* Card Content Info */}
-                <div className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-bold text-base text-gray-900 dark:text-white truncate">
-                      {item.nama}
-                    </h3>
-                    {item.deskripsi && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                        {item.deskripsi}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Pricing Info */}
-                  {(item.hargaAsli || item.hargaDiskon) && (
-                    <div className="flex items-baseline gap-2 pt-1 border-t border-gray-100 dark:border-gray-800">
-                      {item.hargaDiskon ? (
-                        <>
-                          <span className="font-bold text-sm text-blue-600 dark:text-blue-400">
-                            Rp {item.hargaDiskon.toLocaleString("id-ID")}
-                          </span>
-                          {item.hargaAsli && (
-                            <span className="text-xs text-gray-400 line-through">
-                              Rp {item.hargaAsli.toLocaleString("id-ID")}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="font-bold text-sm text-gray-900 dark:text-white">
-                          Rp {item.hargaAsli?.toLocaleString("id-ID")}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                {/* Info Title */}
+                <div className="p-3 text-center">
+                  <p className="font-bold text-sm text-gray-900 dark:text-white truncate">
+                    {item.nama}
+                  </p>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="p-4 pt-0 flex gap-2">
+              {/* Actions */}
+              <div className="p-2.5 pt-0 flex gap-1.5">
                 <button
                   onClick={() => startEdit(item)}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1 text-blue-600 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs font-semibold py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
-                  <Edit2 size={14} />
-                  Edit Detail
+                  <Edit2 size={12} />
+                  <span>Edit</span>
                 </button>
                 <button
                   onClick={() => handleDelete(item)}
                   disabled={deletingId === item.id}
-                  className="flex items-center justify-center gap-1 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
+                  className="flex items-center justify-center text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
                   title="Hapus"
                 >
-                  {deletingId === item.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  {deletingId === item.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                 </button>
               </div>
             </div>
@@ -335,15 +235,14 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         </div>
       )}
 
-      {/* ── MODAL LAYER EDIT KATEGORI PILIHAN ─────────────────────────── */}
+      {/* ── MODAL LAYER EDIT ──────────────────────────────────────────── */}
       {showEditModal && editingItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-800">
-            {/* Header Modal */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div>
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Edit Detail Kategori Pilihan</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Ubah nama, gambar, harga, deskripsi bahan, promo, dan rating</p>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Edit Kategori Pilihan</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Ubah nama dan gambar cover kategori</p>
               </div>
               <button
                 onClick={cancelEdit}
@@ -353,17 +252,16 @@ export default function KategoriPilihanManager({ kategori }: Props) {
               </button>
             </div>
 
-            {/* Body Form */}
             <div className="p-5 space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Nama Kategori Pilihan <span className="text-red-500">*</span>
+                  Nama Kategori <span className="text-red-500">*</span>
                 </label>
                 <input
                   value={editData.nama}
                   onChange={(e) => setEditData((p) => ({ ...p, nama: e.target.value }))}
-                  placeholder="Contoh: Celana (Gabungan Celana Pendek, Panjang, Renang)"
                   className="w-full p-2.5 border rounded-lg text-sm dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="Nama Kategori"
                   autoFocus
                 />
               </div>
@@ -372,70 +270,11 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                 value={editData.image}
                 onChange={(url) => setEditData((p) => ({ ...p, image: url }))}
                 folder="kategori"
-                label="Gambar Cover / Banner"
-                aspectRatio="aspect-[16/9]"
+                label="Gambar Cover"
+                aspectRatio="aspect-[4/3]"
               />
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Deskripsi & Bahan Kain</label>
-                <textarea
-                  rows={2}
-                  value={editData.deskripsi}
-                  onChange={(e) => setEditData((p) => ({ ...p, deskripsi: e.target.value }))}
-                  placeholder="Detail bahan (contoh: Katun Chino Premium 100%, Soft stretchable)"
-                  className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Harga Asli (Rp)</label>
-                  <input
-                    type="number"
-                    value={editData.hargaAsli}
-                    onChange={(e) => setEditData((p) => ({ ...p, hargaAsli: e.target.value }))}
-                    placeholder="150000"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Harga Diskon (Rp)</label>
-                  <input
-                    type="number"
-                    value={editData.hargaDiskon}
-                    onChange={(e) => setEditData((p) => ({ ...p, hargaDiskon: e.target.value }))}
-                    placeholder="120000"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Label Promo</label>
-                  <input
-                    value={editData.labelPromo}
-                    onChange={(e) => setEditData((p) => ({ ...p, labelPromo: e.target.value }))}
-                    placeholder="Flash Sale / Diskon 30%"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Display (1-5)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="5"
-                    value={editData.rating}
-                    onChange={(e) => setEditData((p) => ({ ...p, rating: e.target.value }))}
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
             </div>
 
-            {/* Footer Modal Actions */}
             <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex gap-3 sticky bottom-0 bg-white dark:bg-gray-900">
               <button
                 onClick={cancelEdit}
@@ -449,21 +288,21 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                 className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                Simpan Perubahan
+                Simpan
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── MODAL LAYER TAMBAH KATEGORI PILIHAN ───────────────────────── */}
+      {/* ── MODAL LAYER TAMBAH ───────────────────────────────────────── */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div>
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tambah Kategori Pilihan Baru</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Lengkapi data kategori pilihan beserta harga, promo, dan detail bahan</p>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tambah Kategori Pilihan</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Input nama dan gambar untuk kategori baru</p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -476,12 +315,12 @@ export default function KategoriPilihanManager({ kategori }: Props) {
             <div className="p-5 space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Nama Kategori Pilihan <span className="text-red-500">*</span>
+                  Nama Kategori <span className="text-red-500">*</span>
                 </label>
                 <input
                   value={newData.nama}
                   onChange={(e) => setNewData((p) => ({ ...p, nama: e.target.value }))}
-                  placeholder="Contoh: Celana (Gabungan Celana Pendek, Panjang, Renang)"
+                  placeholder="Contoh: Celana, Kemeja, Kaos, Jaket..."
                   className="w-full p-2.5 border rounded-lg text-sm dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   autoFocus
                 />
@@ -491,67 +330,9 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                 value={newData.image}
                 onChange={(url) => setNewData((p) => ({ ...p, image: url }))}
                 folder="kategori"
-                label="Gambar Cover / Banner"
-                aspectRatio="aspect-[16/9]"
+                label="Gambar Cover"
+                aspectRatio="aspect-[4/3]"
               />
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Deskripsi & Bahan Kain</label>
-                <textarea
-                  rows={2}
-                  value={newData.deskripsi}
-                  onChange={(e) => setNewData((p) => ({ ...p, deskripsi: e.target.value }))}
-                  placeholder="Contoh: Terdiri dari celana pendek & panjang bahan Katun Chino Premium"
-                  className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Harga Asli (Rp)</label>
-                  <input
-                    type="number"
-                    value={newData.hargaAsli}
-                    onChange={(e) => setNewData((p) => ({ ...p, hargaAsli: e.target.value }))}
-                    placeholder="150000"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Harga Diskon (Rp)</label>
-                  <input
-                    type="number"
-                    value={newData.hargaDiskon}
-                    onChange={(e) => setNewData((p) => ({ ...p, hargaDiskon: e.target.value }))}
-                    placeholder="120000"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Label Promo</label>
-                  <input
-                    value={newData.labelPromo}
-                    onChange={(e) => setNewData((p) => ({ ...p, labelPromo: e.target.value }))}
-                    placeholder="Contoh: Flash Sale / Promo 30%"
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Display (1-5)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="5"
-                    value={newData.rating}
-                    onChange={(e) => setNewData((p) => ({ ...p, rating: e.target.value }))}
-                    className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex gap-3 sticky bottom-0 bg-white dark:bg-gray-900">
@@ -567,7 +348,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                 className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold disabled:opacity-60 flex items-center justify-center gap-2 transition-colors"
               >
                 {adding ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                Tambah Kategori
+                Tambah
               </button>
             </div>
           </div>

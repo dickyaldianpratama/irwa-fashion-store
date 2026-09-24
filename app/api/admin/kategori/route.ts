@@ -6,16 +6,7 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const data = await prisma.kategoriPilihan.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        ulasan: {
-          include: { user: true },
-          orderBy: { createdAt: "desc" },
-        },
-        ratings: {
-          orderBy: { createdAt: "desc" },
-        },
-      },
+      orderBy: { nama: "asc" },
     });
     return NextResponse.json({ data });
   } catch (error: any) {
@@ -28,18 +19,7 @@ export async function POST(request: Request) {
     const { isAdmin } = await checkAdminAuth();
     if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
-    const body = await request.json();
-    const {
-      nama,
-      image,
-      deskripsi,
-      hargaAsli,
-      hargaDiskon,
-      labelPromo,
-      rating,
-      itemsData,
-    } = body;
-
+    const { nama, image } = await request.json();
     if (!nama || !nama.trim()) {
       return NextResponse.json({ error: "Nama kategori wajib diisi" }, { status: 400 });
     }
@@ -55,22 +35,8 @@ export async function POST(request: Request) {
       slug = `${baseSlug}-${counter++}`;
     }
 
-    const parsedHargaAsli = hargaAsli ? parseInt(hargaAsli) : null;
-    const parsedHargaDiskon = hargaDiskon ? parseInt(hargaDiskon) : null;
-    const parsedRating = rating ? parseFloat(rating) : 5.0;
-
     const newData = await prisma.kategoriPilihan.create({
-      data: {
-        nama: nama.trim(),
-        slug,
-        image: image || null,
-        deskripsi: deskripsi || null,
-        hargaAsli: parsedHargaAsli,
-        hargaDiskon: parsedHargaDiskon,
-        labelPromo: labelPromo || null,
-        rating: parsedRating,
-        itemsData: typeof itemsData === "string" ? itemsData : itemsData ? JSON.stringify(itemsData) : null,
-      },
+      data: { nama: nama.trim(), slug, image: image || null },
     });
 
     revalidatePath('/', 'layout');
@@ -85,25 +51,8 @@ export async function PATCH(request: Request) {
     const { isAdmin } = await checkAdminAuth();
     if (!isAdmin) return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
 
-    const body = await request.json();
-    const {
-      id,
-      nama,
-      image,
-      slug,
-      deskripsi,
-      hargaAsli,
-      hargaDiskon,
-      labelPromo,
-      rating,
-      itemsData,
-    } = body;
-
+    const { id, nama, image, slug } = await request.json();
     if (!id) return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
-
-    const parsedHargaAsli = hargaAsli !== undefined && hargaAsli !== null ? parseInt(hargaAsli) || null : undefined;
-    const parsedHargaDiskon = hargaDiskon !== undefined && hargaDiskon !== null ? parseInt(hargaDiskon) || null : undefined;
-    const parsedRating = rating !== undefined && rating !== null ? parseFloat(rating) || 5.0 : undefined;
 
     const updated = await prisma.kategoriPilihan.update({
       where: { id },
@@ -111,12 +60,6 @@ export async function PATCH(request: Request) {
         ...(nama && { nama: nama.trim() }),
         ...(slug && { slug }),
         ...(image !== undefined && { image }),
-        ...(deskripsi !== undefined && { deskripsi }),
-        ...(parsedHargaAsli !== undefined && { hargaAsli: parsedHargaAsli }),
-        ...(parsedHargaDiskon !== undefined && { hargaDiskon: parsedHargaDiskon }),
-        ...(labelPromo !== undefined && { labelPromo }),
-        ...(parsedRating !== undefined && { rating: parsedRating }),
-        ...(itemsData !== undefined && { itemsData: typeof itemsData === "string" ? itemsData : itemsData ? JSON.stringify(itemsData) : null }),
       },
     });
 
