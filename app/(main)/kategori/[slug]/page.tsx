@@ -59,6 +59,7 @@ export default async function KategoriDetailPage({ params }: Props) {
       },
       include: {
         ulasan: {
+          include: { user: true },
           orderBy: { createdAt: "desc" },
         },
         ratings: {
