@@ -258,38 +258,29 @@ export default async function KategoriDetailPage({ params }: Props) {
 
       <div className="container-app py-8 space-y-10">
         {/* Section Ulasan Customer jika ada */}
-        {((kategoriPilihanDb?.ulasan && kategoriPilihanDb.ulasan.length > 0) || kategoriPilihanDb?.ulasanText) && (
+        {kategoriPilihanDb?.ulasan && kategoriPilihanDb.ulasan.length > 0 && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
             <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-4">
               <MessageSquare size={18} className="text-primary" />
-              Ulasan Customer untuk {categoryName}
+              Ulasan Customer untuk {categoryName} ({kategoriPilihanDb.ulasan.length})
             </h2>
 
-            {kategoriPilihanDb?.ulasanText && (
-              <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 mb-4">
-                <p className="text-xs text-blue-900 font-semibold mb-1">Ulasan Utama:</p>
-                <p className="text-sm text-gray-700 italic">&ldquo;{kategoriPilihanDb.ulasanText}&rdquo;</p>
-              </div>
-            )}
-
-            {kategoriPilihanDb?.ulasan && kategoriPilihanDb.ulasan.length > 0 && (
-              <div className="space-y-3">
-                {kategoriPilihanDb.ulasan.map((u) => (
-                  <div key={u.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-gray-800">
-                        {u.user?.name || "Customer Terverifikasi"}
-                      </span>
-                      <span className="text-xs text-amber-500 font-bold flex items-center gap-0.5">
-                        <Star size={12} className="fill-amber-400" />
-                        {u.rating}.0
-                      </span>
-                    </div>
-                    {u.komentar && <p className="text-xs text-gray-600">{u.komentar}</p>}
+            <div className="space-y-3">
+              {kategoriPilihanDb.ulasan.map((u) => (
+                <div key={u.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-gray-800">
+                      {u.user?.name || "Customer Terverifikasi"}
+                    </span>
+                    <span className="text-xs text-amber-500 font-bold flex items-center gap-0.5">
+                      <Star size={12} className="fill-amber-400" />
+                      {u.rating}.0
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  {u.komentar && <p className="text-xs text-gray-600">{u.komentar}</p>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

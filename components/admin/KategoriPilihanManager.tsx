@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import {
   Edit2, Check, X, Loader2, ImageIcon,
-  Trash2, Plus, FolderOpen, Star, MessageSquare
+  Trash2, Plus, FolderOpen, Star
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -23,7 +23,6 @@ interface KategoriItem {
   hargaDiskon?: number | null;
   labelPromo?: string | null;
   rating?: number | null;
-  ulasanText?: string | null;
   itemsData?: string | null;
 }
 
@@ -33,7 +32,7 @@ interface Props {
 
 export default function KategoriPilihanManager({ kategori }: Props) {
   const [items, setItems] = useState<KategoriItem[]>(kategori);
-  
+
   // State Modal Edit
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<KategoriItem | null>(null);
@@ -45,7 +44,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
     hargaDiskon: "",
     labelPromo: "",
     rating: "5.0",
-    ulasanText: "",
   });
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -60,7 +58,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
     hargaDiskon: "",
     labelPromo: "",
     rating: "5.0",
-    ulasanText: "",
   });
   const [adding, setAdding] = useState(false);
 
@@ -75,7 +72,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
       hargaDiskon: item.hargaDiskon ? String(item.hargaDiskon) : "",
       labelPromo: item.labelPromo || "",
       rating: item.rating ? String(item.rating) : "5.0",
-      ulasanText: item.ulasanText || "",
     });
     setShowEditModal(true);
   };
@@ -102,7 +98,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         hargaDiskon: editData.hargaDiskon ? parseInt(editData.hargaDiskon) : null,
         labelPromo: editData.labelPromo || null,
         rating: editData.rating ? parseFloat(editData.rating) : 5.0,
-        ulasanText: editData.ulasanText || null,
       };
 
       const res = await fetch("/api/admin/kategori", {
@@ -143,7 +138,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         hargaDiskon: newData.hargaDiskon ? parseInt(newData.hargaDiskon) : null,
         labelPromo: newData.labelPromo || null,
         rating: newData.rating ? parseFloat(newData.rating) : 5.0,
-        ulasanText: newData.ulasanText || null,
       };
 
       const res = await fetch("/api/admin/kategori", {
@@ -164,7 +158,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
         hargaDiskon: "",
         labelPromo: "",
         rating: "5.0",
-        ulasanText: "",
       });
       setShowAddModal(false);
     } catch (err: any) {
@@ -228,7 +221,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
               hargaDiskon: "",
               labelPromo: "",
               rating: "5.0",
-              ulasanText: "",
             });
             setShowAddModal(true);
           }}
@@ -317,18 +309,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                       )}
                     </div>
                   )}
-
-                  {/* Ulasan Customer */}
-                  {item.ulasanText && (
-                    <div className="bg-gray-50 dark:bg-gray-800/60 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
-                      <p className="text-[11px] text-gray-500 font-semibold mb-0.5 flex items-center gap-1">
-                        <MessageSquare size={12} /> Ulasan Customer:
-                      </p>
-                      <p className="text-xs text-gray-700 dark:text-gray-300 italic line-clamp-2">
-                        &ldquo;{item.ulasanText}&rdquo;
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -363,7 +343,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white">Edit Detail Kategori Pilihan</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Ubah nama, gambar, harga, deskripsi bahan, promo, dan ulasan</p>
+                <p className="text-xs text-gray-500 mt-0.5">Ubah nama, gambar, harga, deskripsi bahan, promo, dan rating</p>
               </div>
               <button
                 onClick={cancelEdit}
@@ -441,7 +421,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Customer (1-5)</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Display (1-5)</label>
                   <input
                     type="number"
                     step="0.1"
@@ -452,17 +432,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                     className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Ulasan Customer</label>
-                <textarea
-                  rows={2}
-                  value={editData.ulasanText}
-                  onChange={(e) => setEditData((p) => ({ ...p, ulasanText: e.target.value }))}
-                  placeholder="Input komentar ulasan dari customer..."
-                  className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
               </div>
             </div>
 
@@ -494,7 +463,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tambah Kategori Pilihan Baru</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Lengkapi data kategori pilihan beserta harga, promo, dan ulasan</p>
+                <p className="text-xs text-gray-500 mt-0.5">Lengkapi data kategori pilihan beserta harga, promo, dan detail bahan</p>
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -571,7 +540,7 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Customer (1-5)</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Rating Display (1-5)</label>
                   <input
                     type="number"
                     step="0.1"
@@ -582,17 +551,6 @@ export default function KategoriPilihanManager({ kategori }: Props) {
                     className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Ulasan Customer</label>
-                <textarea
-                  rows={2}
-                  value={newData.ulasanText}
-                  onChange={(e) => setNewData((p) => ({ ...p, ulasanText: e.target.value }))}
-                  placeholder="Input ulasan dari pembeli..."
-                  className="w-full p-2 border rounded-lg text-xs dark:bg-gray-800 dark:border-gray-700 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
               </div>
             </div>
 

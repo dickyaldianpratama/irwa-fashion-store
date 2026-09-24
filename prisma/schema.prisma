@@ -87,7 +87,6 @@ model KategoriPilihan {
   hargaDiskon Int?
   labelPromo  String?
   rating      Float?   @default(5.0)
-  ulasanText  String?  @db.Text
   itemsData   String?  @db.Text // JSON string: [{ id, nama, image, harga, dll }]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt @default(now())

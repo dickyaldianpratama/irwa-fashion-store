@@ -9,6 +9,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         ulasan: {
+          include: { user: true },
           orderBy: { createdAt: "desc" },
         },
         ratings: {
@@ -36,7 +37,6 @@ export async function POST(request: Request) {
       hargaDiskon,
       labelPromo,
       rating,
-      ulasanText,
       itemsData,
     } = body;
 
@@ -69,33 +69,9 @@ export async function POST(request: Request) {
         hargaDiskon: parsedHargaDiskon,
         labelPromo: labelPromo || null,
         rating: parsedRating,
-        ulasanText: ulasanText || null,
         itemsData: typeof itemsData === "string" ? itemsData : itemsData ? JSON.stringify(itemsData) : null,
       },
     });
-
-    // Simpan ulasan jika diisi di admin
-    if (ulasanText && ulasanText.trim()) {
-      await prisma.ulasan.create({
-        data: {
-          kategoriPilihanId: newData.id,
-          rating: Math.round(parsedRating),
-          komentar: ulasanText.trim(),
-        },
-      });
-    }
-
-    // Simpan rating di tabel Rating baru jika diisi
-    if (rating) {
-      await prisma.rating.create({
-        data: {
-          kategoriPilihanId: newData.id,
-          skor: parsedRating,
-          ulasan: ulasanText || null,
-          userNama: "Admin Customer Review",
-        },
-      });
-    }
 
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newData });
@@ -120,7 +96,6 @@ export async function PATCH(request: Request) {
       hargaDiskon,
       labelPromo,
       rating,
-      ulasanText,
       itemsData,
     } = body;
 
@@ -141,32 +116,9 @@ export async function PATCH(request: Request) {
         ...(parsedHargaDiskon !== undefined && { hargaDiskon: parsedHargaDiskon }),
         ...(labelPromo !== undefined && { labelPromo }),
         ...(parsedRating !== undefined && { rating: parsedRating }),
-        ...(ulasanText !== undefined && { ulasanText }),
         ...(itemsData !== undefined && { itemsData: typeof itemsData === "string" ? itemsData : itemsData ? JSON.stringify(itemsData) : null }),
       },
     });
-
-    // Update / tambahkan ulasan jika diisi
-    if (ulasanText && ulasanText.trim()) {
-      await prisma.ulasan.create({
-        data: {
-          kategoriPilihanId: updated.id,
-          rating: Math.round(parsedRating || 5),
-          komentar: ulasanText.trim(),
-        },
-      });
-    }
-
-    if (rating) {
-      await prisma.rating.create({
-        data: {
-          kategoriPilihanId: updated.id,
-          skor: parsedRating || 5.0,
-          ulasan: ulasanText || null,
-          userNama: "Admin Customer Review",
-        },
-      });
-    }
 
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: updated });
