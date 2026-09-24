@@ -78,10 +78,33 @@ model Kategori {
 
 // Fitur Homepage Standalone
 model KategoriPilihan {
-  id    String  @id @default(uuid())
-  nama  String
-  slug  String  @unique
-  image String?
+  id     String                    @id @default(uuid())
+  nama   String
+  slug   String                    @unique
+  image  String?
+  produk KategoriPilihanProduk[]
+}
+
+model KategoriPilihanProduk {
+  id                String                       @id @default(uuid())
+  kategoriPilihanId String
+  kategoriPilihan   KategoriPilihan              @relation(fields: [kategoriPilihanId], references: [id], onDelete: Cascade)
+  nama              String
+  harga             Int
+  hargaDiskon       Int?
+  ukuran            String?                      // e.g. "S,M,L,XL"
+  deskripsi         String?                      @db.Text
+  createdAt         DateTime                     @default(now())
+
+  images KategoriPilihanProdukImage[]
+}
+
+model KategoriPilihanProdukImage {
+  id       String                 @id @default(uuid())
+  produkId String
+  produk   KategoriPilihanProduk  @relation(fields: [produkId], references: [id], onDelete: Cascade)
+  url      String
+  isUtama  Boolean                @default(false)
 }
 
 model KoleksiTerpopuler {

@@ -3,10 +3,11 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Grid3X3, Star, Eye } from "lucide-react";
+import { Grid3X3, Star, Eye, Package } from "lucide-react";
 
 const tabs = [
   { name: "Kategori Pilihan (Home)", href: "/admin/produk/kategori", icon: Grid3X3 },
+  { name: "Kategori Pilihan (Produk)", href: "/admin/produk/kategori-pilihan-produk", icon: Package },
   { name: "Koleksi Terpopuler (Home)", href: "/admin/produk/featured", icon: Star },
   { name: "Shop The Look (Home)", href: "/admin/produk/shop-the-look", icon: Eye },
 ];
