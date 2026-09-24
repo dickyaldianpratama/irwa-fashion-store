@@ -428,6 +428,11 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
                         <h3 className="font-bold text-xs text-gray-900 dark:text-white line-clamp-2 leading-snug">
                           {p.nama}
                         </h3>
+                        {p.deskripsi && (
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 font-normal">
+                            {p.deskripsi}
+                          </p>
+                        )}
                         {p.ukuran && (
                           <p className="text-[10px] text-gray-400 font-medium">
                             {p.ukuran}
@@ -575,19 +580,37 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
 
               {/* Deskripsi */}
               <div className="space-y-1.5">
-                <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                  <FileText size={12} className="text-gray-400" />
-                  Deskripsi Produk (Opsional)
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                    <FileText size={12} className="text-gray-400" />
+                    Deskripsi Produk (Opsional)
+                  </label>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      (form.deskripsi?.length || 0) >= 250
+                        ? "text-red-500 font-bold"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {form.deskripsi?.length || 0}/250 karakter
+                  </span>
+                </div>
                 <textarea
+                  maxLength={250}
                   value={form.deskripsi}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, deskripsi: e.target.value }))
+                    setForm((p) => ({
+                      ...p,
+                      deskripsi: e.target.value.slice(0, 250),
+                    }))
                   }
-                  placeholder="Bahan, detail produk, keunggulan, cara perawatan..."
-                  rows={3}
+                  placeholder="Ringkasan bahan & keunggulan produk (maks. 250 karakter)..."
+                  rows={2}
                   className="w-full p-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-gray-900/20 outline-none transition-all resize-none"
                 />
+                <p className="text-[10px] text-gray-400">
+                  * Dibatasi maksimal 250 karakter agar tampilan card tetap rapi, efisien, dan tidak memakan ruang.
+                </p>
               </div>
 
               {/* Foto & Ukuran per foto */}
