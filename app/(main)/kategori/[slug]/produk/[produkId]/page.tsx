@@ -15,6 +15,7 @@ import BuyNowBagIcon from "@/components/ui/BuyNowBagIcon";
 interface ProdukImage {
   id: string;
   url: string;
+  ukuran?: string | null;
   isUtama: boolean;
 }
 
@@ -55,7 +56,16 @@ export default function KategoriPilihanProdukDetailPage({
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setItem(d.data);
-        if (d.data?.ukuran) {
+        if (d.data?.images && d.data.images.length > 0) {
+          const sorted = [...d.data.images].sort(
+            (a: any, b: any) => (b.isUtama ? 1 : 0) - (a.isUtama ? 1 : 0)
+          );
+          const sizes = d.data.ukuran
+            ? d.data.ukuran.split(",").map((s: string) => s.trim()).filter(Boolean)
+            : [];
+          const initialSize = sorted[0]?.ukuran || sizes[0] || "";
+          if (initialSize) setSelectedSize(initialSize);
+        } else if (d.data?.ukuran) {
           const sizes = d.data.ukuran.split(",").map((s: string) => s.trim()).filter(Boolean);
           if (sizes[0]) setSelectedSize(sizes[0]);
         }
@@ -77,11 +87,44 @@ export default function KategoriPilihanProdukDetailPage({
 
   if (!item) return null;
 
-  const photos = item.images.sort((a, b) => (b.isUtama ? 1 : 0) - (a.isUtama ? 1 : 0));
-  const activePhoto = photos[activePhotoIndex] || photos[0];
-  const allSizes = item.ukuran
+  const sizesFromUkuran = item.ukuran
     ? item.ukuran.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
+
+  const photos = item.images
+    .sort((a, b) => (b.isUtama ? 1 : 0) - (a.isUtama ? 1 : 0))
+    .map((img, idx) => ({
+      ...img,
+      ukuran: img.ukuran || sizesFromUkuran[idx] || sizesFromUkuran[0] || "",
+    }));
+
+  const activePhoto = photos[activePhotoIndex] || photos[0];
+
+  const allSizes = Array.from(
+    new Set(
+      photos
+        .map((p) => p.ukuran)
+        .filter((s): s is string => Boolean(s))
+    )
+  );
+  if (allSizes.length === 0 && sizesFromUkuran.length > 0) {
+    allSizes.push(...sizesFromUkuran);
+  }
+
+  const handleSelectPhoto = (index: number) => {
+    setActivePhotoIndex(index);
+    const sz = photos[index]?.ukuran || "";
+    if (sz) setSelectedSize(sz);
+  };
+
+  const handleSelectSize = (sz: string) => {
+    setSelectedSize(sz);
+    const targetIdx = photos.findIndex((p) => p.ukuran === sz);
+    if (targetIdx !== -1) {
+      setActivePhotoIndex(targetIdx);
+    }
+  };
+
   const isDiscounted = !!(item.hargaDiskon && item.hargaDiskon < item.harga);
   const displayPrice = item.hargaDiskon || item.harga;
   const diskonPersen = isDiscounted
@@ -182,6 +225,12 @@ export default function KategoriPilihanProdukDetailPage({
                 {isDiscounted && (
                   <div className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">DISKON</div>
                 )}
+                {activePhoto?.ukuran && (
+                  <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-gray-100 shadow-xs">
+                    <span className="text-[10px] font-bold text-gray-500">Ukuran:</span>
+                    <span className="text-xs font-black text-primary">{activePhoto.ukuran}</span>
+                  </div>
+                )}
               </div>
 
               {/* Thumbnails */}
@@ -189,9 +238,9 @@ export default function KategoriPilihanProdukDetailPage({
                 <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {photos.map((photo, idx) => (
                     <button
-                      key={photo.id}
+                      key={photo.id || idx}
                       type="button"
-                      onClick={() => setActivePhotoIndex(idx)}
+                      onClick={() => handleSelectPhoto(idx)}
                       className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
                         activePhotoIndex === idx
                           ? "border-primary ring-2 ring-primary/30 scale-105"
@@ -199,6 +248,11 @@ export default function KategoriPilihanProdukDetailPage({
                       }`}
                     >
                       <img src={photo.url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                      {photo.ukuran && (
+                        <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-white font-bold text-center py-0.5 truncate">
+                          {photo.ukuran}
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -237,7 +291,7 @@ export default function KategoriPilihanProdukDetailPage({
                     {allSizes.map((size) => (
                       <button
                         key={size}
-                        onClick={() => setSelectedSize(size)}
+                        onClick={() => handleSelectSize(size)}
                         className={`min-w-[46px] h-9 px-2.5 rounded-lg border-2 font-bold text-xs transition-all cursor-pointer ${
                           selectedSize === size
                             ? "bg-primary border-primary text-white shadow-xs"

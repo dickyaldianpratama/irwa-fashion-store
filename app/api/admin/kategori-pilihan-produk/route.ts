@@ -35,10 +35,15 @@ export async function POST(req: NextRequest) {
         ukuran: ukuran || null,
         deskripsi: deskripsi || null,
         images: {
-          create: (images || []).map((url: string, idx: number) => ({
-            url,
-            isUtama: idx === 0,
-          })),
+          create: (images || []).map((item: any, idx: number) => {
+            const url = typeof item === "string" ? item : item.url;
+            const itemUkuran = typeof item === "object" ? item.ukuran : null;
+            return {
+              url,
+              ukuran: itemUkuran || null,
+              isUtama: idx === 0,
+            };
+          }),
         },
       },
       include: { images: true },
@@ -68,10 +73,15 @@ export async function PATCH(req: NextRequest) {
         ukuran: ukuran || null,
         deskripsi: deskripsi || null,
         images: {
-          create: (images || []).map((url: string, idx: number) => ({
-            url,
-            isUtama: idx === 0,
-          })),
+          create: (images || []).map((item: any, idx: number) => {
+            const url = typeof item === "string" ? item : item.url;
+            const itemUkuran = typeof item === "object" ? item.ukuran : null;
+            return {
+              url,
+              ukuran: itemUkuran || null,
+              isUtama: idx === 0,
+            };
+          }),
         },
       },
       include: { images: true },

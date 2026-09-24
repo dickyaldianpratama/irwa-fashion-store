@@ -32,6 +32,7 @@ interface KategoriPilihan {
 interface ProdukImage {
   id: string;
   url: string;
+  ukuran?: string | null;
   isUtama: boolean;
 }
 
@@ -68,17 +69,13 @@ const formatRupiah = (n: number) =>
   }).format(n);
 
 // Encode foto items + ukuran ke format ukuran string: "S,M,L" dan images array
-// Kita simpan ukuran sebagai metadata di image url — kita simpan di state form saja,
-// lalu saat save kita kirim images (url array) dan ukuran (gabungan ukuran per foto, distinct)
 function buildUkuranString(fotos: FotoItem[]): string {
   const seen = new Set<string>();
   fotos.forEach((f) => { if (f.ukuran) seen.add(f.ukuran); });
   return Array.from(seen).join(",");
 }
 
-// Decode: buat FotoItem dari Produk.images + ukuran string
-// Karena kita tidak menyimpan ukuran per-foto di DB (hanya images + ukuran gabungan),
-// kita distribusikan ukuran ke foto sesuai urutan (UKURAN_OPTIONS priority)
+// Decode: buat FotoItem dari Produk.images + ukuran
 function decodeFotos(produk: Produk): FotoItem[] {
   const sorted = [...produk.images].sort((a, b) =>
     b.isUtama ? 1 : a.isUtama ? -1 : 0
@@ -90,7 +87,7 @@ function decodeFotos(produk: Produk): FotoItem[] {
   return sorted.map((img, idx) => ({
     id: img.id || `foto-${idx}`,
     url: img.url,
-    ukuran: sizes[idx] || sizes[0] || "",
+    ukuran: img.ukuran || sizes[idx] || sizes[0] || "",
   }));
 }
 
@@ -227,7 +224,12 @@ export default function KategoriPilihanProdukManager({ kategoriList }: Props) {
         hargaDiskon: form.hargaDiskon ? Number(form.hargaDiskon) : null,
         ukuran: buildUkuranString(fotos) || null,
         deskripsi: form.deskripsi.trim() || null,
-        images: fotos.map((f) => f.url).filter(Boolean),
+        images: fotos
+          .filter((f) => Boolean(f.url))
+          .map((f) => ({
+            url: f.url,
+            ukuran: f.ukuran || null,
+          })),
       };
 
       const res = await fetch("/api/admin/kategori-pilihan-produk", {

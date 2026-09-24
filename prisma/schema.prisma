@@ -104,6 +104,7 @@ model KategoriPilihanProdukImage {
   produkId String
   produk   KategoriPilihanProduk  @relation(fields: [produkId], references: [id], onDelete: Cascade)
   url      String
+  ukuran   String?
   isUtama  Boolean                @default(false)
 }
 
