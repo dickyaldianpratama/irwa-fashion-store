@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { ChevronRight, ArrowLeft, Layers, ShoppingBag } from "lucide-react";
+import Image from "next/image";
+import { ChevronRight, ArrowLeft, Layers, ShoppingBag, Star, MessageSquare, Tag, ShieldCheck } from "lucide-react";
 import ProductCard, { ProductType } from "@/components/produk/ProductCard";
 import KoleksiCard from "@/components/beranda/KoleksiCard";
 
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
   const cleanName = decodedSlug.replace(/-/g, " ");
 
   const cat =
-    (await prisma.kategori.findFirst({
+    (await prisma.kategoriPilihan.findFirst({
       where: {
         OR: [
           { slug: decodedSlug },
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props) {
         ],
       },
     })) ||
-    (await prisma.kategoriPilihan.findFirst({
+    (await prisma.kategori.findFirst({
       where: {
         OR: [
           { slug: decodedSlug },
@@ -45,8 +46,26 @@ export default async function KategoriDetailPage({ params }: Props) {
   const decodedSlug = decodeURIComponent(slug);
   const cleanName = decodedSlug.replace(/-/g, " ");
 
-  // Cari di Kategori atau KategoriPilihan dengan berbagai opsi pencarian
-  const [kategoriDb, kategoriPilihanDb] = await Promise.all([
+  // Cari di KategoriPilihan (dengan Ulasan & Ratings) dan Kategori
+  const [kategoriPilihanDb, kategoriDb] = await Promise.all([
+    prisma.kategoriPilihan.findFirst({
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: decodedSlug.toLowerCase() },
+          { nama: { equals: cleanName, mode: "insensitive" } },
+          { nama: { contains: cleanName, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        ulasan: {
+          orderBy: { createdAt: "desc" },
+        },
+        ratings: {
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    }),
     prisma.kategori.findFirst({
       where: {
         OR: [
@@ -66,25 +85,16 @@ export default async function KategoriDetailPage({ params }: Props) {
         },
       },
     }),
-    prisma.kategoriPilihan.findFirst({
-      where: {
-        OR: [
-          { slug: decodedSlug },
-          { slug: decodedSlug.toLowerCase() },
-          { nama: { equals: cleanName, mode: "insensitive" } },
-          { nama: { contains: cleanName, mode: "insensitive" } },
-        ],
-      },
-    }),
   ]);
 
   const categoryName =
-    kategoriDb?.nama ||
     kategoriPilihanDb?.nama ||
+    kategoriDb?.nama ||
     cleanName.replace(/\b\w/g, (l) => l.toUpperCase());
 
-  // Ambil produk dari kategori relation
+  // Ambil SELURUH produk yang cocok di toko (case-insensitive search tanpa batasan take)
   let products: ProductType[] = [];
+
   if (kategoriDb?.produk && kategoriDb.produk.length > 0) {
     products = kategoriDb.produk.map((p: any) => {
       const mainImg =
@@ -102,46 +112,50 @@ export default async function KategoriDetailPage({ params }: Props) {
         badges: p.hargaDiskon ? ["SALE"] : undefined,
       };
     });
-  } else {
-    // Fallback: Cari produk langsung yang mengandung nama kategori atau slug
-    const directProducts = await prisma.produk.findMany({
-      where: {
-        OR: [
-          { kategori: { nama: { contains: categoryName, mode: "insensitive" } } },
-          { kategori: { slug: { contains: decodedSlug, mode: "insensitive" } } },
-          { nama: { contains: categoryName, mode: "insensitive" } },
-          { nama: { contains: cleanName, mode: "insensitive" } },
-        ],
-      },
-      include: {
-        images: { where: { isUtama: true }, take: 1 },
-        kategori: true,
-      },
-      orderBy: { id: "desc" },
-      take: 20,
-    });
-
-    if (directProducts.length > 0) {
-      products = directProducts.map((p: any) => {
-        const mainImg =
-          p.images[0]?.url ||
-          "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600";
-        return {
-          id: p.id,
-          slug: p.slug,
-          name: p.nama,
-          image: mainImg,
-          price: p.hargaDiskon || p.hargaAsli,
-          originalPrice: p.hargaDiskon ? p.hargaAsli : undefined,
-          rating: p.rating || 4.8,
-          soldCount: p.terjual || 0,
-          badges: p.hargaDiskon ? ["SALE"] : undefined,
-        };
-      });
-    }
   }
 
-  // Cari Koleksi Terpopuler yang relevan dengan nama kategori
+  // Cari seluruh produk toko yang mengandung kata kunci (misal: "celana")
+  const matchingStoreProducts = await prisma.produk.findMany({
+    where: {
+      OR: [
+        { nama: { contains: categoryName, mode: "insensitive" } },
+        { nama: { contains: cleanName, mode: "insensitive" } },
+        { deskripsi: { contains: categoryName, mode: "insensitive" } },
+        { kategori: { nama: { contains: categoryName, mode: "insensitive" } } },
+        { bahanKain: { contains: categoryName, mode: "insensitive" } },
+        { occasion: { contains: categoryName, mode: "insensitive" } },
+      ],
+    },
+    include: {
+      images: { where: { isUtama: true }, take: 1 },
+      kategori: true,
+    },
+    orderBy: { id: "desc" },
+  });
+
+  // Gabungkan produk tanpa duplikasi
+  const existingIds = new Set(products.map((p) => p.id));
+  matchingStoreProducts.forEach((p: any) => {
+    if (!existingIds.has(p.id)) {
+      const mainImg =
+        p.images[0]?.url ||
+        "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600";
+      products.push({
+        id: p.id,
+        slug: p.slug,
+        name: p.nama,
+        image: mainImg,
+        price: p.hargaDiskon || p.hargaAsli,
+        originalPrice: p.hargaDiskon ? p.hargaAsli : undefined,
+        rating: p.rating || 4.8,
+        soldCount: p.terjual || 0,
+        badges: p.hargaDiskon ? ["SALE"] : undefined,
+      });
+      existingIds.add(p.id);
+    }
+  });
+
+  // Cari Koleksi Terpopuler yang relevan
   const relatedKoleksi = await prisma.koleksiTerpopuler.findMany({
     where: {
       OR: [
@@ -150,7 +164,6 @@ export default async function KategoriDetailPage({ params }: Props) {
         { title: { contains: decodedSlug, mode: "insensitive" } },
       ],
     },
-    take: 6,
   });
 
   return (
@@ -163,11 +176,8 @@ export default async function KategoriDetailPage({ params }: Props) {
               Beranda
             </Link>
             <ChevronRight size={14} />
-            <Link
-              href="/kategori"
-              className="hover:text-primary transition-colors"
-            >
-              Kategori
+            <Link href="/kategori" className="hover:text-primary transition-colors">
+              Kategori Pilihan
             </Link>
             <ChevronRight size={14} />
             <span className="text-gray-900 font-medium capitalize">
@@ -177,35 +187,114 @@ export default async function KategoriDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Hero Title */}
+      {/* Hero Banner Detail Kategori Pilihan */}
       <div className="bg-white border-b border-gray-100 py-8 shadow-xs">
         <div className="container-app">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-primary tracking-wider uppercase mb-1 block">
-                Katalog Produk
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 capitalize tracking-tight">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-primary tracking-wider uppercase bg-primary/10 px-2.5 py-1 rounded-md">
+                  Kategori Pilihan
+                </span>
+                {kategoriPilihanDb?.labelPromo && (
+                  <span className="text-xs font-bold text-white bg-red-500 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                    {kategoriPilihanDb.labelPromo}
+                  </span>
+                )}
+                {kategoriPilihanDb?.rating && (
+                  <span className="text-xs font-bold text-gray-900 bg-amber-400 px-2.5 py-1 rounded-md flex items-center gap-1">
+                    <Star size={12} className="fill-gray-900" />
+                    {kategoriPilihanDb.rating} / 5.0
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 capitalize tracking-tight">
                 {categoryName}
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Koleksi dan pakaian pilihan kategori {categoryName}
-              </p>
+
+              {/* Deskripsi & Detail Bahan */}
+              {kategoriPilihanDb?.deskripsi && (
+                <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                  <span className="font-semibold text-gray-800">Detail & Bahan Kain: </span>
+                  {kategoriPilihanDb.deskripsi}
+                </p>
+              )}
+
+              {/* Harga & Promo */}
+              {(kategoriPilihanDb?.hargaAsli || kategoriPilihanDb?.hargaDiskon) && (
+                <div className="flex items-baseline gap-3 pt-1">
+                  <span className="text-xs text-gray-500 font-medium">Harga Spesial:</span>
+                  {kategoriPilihanDb.hargaDiskon ? (
+                    <>
+                      <span className="text-xl font-black text-primary">
+                        Rp {kategoriPilihanDb.hargaDiskon.toLocaleString("id-ID")}
+                      </span>
+                      {kategoriPilihanDb.hargaAsli && (
+                        <span className="text-sm text-gray-400 line-through">
+                          Rp {kategoriPilihanDb.hargaAsli.toLocaleString("id-ID")}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-xl font-black text-gray-900">
+                      Rp {kategoriPilihanDb.hargaAsli?.toLocaleString("id-ID")}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
+
             <Link
               href="/kategori"
-              className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-primary bg-gray-50 border border-gray-200 px-3.5 py-2 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-primary bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-xl transition-colors"
             >
-              <ArrowLeft size={14} /> Semua Kategori
+              <ArrowLeft size={14} /> Semua Kategori Pilihan
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="container-app py-8">
+      <div className="container-app py-8 space-y-10">
+        {/* Section Ulasan Customer jika ada */}
+        {((kategoriPilihanDb?.ulasan && kategoriPilihanDb.ulasan.length > 0) || kategoriPilihanDb?.ulasanText) && (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-4">
+              <MessageSquare size={18} className="text-primary" />
+              Ulasan Customer untuk {categoryName}
+            </h2>
+
+            {kategoriPilihanDb?.ulasanText && (
+              <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 mb-4">
+                <p className="text-xs text-blue-900 font-semibold mb-1">Ulasan Utama:</p>
+                <p className="text-sm text-gray-700 italic">&ldquo;{kategoriPilihanDb.ulasanText}&rdquo;</p>
+              </div>
+            )}
+
+            {kategoriPilihanDb?.ulasan && kategoriPilihanDb.ulasan.length > 0 && (
+              <div className="space-y-3">
+                {kategoriPilihanDb.ulasan.map((u) => (
+                  <div key={u.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-gray-800">
+                        {u.user?.name || "Customer Terverifikasi"}
+                      </span>
+                      <span className="text-xs text-amber-500 font-bold flex items-center gap-0.5">
+                        <Star size={12} className="fill-amber-400" />
+                        {u.rating}.0
+                      </span>
+                    </div>
+                    {u.komentar && <p className="text-xs text-gray-600">{u.komentar}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Koleksi Terpopuler Terkait */}
         {relatedKoleksi.length > 0 && (
-          <div className="mb-10">
+          <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Layers size={18} className="text-primary" />
@@ -241,21 +330,11 @@ export default async function KategoriDetailPage({ params }: Props) {
               Belum Ada Produk di Kategori Ini
             </h3>
             <p className="text-sm text-gray-500 mt-1 mb-6 text-center">
-              Koleksi untuk kategori {categoryName} sedang disiapkan. Silakan
-              lihat koleksi terpopuler kami yang lainnya.
+              Koleksi untuk kategori {categoryName} sedang disiapkan. Silakan lihat koleksi kami yang lain.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              <Link
-                href="/koleksi-terpopuler"
-                className="btn btn-primary text-xs px-4 py-2"
-              >
-                Lihat Koleksi Terpopuler
-              </Link>
-              <Link
-                href="/kategori"
-                className="btn btn-secondary text-xs px-4 py-2"
-              >
-                Kategori Lainnya
+              <Link href="/kategori" className="btn btn-primary text-xs px-4 py-2">
+                Semua Kategori
               </Link>
             </div>
           </div>
