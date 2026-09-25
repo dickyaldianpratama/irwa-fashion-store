@@ -57,12 +57,20 @@ export default function RootLayout({
         {children}
         <Toaster
           position="top-right"
+          containerStyle={{
+            top: 16,
+            right: 16,
+          }}
           toastOptions={{
             duration: 3000,
             style: {
               fontFamily: "Inter, sans-serif",
               fontSize: "14px",
               borderRadius: "10px",
+              maxWidth: "380px",
+              padding: 0,
+              background: "transparent",
+              boxShadow: "none",
             },
             success: {
               iconTheme: { primary: "#28A745", secondary: "#fff" },

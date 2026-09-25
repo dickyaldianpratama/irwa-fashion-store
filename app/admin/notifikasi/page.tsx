@@ -324,54 +324,98 @@ export default function AdminNotifikasiPage() {
         <div className="lg:col-span-5 bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-4">
           <div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Smartphone size={16} className="text-primary" /> Preview Tampilan di Perangkat Customer
+              <Smartphone size={16} className="text-primary" /> Preview Notifikasi di Perangkat Customer
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Simulasi notifikasi yang akan diterima di layar HP/PC pelanggan.
+              Tampilan notifikasi yang akan muncul di layar HP/PC pelanggan — clean &amp; elegan.
             </p>
           </div>
 
-          {/* Device Mockup */}
-          <div className="bg-gray-100 dark:bg-gray-950 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 px-1">
-              <span>9:41 AM</span>
-              <span>IRWA FASHION STORE</span>
-            </div>
-
-            {/* Notification Popup Card */}
-            <div className="bg-white dark:bg-gray-900 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700 shadow-md space-y-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-black text-xs">
-                  IR
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                    {title || "Judul Notifikasi"}
-                  </p>
-                  <p className="text-[10px] text-gray-400">Sekarang • Web Push</p>
+          {/* Desktop Preview */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-0.5">Desktop / Tablet</p>
+            <div className="bg-gray-50 dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
+              {/* Notification card - desktop style (top-right) */}
+              <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg"
+                style={{ boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 30px -5px rgba(26,159,212,0.15), 0 0 0 1px rgba(26,159,212,0.1)" }}>
+                {/* Accent bar */}
+                <div className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, #1A9FD4 0%, #45B5E3 100%)" }} />
+                <div className="p-3.5">
+                  <div className="flex items-start gap-3">
+                    {/* Brand icon */}
+                    <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
+                      style={{ background: "linear-gradient(135deg, #1A9FD4 0%, #106B93 100%)", boxShadow: "0 2px 8px rgba(26,159,212,0.3)" }}>
+                      <span className="text-white font-extrabold text-[12px] tracking-wide font-heading">IR</span>
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Irwa Fashion</span>
+                        <span className="text-[10px] text-gray-400">Baru saja</span>
+                      </div>
+                      <p className="text-[13px] font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">
+                        {title || "Judul Notifikasi"}
+                      </p>
+                      {body && (
+                        <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed line-clamp-2">
+                          {body}
+                        </p>
+                      )}
+                    </div>
+                    {/* Close dot */}
+                    <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-[-2px]">
+                      <span className="text-gray-400 text-[11px] font-bold">×</span>
+                    </div>
+                  </div>
+                  {image && (
+                    <div className="mt-3 w-full h-24 rounded-[10px] overflow-hidden bg-gray-100">
+                      <img src={image} alt="Preview" className="w-full h-full object-cover"
+                        onError={(e) => ((e.target as HTMLElement).style.display = "none")} />
+                    </div>
+                  )}
+                  {url && (
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-[11px] text-gray-400">Ketuk untuk melihat penawaran</span>
+                      <span className="text-[11px] font-bold text-primary">Lihat →</span>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          </div>
 
-              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
-                {body || "Isi pesan promo akan muncul di sini..."}
-              </p>
-
-              {image && (
-                <div className="relative w-full h-32 rounded-lg overflow-hidden bg-gray-100 mt-2">
-                  <img
-                    src={image}
-                    alt="Preview banner"
-                    className="w-full h-full object-cover"
-                    onError={(e) => ((e.target as HTMLElement).style.display = "none")}
-                  />
+          {/* Mobile Preview */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-0.5">Mobile / HP</p>
+            <div className="bg-gray-50 dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 font-semibold mb-3 px-0.5">
+                <span>9:41</span>
+                <span className="font-bold">Irwa Fashion Store</span>
+              </div>
+              {/* Mobile notification banner style */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(26,159,212,0.08)" }}>
+                <div className="h-[3px]" style={{ background: "linear-gradient(90deg, #1A9FD4 0%, #45B5E3 100%)" }} />
+                <div className="px-3 py-2.5 flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0"
+                    style={{ background: "linear-gradient(135deg, #1A9FD4 0%, #106B93 100%)" }}>
+                    <span className="text-white font-extrabold text-[10px] font-heading">IR</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-bold text-primary uppercase tracking-wide">Irwa Fashion</span>
+                      <span className="text-[9px] text-gray-400">Skrg</span>
+                    </div>
+                    <p className="text-[11px] font-bold text-gray-900 dark:text-white leading-tight truncate">
+                      {title || "Judul Notifikasi"}
+                    </p>
+                    {body && (
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-tight">
+                        {body}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
-
-              <div className="pt-1 flex items-center justify-between text-[11px] text-primary font-bold">
-                <span className="flex items-center gap-1">
-                  Buka Link <ExternalLink size={10} />
-                </span>
-                <span className="text-gray-400 font-normal">{url}</span>
               </div>
             </div>
           </div>
