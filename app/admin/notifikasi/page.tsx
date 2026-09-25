@@ -48,9 +48,6 @@ export default function AdminNotifikasiPage() {
     "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800"
   );
   const [url, setUrl] = useState("/promo");
-  const [couponCode, setCouponCode] = useState("MEGASALE70");
-  const [discountTag, setDiscountTag] = useState("DISKON HINGGA 70%");
-  const [isModal, setIsModal] = useState(true);
   const [sending, setSending] = useState(false);
   const [totalSubscribers, setTotalSubscribers] = useState(0);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -105,9 +102,6 @@ export default function AdminNotifikasiPage() {
           body: body.trim(),
           image: image.trim() || null,
           url: url.trim() || "/promo",
-          couponCode: couponCode.trim() || null,
-          discountTag: discountTag.trim() || null,
-          isModal,
         }),
       });
 
@@ -305,50 +299,6 @@ export default function AdminNotifikasiPage() {
                 )
               )}
             </div>
-          </div>
-
-          {/* 3D Modal Overlay Controls */}
-          <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isModal}
-                  onChange={(e) => setIsModal(e.target.checked)}
-                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-500 cursor-pointer"
-                />
-                <Sparkles size={16} className="text-amber-500" /> Tampilkan Popup Modal 3D di Layar Utama Customer
-              </label>
-            </div>
-
-            {isModal && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Kode Kupon Promo (Auto-Copy)
-                  </label>
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="MEGASALE70"
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 rounded-xl text-xs font-mono font-bold text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Label Tag Diskon (Banner 3D)
-                  </label>
-                  <input
-                    type="text"
-                    value={discountTag}
-                    onChange={(e) => setDiscountTag(e.target.value)}
-                    placeholder="DISKON HINGGA 70%"
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 rounded-xl text-xs font-bold text-gray-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-3 border-t border-gray-100 dark:border-gray-800">

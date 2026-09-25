@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Simpan broadcast ke Database agar instan muncul sebagai 3D Promo Modal di layar customer
+    // 1. Simpan broadcast ke Database agar instan muncul sebagai notifikasi di layar customer
     const broadcastRecord = await prisma.notificationBroadcast.create({
       data: {
         title: title.trim(),
