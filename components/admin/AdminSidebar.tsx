@@ -14,7 +14,8 @@ import {
   X,
   ExternalLink,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
@@ -84,6 +85,12 @@ export default function AdminSidebar() {
       items: [
         { name: "Pesanan Masuk", href: "/admin/pesanan", icon: ShoppingCart },
         { name: "Data Pelanggan", href: "/admin/pelanggan", icon: Users },
+      ]
+    },
+    {
+      group: "PROMO & NOTIFIKASI",
+      items: [
+        { name: "Broadcast Notifikasi", href: "/admin/notifikasi", icon: Bell },
       ]
     }
   ];

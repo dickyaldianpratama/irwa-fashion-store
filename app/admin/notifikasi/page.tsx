@@ -1,0 +1,345 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Bell,
+  Send,
+  Loader2,
+  Users,
+  Smartphone,
+  ExternalLink,
+  Sparkles,
+  CheckCircle2,
+  Image as ImageIcon,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
+
+export default function AdminNotifikasiPage() {
+  const [title, setTitle] = useState("🎉 Flash Sale Diskon 50% Irwa Fashion!");
+  const [body, setBody] = useState(
+    "Dapatkan koleksi kemeja & kaos pria impianmu dengan harga hemat hari ini. Klik untuk belanja sekarang!"
+  );
+  const [image, setImage] = useState(
+    "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800"
+  );
+  const [url, setUrl] = useState("/promo");
+  const [sending, setSending] = useState(false);
+  const [totalSubscribers, setTotalSubscribers] = useState(0);
+  const [loadingSubscribers, setLoadingSubscribers] = useState(true);
+
+  // Fetch subscriber count
+  const fetchSubscribers = async () => {
+    try {
+      const res = await fetch("/api/admin/notifikasi/broadcast");
+      const data = await res.json();
+      setTotalSubscribers(data.totalSubscribers || 0);
+    } catch {
+      setTotalSubscribers(0);
+    } finally {
+      setLoadingSubscribers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscribers();
+  }, []);
+
+  const handleSendBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!title.trim() || !body.trim()) {
+      toast.error("Judul dan isi pesan wajib diisi");
+      return;
+    }
+
+    const confirm = await MySwal.fire({
+      title: "Kirim Broadcast Notifikasi?",
+      text: `Pesan promo akan dikirim langsung ke perangkat pelanggan yang terdaftar.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Kirim Sekarang!",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#2563EB",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/notifikasi/broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          body: body.trim(),
+          image: image.trim() || null,
+          url: url.trim() || "/promo",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal mengirim notifikasi");
+      }
+
+      await MySwal.fire({
+        title: "Broadcast Terkirim! 🎉",
+        text: data.message || `Notifikasi berhasil disiarkan via Firebase!`,
+        icon: "success",
+        confirmButtonColor: "#2563EB",
+      });
+
+      fetchSubscribers();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengirim notifikasi");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto pb-12 select-none">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Bell className="text-primary w-7 h-7" /> Broadcast Notifikasi Promo
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Kirim notifikasi melayang ke layar HP & Komputer pelanggan secara langsung via Firebase.
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Counter Card */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-5 rounded-2xl shadow-md flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-blue-100">
+              Pelanggan Terdaftar
+            </p>
+            <h3 className="text-2xl font-black mt-1">
+              {loadingSubscribers ? "..." : `${totalSubscribers} Perangkat`}
+            </h3>
+            <p className="text-[11px] text-blue-200 mt-1">
+              Siap menerima notifikasi melayang
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <Users size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Layanan Push
+            </p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-1 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-500" /> Firebase Cloud Messaging
+            </h3>
+            <p className="text-[11px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
+              <CheckCircle2 size={12} /> Status Aktif
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+            <Smartphone size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Jangkauan Notifikasi
+            </p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+              PWA & Mobile Browser
+            </h3>
+            <p className="text-[11px] text-gray-500 mt-1">
+              Android, Windows, iOS, macOS
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
+            <Send size={24} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Form Broadcast */}
+        <form
+          onSubmit={handleSendBroadcast}
+          className="lg:col-span-7 bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-5"
+        >
+          <div className="border-b border-gray-100 dark:border-gray-800 pb-4">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">
+              Buat Pesan Notifikasi Baru
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Isi formulir di bawah ini untuk menyiarkan pesan promo ke seluruh perangkat pelanggan.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Judul Notifikasi <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Contoh: 🎉 Flash Sale Diskon 50% Irwa Fashion!"
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Isi Pesan Promo <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              required
+              rows={3}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Contoh: Dapatkan koleksi kemeja & kaos pria impianmu dengan harga hemat hari ini. Klik untuk belanja sekarang!"
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              URL Gambar Banner Promo (Opsional)
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <ImageIcon size={16} />
+              </div>
+              <input
+                type="text"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full pl-9 pr-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Link Tujuan Saat Notifikasi Diklik
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="/promo atau /kategori/kemeja"
+                className="flex-1 px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {["/promo", "/kategori/kemeja", "/koleksi-terpopuler", "/produk", "/"].map(
+                (preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setUrl(preset)}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors cursor-pointer ${
+                      url === preset
+                        ? "bg-primary text-white border-primary"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-primary/50"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+            <button
+              type="submit"
+              disabled={sending}
+              className="w-full py-3 px-5 bg-primary hover:bg-primary-dark text-white font-bold text-sm rounded-xl shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Menyiarkan ke Pelanggan...
+                </>
+              ) : (
+                <>
+                  <Send size={18} /> Kirim Broadcast Notifikasi Sekarang
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Live Device Preview */}
+        <div className="lg:col-span-5 bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Smartphone size={16} className="text-primary" /> Preview Tampilan di Perangkat Customer
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Simulasi notifikasi yang akan diterima di layar HP/PC pelanggan.
+            </p>
+          </div>
+
+          {/* Device Mockup */}
+          <div className="bg-gray-100 dark:bg-gray-950 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 space-y-3">
+            <div className="flex items-center justify-between text-[11px] font-bold text-gray-400 px-1">
+              <span>9:41 AM</span>
+              <span>IRWA FASHION STORE</span>
+            </div>
+
+            {/* Notification Popup Card */}
+            <div className="bg-white dark:bg-gray-900 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700 shadow-md space-y-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-black text-xs">
+                  IR
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                    {title || "Judul Notifikasi"}
+                  </p>
+                  <p className="text-[10px] text-gray-400">Sekarang • Web Push</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
+                {body || "Isi pesan promo akan muncul di sini..."}
+              </p>
+
+              {image && (
+                <div className="relative w-full h-32 rounded-lg overflow-hidden bg-gray-100 mt-2">
+                  <img
+                    src={image}
+                    alt="Preview banner"
+                    className="w-full h-full object-cover"
+                    onError={(e) => ((e.target as HTMLElement).style.display = "none")}
+                  />
+                </div>
+              )}
+
+              <div className="pt-1 flex items-center justify-between text-[11px] text-primary font-bold">
+                <span className="flex items-center gap-1">
+                  Buka Link <ExternalLink size={10} />
+                </span>
+                <span className="text-gray-400 font-normal">{url}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

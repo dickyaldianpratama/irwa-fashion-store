@@ -311,3 +311,11 @@ model VoucherUser {
   createdAt DateTime  @default(now())
   expiredAt DateTime?
 }
+
+model FCMToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

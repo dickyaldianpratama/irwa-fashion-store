@@ -73,6 +73,13 @@ export const requestFCMToken = async (): Promise<string | null> => {
 
     if (token) {
       console.log("FCM Token successfully acquired:", token);
+      // Register token to backend database for admin broadcast
+      fetch("/api/notifikasi/register-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      }).catch((err) => console.error("Error saving FCM token to DB:", err));
+
       return token;
     } else {
       console.warn("No registration token available. Request permission to generate one.");
