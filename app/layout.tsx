@@ -17,6 +17,8 @@ const poppins = Poppins({
   display: "swap",
 });
 
+import FCMHandler from "@/components/notifikasi/FCMHandler";
+
 export const metadata: Metadata = {
   title: {
     default: "Irwa Fashion House - Pakaian Pria Berkualitas",
@@ -51,6 +53,7 @@ export default function RootLayout({
           speed={200}
           shadow="0 0 10px #2563EB,0 0 5px #2563EB"
         />
+        <FCMHandler />
         {children}
         <Toaster
           position="top-right"
