@@ -10,11 +10,31 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase App (ensure single instance)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Helper to check if valid config exists
+const isConfigValid = Boolean(
+  firebaseConfig.apiKey &&
+    firebaseConfig.projectId &&
+    !firebaseConfig.apiKey.includes("your_") &&
+    !firebaseConfig.projectId.includes("your_")
+);
+
+// Initialize Firebase App safely
+const getFirebaseApp = () => {
+  if (!isConfigValid) {
+    return null;
+  }
+  return !getApps().length ? initializeApp(firebaseConfig) : getApp();
+};
 
 export const getFirebaseMessaging = (): Messaging | null => {
   if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+    const app = getFirebaseApp();
+    if (!app) {
+      console.warn(
+        "⚠️ Firebase environment variables are missing or unconfigured. Please add NEXT_PUBLIC_FIREBASE_... to Vercel Environment Variables and redeploy."
+      );
+      return null;
+    }
     try {
       return getMessaging(app);
     } catch (err) {
