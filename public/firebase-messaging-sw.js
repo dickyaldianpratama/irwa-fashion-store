@@ -19,9 +19,11 @@ messaging.onBackgroundMessage(function (payload) {
 
   const notificationTitle = payload.notification?.title || payload.data?.title || "IRWA FASHION STORE";
   const notificationOptions = {
-    body: payload.notification?.body || payload.data?.body || "Anda mendapatkan notifikasi baru!",
-    icon: payload.notification?.icon || "/icon.png",
-    badge: "/icon.png",
+    body: payload.notification?.body || payload.data?.body || "Anda mendapatkan promo notifikasi baru!",
+    icon: payload.notification?.icon || payload.notification?.image || "/images/irwa-logo.png",
+    badge: "/images/irwa-logo.png",
+    image: payload.notification?.image || payload.data?.image || undefined,
+    vibrate: [200, 100, 200],
     data: payload.data || {},
   };
 
