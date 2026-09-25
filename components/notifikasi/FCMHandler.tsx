@@ -14,72 +14,69 @@ export default function FCMHandler() {
     image?: string | null,
     url?: string | null
   ) => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
     toast.custom(
       (t) => (
         <div
-          className={`${
-            t.visible ? "animate-enter" : "animate-leave"
-          } pointer-events-auto w-full max-w-sm`}
           style={{
+            width: isMobile ? "calc(100vw - 24px)" : "360px",
             animation: t.visible
-              ? "slideInDown 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
-              : "fadeOut 0.25s ease-in forwards",
+              ? "irwaSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
+              : "irwaFadeOut 0.2s ease-in forwards",
           }}
         >
-          {/* Notification Card */}
+          {/* Card */}
           <div
             style={{
-              background: "rgba(255,255,255,0.97)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              borderRadius: "16px",
-              boxShadow:
-                "0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 30px -5px rgba(26,159,212,0.15), 0 0 0 1px rgba(26,159,212,0.1)",
+              background: "rgba(255,255,255,0.98)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderRadius: isMobile ? "14px" : "16px",
               overflow: "hidden",
+              boxShadow:
+                "0 4px 6px -1px rgba(0,0,0,0.06), 0 12px 32px -4px rgba(26,159,212,0.18), 0 0 0 1px rgba(26,159,212,0.12)",
               cursor: url ? "pointer" : "default",
-              position: "relative",
             }}
             onClick={() => {
               if (url) window.location.href = url;
               toast.dismiss(t.id);
             }}
           >
-            {/* Top accent bar */}
+            {/* Brand accent bar */}
             <div
               style={{
                 height: "3px",
-                background: "linear-gradient(90deg, #1A9FD4 0%, #45B5E3 100%)",
+                background: "linear-gradient(90deg, #1A9FD4 0%, #45B5E3 60%, #6DC5E9 100%)",
               }}
             />
 
-            <div style={{ padding: "14px 16px 14px 16px" }}>
+            <div
+              style={{
+                padding: isMobile ? "12px 14px" : "14px 16px",
+              }}
+            >
               {/* Header row */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "12px",
-                }}
-              >
-                {/* Brand logo square */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                {/* Brand icon */}
                 <div
                   style={{
-                    width: "40px",
-                    height: "40px",
+                    width: isMobile ? "36px" : "40px",
+                    height: isMobile ? "36px" : "40px",
                     borderRadius: "10px",
                     background: "linear-gradient(135deg, #1A9FD4 0%, #106B93 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
-                    boxShadow: "0 2px 8px rgba(26,159,212,0.3)",
+                    boxShadow: "0 2px 8px rgba(26,159,212,0.35)",
                   }}
                 >
                   <span
                     style={{
                       color: "#fff",
                       fontWeight: 800,
-                      fontSize: "13px",
+                      fontSize: isMobile ? "11px" : "13px",
                       letterSpacing: "0.5px",
                       fontFamily: "Poppins, Inter, sans-serif",
                     }}
@@ -88,14 +85,14 @@ export default function FCMHandler() {
                   </span>
                 </div>
 
-                {/* Content */}
+                {/* Text content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      gap: "8px",
+                      gap: "6px",
                       marginBottom: "2px",
                     }}
                   >
@@ -106,6 +103,7 @@ export default function FCMHandler() {
                         color: "#1A9FD4",
                         textTransform: "uppercase",
                         letterSpacing: "0.6px",
+                        fontFamily: "Inter, sans-serif",
                       }}
                     >
                       Irwa Fashion
@@ -114,8 +112,8 @@ export default function FCMHandler() {
                       style={{
                         fontSize: "10px",
                         color: "#ADB5BD",
-                        fontWeight: 400,
                         flexShrink: 0,
+                        fontFamily: "Inter, sans-serif",
                       }}
                     >
                       Baru saja
@@ -124,15 +122,16 @@ export default function FCMHandler() {
 
                   <p
                     style={{
-                      fontSize: "13px",
+                      fontSize: isMobile ? "12px" : "13px",
                       fontWeight: 700,
                       color: "#212529",
                       lineHeight: "1.35",
                       margin: 0,
+                      fontFamily: "Inter, sans-serif",
+                      overflow: "hidden",
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical" as const,
-                      overflow: "hidden",
                     }}
                   >
                     {title}
@@ -141,15 +140,16 @@ export default function FCMHandler() {
                   {body && (
                     <p
                       style={{
-                        fontSize: "12px",
+                        fontSize: isMobile ? "11px" : "12px",
                         color: "#6C757D",
                         lineHeight: "1.5",
-                        marginTop: "4px",
+                        marginTop: "3px",
                         marginBottom: 0,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical" as const,
+                        fontFamily: "Inter, sans-serif",
                         overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: isMobile ? 1 : 2,
+                        WebkitBoxOrient: "vertical" as const,
                       }}
                     >
                       {body}
@@ -157,15 +157,15 @@ export default function FCMHandler() {
                   )}
                 </div>
 
-                {/* Dismiss button */}
+                {/* Close button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toast.dismiss(t.id);
                   }}
                   style={{
-                    width: "24px",
-                    height: "24px",
+                    width: "22px",
+                    height: "22px",
                     borderRadius: "50%",
                     background: "#F1F3F5",
                     border: "none",
@@ -174,8 +174,8 @@ export default function FCMHandler() {
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
-                    marginTop: "-2px",
-                    color: "#ADB5BD",
+                    marginTop: "-1px",
+                    color: "#868E96",
                     transition: "background 0.15s",
                   }}
                   onMouseEnter={(e) =>
@@ -185,17 +185,17 @@ export default function FCMHandler() {
                     ((e.currentTarget as HTMLButtonElement).style.background = "#F1F3F5")
                   }
                 >
-                  <X size={13} />
+                  <X size={12} />
                 </button>
               </div>
 
-              {/* Image banner */}
+              {/* Image */}
               {image && (
                 <div
                   style={{
-                    marginTop: "12px",
+                    marginTop: "10px",
                     width: "100%",
-                    height: "120px",
+                    height: isMobile ? "100px" : "116px",
                     borderRadius: "10px",
                     overflow: "hidden",
                     background: "#F1F3F5",
@@ -204,12 +204,7 @@ export default function FCMHandler() {
                   <img
                     src={image}
                     alt={title}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     onError={(e) =>
                       ((e.target as HTMLImageElement).style.display = "none")
                     }
@@ -217,11 +212,13 @@ export default function FCMHandler() {
                 </div>
               )}
 
-              {/* CTA Row */}
+              {/* CTA footer */}
               {url && (
                 <div
                   style={{
-                    marginTop: "12px",
+                    marginTop: "10px",
+                    paddingTop: "8px",
+                    borderTop: "1px solid #F1F3F5",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -231,19 +228,17 @@ export default function FCMHandler() {
                     style={{
                       fontSize: "11px",
                       color: "#ADB5BD",
-                      fontWeight: 400,
+                      fontFamily: "Inter, sans-serif",
                     }}
                   >
-                    Ketuk untuk melihat penawaran
+                    Ketuk untuk lihat penawaran
                   </span>
                   <span
                     style={{
                       fontSize: "11px",
                       fontWeight: 700,
                       color: "#1A9FD4",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "3px",
+                      fontFamily: "Inter, sans-serif",
                     }}
                   >
                     Lihat →
@@ -256,34 +251,34 @@ export default function FCMHandler() {
       ),
       {
         duration: 9000,
-        position: "top-right",
+        // Mobile: top-center agar muncul di tengah atas seperti notifikasi HP
+        // Desktop: top-right pojok kanan atas
+        position: isMobile ? "top-center" : "top-right",
       }
     );
   };
 
   useEffect(() => {
-    // Inject keyframe animations
-    const styleId = "irwa-toast-keyframes";
+    // Inject keyframes once
+    const styleId = "irwa-notif-keyframes";
     if (!document.getElementById(styleId)) {
       const style = document.createElement("style");
       style.id = styleId;
       style.textContent = `
-        @keyframes slideInDown {
-          from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+        @keyframes irwaSlideIn {
+          from { opacity: 0; transform: translateY(-20px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes fadeOut {
+        @keyframes irwaFadeOut {
           from { opacity: 1; transform: scale(1); }
-          to   { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 0; transform: scale(0.95); }
         }
       `;
       document.head.appendChild(style);
     }
 
-    // 1. Request FCM Token & register to DB
     requestFCMToken();
 
-    // 2. Listen for direct foreground FCM SDK messages
     const unsubscribe = onForegroundMessage((payload) => {
       const title =
         payload?.notification?.title ||
@@ -292,17 +287,14 @@ export default function FCMHandler() {
       const body = payload?.notification?.body || payload?.data?.body || "";
       const image = payload?.notification?.image || payload?.data?.image;
       const url = payload?.data?.url || "/promo";
-
       displayToast(title, body, image, url);
     });
 
-    // 3. Poll for active admin broadcast notifications
     const checkLatestBroadcast = async () => {
       try {
         const res = await fetch("/api/notifikasi/latest-broadcast");
         const json = await res.json();
         const latest = json.data;
-
         if (latest && latest.id) {
           const storedSeenId = localStorage.getItem("irwa_last_seen_broadcast_id");
           if (
@@ -314,8 +306,8 @@ export default function FCMHandler() {
             displayToast(latest.title, latest.body, latest.image, latest.url);
           }
         }
-      } catch (err) {
-        // Silent error
+      } catch {
+        // silent
       }
     };
 
