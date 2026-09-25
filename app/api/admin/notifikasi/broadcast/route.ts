@@ -5,9 +5,22 @@ export async function GET() {
   try {
     const count = await prisma.fCMToken.count();
     const broadcastCount = await prisma.notificationBroadcast.count();
-    return NextResponse.json({ totalSubscribers: count, totalBroadcasts: broadcastCount });
+    const subscribers = await prisma.fCMToken.findMany({
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, phone: true, avatar: true },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+    });
+    return NextResponse.json({
+      totalSubscribers: count,
+      totalBroadcasts: broadcastCount,
+      subscribers,
+    });
   } catch (e: any) {
-    return NextResponse.json({ totalSubscribers: 0, totalBroadcasts: 0 });
+    return NextResponse.json({ totalSubscribers: 0, totalBroadcasts: 0, subscribers: [] });
   }
 }
 

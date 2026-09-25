@@ -11,12 +11,33 @@ import {
   Sparkles,
   CheckCircle2,
   Image as ImageIcon,
+  Monitor,
+  Laptop,
+  User,
+  ShieldCheck,
+  Calendar,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
+
+interface Subscriber {
+  id: string;
+  token: string;
+  userId: string | null;
+  deviceInfo: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+  } | null;
+}
 
 export default function AdminNotifikasiPage() {
   const [title, setTitle] = useState("🎉 Flash Sale Diskon 50% Irwa Fashion!");
@@ -29,16 +50,19 @@ export default function AdminNotifikasiPage() {
   const [url, setUrl] = useState("/promo");
   const [sending, setSending] = useState(false);
   const [totalSubscribers, setTotalSubscribers] = useState(0);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loadingSubscribers, setLoadingSubscribers] = useState(true);
 
-  // Fetch subscriber count
+  // Fetch subscribers data
   const fetchSubscribers = async () => {
     try {
       const res = await fetch("/api/admin/notifikasi/broadcast");
       const data = await res.json();
       setTotalSubscribers(data.totalSubscribers || 0);
+      setSubscribers(data.subscribers || []);
     } catch {
       setTotalSubscribers(0);
+      setSubscribers([]);
     } finally {
       setLoadingSubscribers(false);
     }
@@ -58,7 +82,7 @@ export default function AdminNotifikasiPage() {
 
     const confirm = await MySwal.fire({
       title: "Kirim Broadcast Notifikasi?",
-      text: `Pesan promo akan dikirim langsung ke perangkat pelanggan yang terdaftar.`,
+      text: `Pesan promo akan dikirim langsung ke ${totalSubscribers} perangkat pelanggan terdaftar.`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Ya, Kirim Sekarang!",
@@ -89,7 +113,7 @@ export default function AdminNotifikasiPage() {
 
       await MySwal.fire({
         title: "Broadcast Terkirim! 🎉",
-        text: data.message || `Notifikasi berhasil disiarkan via Firebase!`,
+        text: data.message || `Notifikasi berhasil disiarkan!`,
         icon: "success",
         confirmButtonColor: "#2563EB",
       });
@@ -102,8 +126,20 @@ export default function AdminNotifikasiPage() {
     }
   };
 
+  const getDeviceIcon = (deviceInfo?: string | null) => {
+    if (!deviceInfo) return <Smartphone size={15} className="text-blue-500" />;
+    const info = deviceInfo.toLowerCase();
+    if (info.includes("android") || info.includes("ios") || info.includes("iphone")) {
+      return <Smartphone size={15} className="text-blue-500" />;
+    }
+    if (info.includes("windows") || info.includes("mac") || info.includes("desktop")) {
+      return <Laptop size={15} className="text-indigo-500" />;
+    }
+    return <Monitor size={15} className="text-gray-500" />;
+  };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12 select-none">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16 select-none">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -116,7 +152,7 @@ export default function AdminNotifikasiPage() {
         </div>
       </div>
 
-      {/* Stats Counter Card */}
+      {/* Stats Counter Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-5 rounded-2xl shadow-md flex items-center justify-between">
           <div>
@@ -170,6 +206,7 @@ export default function AdminNotifikasiPage() {
         </div>
       </div>
 
+      {/* Broadcast Form & Live Device Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Form Broadcast */}
         <form
@@ -339,6 +376,122 @@ export default function AdminNotifikasiPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Registered Devices Table */}
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Users size={18} className="text-primary" /> Daftar Perangkat & Pelanggan Terdaftar
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Perangkat pelanggan yang telah menyetujui izin notifikasi dan siap menerima broadcast.
+            </p>
+          </div>
+          <span className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 font-bold px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800 self-start sm:self-auto">
+            Total {totalSubscribers} Perangkat
+          </span>
+        </div>
+
+        {loadingSubscribers ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-2 text-gray-400">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <p className="text-xs">Memuat daftar perangkat...</p>
+          </div>
+        ) : subscribers.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">
+            <Users size={32} className="mx-auto mb-2 opacity-40" />
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Belum ada perangkat terdaftar
+            </p>
+            <p className="text-xs mt-1 text-gray-400">
+              Perangkat akan otomatis terdaftar ketika pelanggan mengizinkan notifikasi di toko.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+              <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-100 dark:border-gray-800">
+                <tr>
+                  <th className="py-3 px-4">Pelanggan / Pengunjung</th>
+                  <th className="py-3 px-4">Perangkat & Browser</th>
+                  <th className="py-3 px-4">Alamat IP</th>
+                  <th className="py-3 px-4">Terakhir Aktif</th>
+                  <th className="py-3 px-4 text-right">Status Notifikasi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {subscribers.map((sub) => {
+                  const userName = sub.user?.name || "Pengunjung Tamu (Guest)";
+                  const userEmail = sub.user?.email || "Belum Login Akun";
+                  const dateStr = new Date(sub.updatedAt || sub.createdAt).toLocaleDateString(
+                    "id-ID",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  );
+
+                  return (
+                    <tr key={sub.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0">
+                            {sub.user?.avatar ? (
+                              <img
+                                src={sub.user.avatar}
+                                alt={userName}
+                                className="w-full h-full rounded-full object-cover"
+                              />
+                            ) : sub.user?.name ? (
+                              sub.user.name.charAt(0).toUpperCase()
+                            ) : (
+                              <User size={14} />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 dark:text-white truncate">
+                              {userName}
+                            </p>
+                            <p className="text-[11px] text-gray-400 truncate">{userEmail}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0">
+                            {getDeviceIcon(sub.deviceInfo)}
+                          </div>
+                          <span className="font-medium text-gray-800 dark:text-gray-200">
+                            {sub.deviceInfo || "Perangkat Web"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-gray-400">
+                        {sub.ipAddress || "-"}
+                      </td>
+                      <td className="py-3.5 px-4 text-gray-500">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={13} className="text-gray-400" />
+                          <span>{dateStr}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                          <CheckCircle2 size={11} /> Siap Menerima
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

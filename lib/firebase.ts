@@ -73,11 +73,24 @@ export const requestFCMToken = async (): Promise<string | null> => {
 
     if (token) {
       console.log("FCM Token successfully acquired:", token);
-      // Register token to backend database for admin broadcast
+
+      // Attempt to get logged in user ID if available
+      let userId: string | null = null;
+      try {
+        const authData = localStorage.getItem("auth-storage");
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          userId = parsed?.state?.user?.id || null;
+        }
+      } catch (e) {
+        // silent
+      }
+
+      // Register token to backend database for admin broadcast & device list
       fetch("/api/notifikasi/register-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, userId }),
       }).catch((err) => console.error("Error saving FCM token to DB:", err));
 
       return token;
