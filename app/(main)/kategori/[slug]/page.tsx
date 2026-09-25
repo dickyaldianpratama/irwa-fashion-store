@@ -65,8 +65,8 @@ export default async function KategoriDetailPage({ params }: Props) {
   const categoryName = kategoriPilihan?.nama ||
     cleanName.replace(/\b\w/g, (l) => l.toUpperCase());
 
-  // If kategoriPilihan has manually input produk, use those
-  if (kategoriPilihan && kategoriPilihan.produk.length > 0) {
+  // If kategoriPilihan exists, use its data strictly (standalone category from admin)
+  if (kategoriPilihan) {
     return (
       <div className="bg-gray-50 min-h-screen pb-16">
         {/* Breadcrumb */}
@@ -101,50 +101,63 @@ export default async function KategoriDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Grid Produk dari KategoriPilihanProduk */}
+        {/* Grid / Empty State Produk dari KategoriPilihanProduk */}
         <div className="container-app py-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-            {kategoriPilihan.produk.map((p) => {
-              const mainImg = p.images.find(i => i.isUtama)?.url || p.images[0]?.url ||
-                "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600";
-              const isDiskon = p.hargaDiskon && p.hargaDiskon < p.harga;
-              return (
-                <Link
-                  key={p.id}
-                  href={`/kategori/${decodedSlug}/produk/${p.id}`}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col"
-                >
-                  <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
-                    <img
-                      src={mainImg}
-                      alt={p.nama}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {isDiskon && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">DISKON</div>
-                    )}
-                    {p.images.length > 1 && (
-                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full">+{p.images.length - 1} foto</div>
-                    )}
-                  </div>
-                  <div className="p-3 flex flex-col gap-1 flex-1">
-                    <p className="font-semibold text-sm text-gray-900 line-clamp-2 leading-tight">{p.nama}</p>
-                    {p.ukuran && <p className="text-[10px] text-gray-400">{p.ukuran}</p>}
-                    <div className="mt-auto pt-1">
-                      {isDiskon ? (
-                        <>
-                          <p className="text-xs text-gray-400 line-through">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.harga)}</p>
-                          <p className="text-sm font-black text-primary">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.hargaDiskon!)}</p>
-                        </>
-                      ) : (
-                        <p className="text-sm font-black text-gray-900">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.harga)}</p>
+          {kategoriPilihan.produk.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+              {kategoriPilihan.produk.map((p) => {
+                const mainImg = p.images.find(i => i.isUtama)?.url || p.images[0]?.url ||
+                  "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600";
+                const isDiskon = p.hargaDiskon && p.hargaDiskon < p.harga;
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/kategori/${decodedSlug}/produk/${p.id}`}
+                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col"
+                  >
+                    <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
+                      <img
+                        src={mainImg}
+                        alt={p.nama}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {isDiskon && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">DISKON</div>
+                      )}
+                      {p.images.length > 1 && (
+                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full">+{p.images.length - 1} foto</div>
                       )}
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                    <div className="p-3 flex flex-col gap-1 flex-1">
+                      <p className="font-semibold text-sm text-gray-900 line-clamp-2 leading-tight">{p.nama}</p>
+                      {p.ukuran && <p className="text-[10px] text-gray-400">{p.ukuran}</p>}
+                      <div className="mt-auto pt-1">
+                        {isDiskon ? (
+                          <>
+                            <p className="text-xs text-gray-400 line-through">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.harga)}</p>
+                            <p className="text-sm font-black text-primary">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.hargaDiskon!)}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-black text-gray-900">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.harga)}</p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-16 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center max-w-md mx-auto p-6">
+              <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
+                <ShoppingBag size={28} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Belum Ada Produk {categoryName}</h3>
+              <p className="text-sm text-gray-500 mt-1 mb-6 text-center">
+                Produk untuk kategori {categoryName} belum tersedia di toko. Silakan lihat katalog produk lainnya.
+              </p>
+              <Link href="/kategori" className="btn btn-primary text-xs px-4 py-2">Lihat Semua Kategori</Link>
+            </div>
+          )}
         </div>
       </div>
     );
