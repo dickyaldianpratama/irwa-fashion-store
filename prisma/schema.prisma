@@ -319,3 +319,13 @@ model FCMToken {
   updatedAt DateTime @updatedAt
 }
 
+model NotificationBroadcast {
+  id        String   @id @default(uuid())
+  title     String
+  body      String
+  image     String?
+  url       String?
+  createdAt DateTime @default(now())
+}
+
+

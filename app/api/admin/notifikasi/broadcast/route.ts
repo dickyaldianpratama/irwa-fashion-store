@@ -4,9 +4,10 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const count = await prisma.fCMToken.count();
-    return NextResponse.json({ totalSubscribers: count });
+    const broadcastCount = await prisma.notificationBroadcast.count();
+    return NextResponse.json({ totalSubscribers: count, totalBroadcasts: broadcastCount });
   } catch (e: any) {
-    return NextResponse.json({ totalSubscribers: 0 });
+    return NextResponse.json({ totalSubscribers: 0, totalBroadcasts: 0 });
   }
 }
 
@@ -21,71 +22,74 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ambil seluruh token terdaftar
+    // 1. Simpan broadcast ke Database agar instan muncul di layar customer
+    const broadcastRecord = await prisma.notificationBroadcast.create({
+      data: {
+        title: title.trim(),
+        body: body.trim(),
+        image: image?.trim() || null,
+        url: url?.trim() || "/promo",
+      },
+    });
+
+    // 2. Ambil seluruh FCM Token terdaftar untuk Web Push
     const tokens = await prisma.fCMToken.findMany({
       select: { token: true },
     });
 
     const tokenList = tokens.map((t) => t.token);
-
-    if (tokenList.length === 0) {
-      return NextResponse.json(
-        { error: "Belum ada pelanggan terdaftar yang mengizinkan notifikasi." },
-        { status: 400 }
-      );
-    }
-
     const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
     let successCount = 0;
     let failureCount = 0;
 
-    // Send via FCM Legacy / Web REST Endpoint for each token or batch
-    const notificationPayload = {
-      notification: {
-        title,
-        body,
-        icon: "/icon.png",
-        image: image || undefined,
-      },
-      data: {
-        title,
-        body,
-        url: url || "/promo",
-      },
-    };
+    if (tokenList.length > 0 && apiKey) {
+      const notificationPayload = {
+        notification: {
+          title,
+          body,
+          icon: "/icon.png",
+          image: image || undefined,
+        },
+        data: {
+          title,
+          body,
+          url: url || "/promo",
+        },
+      };
 
-    // Broadcast to each token via FCM HTTP
-    const promises = tokenList.map(async (fcmToken) => {
-      try {
-        const res = await fetch("https://fcm.googleapis.com/fcm/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `key=${apiKey}`,
-          },
-          body: JSON.stringify({
-            to: fcmToken,
-            ...notificationPayload,
-          }),
-        });
+      const promises = tokenList.map(async (fcmToken) => {
+        try {
+          const res = await fetch("https://fcm.googleapis.com/fcm/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `key=${apiKey}`,
+            },
+            body: JSON.stringify({
+              to: fcmToken,
+              ...notificationPayload,
+            }),
+          });
 
-        if (res.ok) {
-          successCount++;
-        } else {
+          if (res.ok) {
+            successCount++;
+          } else {
+            failureCount++;
+          }
+        } catch (err) {
           failureCount++;
         }
-      } catch (err) {
-        failureCount++;
-      }
-    });
+      });
 
-    await Promise.allSettled(promises);
+      await Promise.allSettled(promises);
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Broadcast berhasil dikirim ke ${tokenList.length} perangkat!`,
+      message: `Broadcast promo "${title}" berhasil disiarkan ke seluruh layar HP & Komputer pelanggan!`,
       totalTokens: tokenList.length,
+      broadcastId: broadcastRecord.id,
       successCount: successCount || tokenList.length,
       failureCount,
     });
