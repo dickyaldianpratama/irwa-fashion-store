@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
 import CartDrawer from "@/components/cart/CartDrawer";
+import PromoModal from "@/components/ui/PromoModal";
 
 export default function MainLayout({
   children,
@@ -21,6 +22,9 @@ export default function MainLayout({
 
       {/* Sidebar Keranjang Global */}
       <CartDrawer />
+
+      {/* 3D Promo Popup Modal Overlay */}
+      <PromoModal />
     </div>
   );
 }

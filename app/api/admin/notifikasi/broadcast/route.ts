@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, body, image, url } = await req.json();
+    const { title, body, image, url, isModal, couponCode, discountTag } = await req.json();
 
     if (!title || !body) {
       return NextResponse.json(
@@ -35,13 +35,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Simpan broadcast ke Database agar instan muncul di layar customer
+    // 1. Simpan broadcast ke Database agar instan muncul sebagai 3D Promo Modal di layar customer
     const broadcastRecord = await prisma.notificationBroadcast.create({
       data: {
         title: title.trim(),
         body: body.trim(),
         image: image?.trim() || null,
         url: url?.trim() || "/promo",
+        isModal: isModal ?? true,
+        couponCode: couponCode?.trim() || null,
+        discountTag: discountTag?.trim() || "DISKON HINGGA 70%",
       },
     });
 

@@ -325,12 +325,15 @@ model FCMToken {
 }
 
 model NotificationBroadcast {
-  id        String   @id @default(uuid())
-  title     String
-  body      String
-  image     String?
-  url       String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  body        String
+  image       String?
+  url         String?
+  isModal     Boolean  @default(true)
+  couponCode  String?
+  discountTag String?
+  createdAt   DateTime @default(now())
 }
 
 
