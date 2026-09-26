@@ -1,0 +1,23 @@
+services:
+  # Nama service aplikasi toko online kamu
+  toko-web:
+    # Menggunakan Image yang sudah kita buat tadi
+    image: dickyaldianpratama/irwa-fashion-store:1.0.0
+    
+    # Nama panggilan containernya
+    container_name: irmawadi
+    
+    # Port Mapping: Port Laptop (8080) -> Port Container (3000)
+    ports:
+      - "8080:3000"
+      
+    # Fitur Sakti: Kalau laptop restart, otomatis nyalakan lagi website ini!
+    restart: unless-stopped
+
+    env_file:
+      - .env.local
+    
+    # Alokasi Environment
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
